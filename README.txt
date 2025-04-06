@@ -4,5 +4,6 @@
 新建报销 Add New Reimbursement
 信箱 Mailbox
 设置 Settings
+金融分析 Financial Analysis
 
 运行配置在.idea文件里（其实就是javafx的sdk库）
