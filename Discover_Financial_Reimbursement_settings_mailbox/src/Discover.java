@@ -190,16 +190,16 @@ public class Discover extends Application {
     private void openNewPage(Stage primaryStage, String pageTitle) {
         try {
             switch (pageTitle) {
-//                case "Enterprise Edition" -> new EnterPrise().start(new Stage());
+                case "Enterprise Edition" -> new NutlletEnterprise().start(new Stage());
                 case "MailBox" -> new Mailbox().start(new Stage());
-//                case "Reminders" -> new Reminders().start(new Stage());
+                case "Reminders" -> new NutlletReminder().start(new Stage());
                 case "Reimbursement Items" -> new ReimbursementList().start(new Stage());
                 case "Financial Analysis" -> new FinancialAnalysis().start(new Stage());
 //                case "Transaction Management" -> new TransactionManager().start(new Stage());
 //                case "Bank Data Management" -> new BankDataManager().start(new Stage());
 //                case "Expenditure Classification System" -> new ExpenditureClassifier().start(new Stage());
 //                case "Seasonal Spikes" -> new SeasonalAnalysis().start(new Stage());
-//                case "International Currency Exchange" -> new CurrencyExchangeViewer().start(new Stage());
+                case "International Currency Exchange" -> new International().start(new Stage());
 //                case "AI Intelligent Classification" -> new AIClassifier().start(new Stage());
                 default -> showDefaultWelcomePage(primaryStage, pageTitle); // ← 用默认页兜底
             }
