@@ -1,9 +1,13 @@
+
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -25,12 +29,10 @@ public class Settings extends Application {
         mainLayout.setSpacing(20);
         mainLayout.setAlignment(Pos.TOP_CENTER);
         mainLayout.setBackground(new Background(new BackgroundFill(
-                Color.web("#E6F0FF", 0.3)
-                , new CornerRadii(0), Insets.EMPTY)));
+                Color.web("#E6F0FF", 0.3), new CornerRadii(0), Insets.EMPTY)));
 
         Text title = new Text("Settings");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
-//        title.setFill(Color.web("#855FAF"));
         title.setFill(Color.BLACK);
         HBox titleBox = new HBox(title);
         titleBox.setAlignment(Pos.CENTER);
@@ -54,29 +56,31 @@ public class Settings extends Application {
         itemsContainer.setAlignment(Pos.CENTER);
         itemsContainer.setPadding(new Insets(10));
 
+        Label noResultsLabel = new Label("Relevant functions are building forward...");
+        noResultsLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
+        noResultsLabel.setTextFill(Color.GRAY);
+        noResultsLabel.setVisible(false);
+
         ScrollPane scrollPane = new ScrollPane(itemsContainer);
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        scrollPane.setPrefHeight(600); // 控制高度范围
+        scrollPane.setPrefHeight(600);
 
         String[] pastelColors = {
-                "#FFB6C1B3", // #FFB6C1 with alpha 0.7
-                "#FFDAB9B3", // #FFDAB9 with alpha 0.7
-                "#FFFACDB3", // #FFFACD with alpha 0.7
-                "#E0FFFFB3", // #E0FFFF with alpha 0.7
-                "#D8BFD8B3", // #D8BFD8 with alpha 0.7
-                "#C6E2FFB3", // #C6E2FF with alpha 0.7
-                "#E6E6FAB3"  // #E6E6FA with alpha 0.7
+                "#FFB6C1B3", "#FFDAB9B3", "#FFFACDB3", "#E0FFFFB3", "#D8BFD8B3", "#C6E2FFB3", "#E6E6FAB3"
         };
 
         String[] titles = {
-                "Enterprise Edition", "Add New Reminder", "App Feedback",
-                "AI preference", "Change Password", "Sign Up with New Account", "Logout"
+                "Enterprise Edition",
+                "App Feedback",
+                "AI Advice",
+                "Change Password",
+                "Sign Up with New Account",
+                "Log out"
         };
 
         String[] descriptions = {
                 "Click to start with Enterprise Edition.",
-                "Click to add new reminder",
                 "In case you wish to give us some suggestions.",
                 "Set your preferred AI.",
                 "Change your password.",
@@ -90,8 +94,7 @@ public class Settings extends Application {
             itemsContainer.getChildren().add(btn);
         }
 
-        mainLayout.getChildren().addAll(titleBox, searchBox, scrollPane);
-
+        mainLayout.getChildren().addAll(titleBox, searchBox, scrollPane, noResultsLabel);
         root.getChildren().addAll(mainLayout);
 
         // Bottom Navigation Bar with highlight
@@ -117,9 +120,36 @@ public class Settings extends Application {
             // 当前页不跳转
         });
 
-        bottomNavigationBar.getChildren().addAll(homeButton , discoverButton,settingsButton );
+        bottomNavigationBar.getChildren().addAll(homeButton, discoverButton, settingsButton);
         mainLayout.getChildren().add(bottomNavigationBar);
 
+        // 搜索过滤逻辑（含暂无匹配内容提示）
+        FilteredList<Button> filteredButtons = new FilteredList<>(
+                FXCollections.observableArrayList(
+                        itemsContainer.getChildren().filtered(n -> n instanceof Button).toArray(Button[]::new)
+                ),
+                p -> true
+        );
+
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            String lower = newVal.toLowerCase();
+            filteredButtons.setPredicate(btn -> {
+                if (btn.getGraphic() instanceof HBox graphic) {
+                    for (Node n : graphic.getChildren()) {
+                        if (n instanceof VBox textContent) {
+                            for (Node labelNode : textContent.getChildren()) {
+                                if (labelNode instanceof Text textNode && textNode.getFont().getStyle().contains("Bold")) {
+                                    return textNode.getText().toLowerCase().contains(lower);
+                                }
+                            }
+                        }
+                    }
+                }
+                return false;
+            });
+            itemsContainer.getChildren().setAll(filteredButtons);
+            noResultsLabel.setVisible(filteredButtons.isEmpty());
+        });
 
         // Animation
         FadeTransition fade = new FadeTransition(Duration.seconds(1), mainLayout);
@@ -138,7 +168,6 @@ public class Settings extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-
 
     private Button createNavButtonWithHighlight(String labelText, String emojiSymbol, boolean isActive) {
         VBox buttonContent = new VBox();
@@ -162,7 +191,6 @@ public class Settings extends Application {
         return navigationButton;
     }
 
-
     private void addHoverAnimation(Button button) {
         button.setOnMouseEntered(e -> {
             ScaleTransition scaleUp = new ScaleTransition(Duration.millis(200), button);
@@ -181,12 +209,11 @@ public class Settings extends Application {
     private String getEmojiForTitle(String title) {
         return switch (title) {
             case "Enterprise Edition" -> "\uD83C\uDFE2";
-            case "Add New Reminder" -> "⏰";
             case "App Feedback" -> "\uD83D\uDCAC";
-            case "AI preference" -> "\uD83E\uDD16";
+            case "AI Advice" -> "\uD83E\uDD16";
             case "Change Password" -> "\uD83D\uDD12";
             case "Sign Up with New Account" -> "\uD83C\uDD95";
-            case "Logout" -> "\uD83D\uDEAA";
+            case "Log out" -> "\uD83D\uDEAA";
             default -> "⚙️";
         };
     }
@@ -221,7 +248,7 @@ public class Settings extends Application {
         return button;
     }
 
-    private void openNewPage(Stage primaryStage, String pageTitle) {
+    private void showDefaultWelcomePage(Stage primaryStage, String pageTitle) {
         VBox newPageLayout = new VBox();
         newPageLayout.setAlignment(Pos.CENTER);
         newPageLayout.setSpacing(20);
@@ -230,13 +257,29 @@ public class Settings extends Application {
         label.setFont(Font.font("Arial", FontWeight.BOLD, 28));
         label.setFill(Color.web("#855FAF"));
 
-        Button backBtn = new Button("\u2190 Back");
+        Button backBtn = new Button("← Back");
         backBtn.setStyle("-fx-background-color: #855FAF; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10 20; -fx-background-radius: 6;");
         backBtn.setOnAction(e -> start(primaryStage));
 
         newPageLayout.getChildren().addAll(label, backBtn);
         Scene newScene = new Scene(newPageLayout, 1366, 768);
         primaryStage.setScene(newScene);
+    }
+    private void openNewPage(Stage primaryStage, String pageTitle) {
+        try {
+            switch (pageTitle) {
+                case "Enterprise Edition" -> new NutlletEnterprise().start(new Stage());
+                case "App Feedback" -> new Mailbox().start(new Stage());
+//                case "AI preference" -> new NutlletReminder().start(new Stage());
+                case "Change Password" -> new Login().start(new Stage());
+                case "Sign Up with New Account" -> new Login().start(new Stage());
+                case "Log out" -> new Login().start(new Stage());
+                default -> showDefaultWelcomePage(primaryStage, pageTitle);
+            }
+            primaryStage.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
