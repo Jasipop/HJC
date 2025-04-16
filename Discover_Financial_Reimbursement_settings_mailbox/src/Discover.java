@@ -2,8 +2,11 @@ import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -25,8 +28,7 @@ public class Discover extends Application {
         mainLayout.setSpacing(20);
         mainLayout.setAlignment(Pos.TOP_CENTER);
         mainLayout.setBackground(new Background(new BackgroundFill(
-                Color.web("#FFD4EC", 0.3)
-                , new CornerRadii(0), Insets.EMPTY)));
+                Color.web("#FFD4EC", 0.3), new CornerRadii(0), Insets.EMPTY)));
 
         Text title = new Text("Discover");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
@@ -56,32 +58,17 @@ public class Discover extends Application {
         ScrollPane scrollPane = new ScrollPane(itemsContainer);
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        scrollPane.setPrefHeight(600); // 控制高度范围
+        scrollPane.setPrefHeight(600);
 
         String[] pastelColors = {
-                "#FFB6C1E6", // #FFB6C1 with alpha 0.9
-                "#FFDAB9E6", // #FFDAB9 with alpha 0.9
-                "#FFFACDE6", // #FFFACD with alpha 0.9
-                "#E0FFFFE6", // #E0FFFF with alpha 0.9
-                "#D8BFD8E6", // #D8BFD8 with alpha 0.9
-                "#C6E2FFE6", // #C6E2FF with alpha 0.9
-                "#E6E6FAE6"  // #E6E6FA with alpha 0.9
+                "#FFB6C1B3", "#FFDAB9B3", "#FFFACDB3", "#E0FFFFB3", "#D8BFD8B3", "#C6E2FFB3", "#E6E6FAB3"
         };
 
         String[] titles = {
-                "Enterprise Edition",
-                "MailBox",
-                "Reminders",
-                "Reimbursement Items",
-                "Financial Analysis",
-                "Transaction Management",
-                "Bank Data Management",
-                "Expenditure Classification System",
-                "Seasonal Spikes",
-                "International Currency Exchange",
-                "AI Intelligent Classification",
-                "Settings",
-                "Log out",
+                "Enterprise Edition", "MailBox", "Reminders", "Reimbursement Items", "Financial Analysis",
+                "Transaction Management", "Bank Data Management", "Expenditure Classification System",
+                "Seasonal Spikes", "International Currency Exchange", "AI Intelligent Classification",
+                "Settings", "Log out",
         };
 
         String[] descriptions = {
@@ -110,6 +97,59 @@ public class Discover extends Application {
 
         root.getChildren().addAll(mainLayout);
 
+        // Bottom Navigation Bar with highlight
+        HBox bottomNavigationBar = new HBox();
+        bottomNavigationBar.setSpacing(0);
+        bottomNavigationBar.setAlignment(Pos.CENTER);
+        bottomNavigationBar.setPrefHeight(80);
+        bottomNavigationBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
+
+        String currentPage = "Discover";
+
+        Button homeButton = createNavButtonWithHighlight("Home", "🏠", currentPage.equals("Home"));
+        Button discoverButton = createNavButtonWithHighlight("Discover", "🔍", currentPage.equals("Discover"));
+        Button settingsButton = createNavButtonWithHighlight("Settings", "⚙", currentPage.equals("Settings"));
+
+        homeButton.setOnAction(e -> {
+            try { new Nutllet.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        discoverButton.setOnAction(e -> {
+            // 当前页不跳转
+        });
+        settingsButton.setOnAction(e -> {
+            try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+
+        bottomNavigationBar.getChildren().addAll(homeButton, discoverButton, settingsButton);
+        mainLayout.getChildren().add(bottomNavigationBar);
+
+        // 搜索逻辑：根据标题动态过滤按钮
+        FilteredList<Button> filteredButtons = new FilteredList<>(
+                FXCollections.observableArrayList(
+                        itemsContainer.getChildren().filtered(n -> n instanceof Button).toArray(Button[]::new)
+                ),
+                p -> true
+        );
+
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            String lower = newVal.toLowerCase();
+            filteredButtons.setPredicate(btn -> {
+                if (btn.getGraphic() instanceof HBox graphic) {
+                    for (Node n : graphic.getChildren()) {
+                        if (n instanceof VBox textContent) {
+                            for (Node labelNode : textContent.getChildren()) {
+                                if (labelNode instanceof Text textNode && textNode.getFont().getStyle().contains("Bold")) {
+                                    return textNode.getText().toLowerCase().contains(lower);
+                                }
+                            }
+                        }
+                    }
+                }
+                return false;
+            });
+            itemsContainer.getChildren().setAll(filteredButtons);
+        });
+
         // Animation
         FadeTransition fade = new FadeTransition(Duration.seconds(1), mainLayout);
         fade.setFromValue(0);
@@ -128,6 +168,27 @@ public class Discover extends Application {
         primaryStage.show();
     }
 
+    private Button createNavButtonWithHighlight(String labelText, String emojiSymbol, boolean isActive) {
+        VBox buttonContent = new VBox();
+        buttonContent.setAlignment(Pos.CENTER);
+        buttonContent.setSpacing(2);
+
+        Label emojiLabel = new Label(emojiSymbol);
+        emojiLabel.setStyle("-fx-font-size: 16px;" + (isActive ? " -fx-text-fill: #855FAF;" : ""));
+
+        Label textLabel = new Label(labelText);
+        textLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + (isActive ? "#855FAF; -fx-font-weight: bold;" : "#7f8c8d;"));
+
+        buttonContent.getChildren().addAll(emojiLabel, textLabel);
+
+        Button navigationButton = new Button();
+        navigationButton.setPrefWidth(456);
+        navigationButton.setPrefHeight(80);
+        navigationButton.setGraphic(buttonContent);
+        navigationButton.setStyle("-fx-background-color: " + (isActive ? "#F0F0F0;" : "white;") + " -fx-border-color: transparent;");
+
+        return navigationButton;
+    }
 
     private void addHoverAnimation(Button button) {
         button.setOnMouseEntered(e -> {
@@ -146,7 +207,7 @@ public class Discover extends Application {
 
     private String getEmojiForTitle(String title) {
         return switch (title) {
-            case "Enterprise Edition" ->"👔";
+            case "Enterprise Edition" -> "👔";
             case "MailBox" -> "📬";
             case "Reminders" -> "⏰";
             case "Reimbursement Items" -> "💸";
@@ -157,8 +218,8 @@ public class Discover extends Application {
             case "Seasonal Spikes" -> "📈";
             case "International Currency Exchange" -> "💱";
             case "AI Intelligent Classification" -> "🤖";
-            case "Settings" ->"🍥";
-            case "Log out" ->"✨";
+            case "Settings" -> "🍥";
+            case "Log out" -> "✨";
             default -> "⚙";
         };
     }
@@ -201,17 +262,16 @@ public class Discover extends Application {
                 case "Reminders" -> new NutlletReminder().start(new Stage());
                 case "Reimbursement Items" -> new ReimbursementList().start(new Stage());
                 case "Financial Analysis" -> new FinancialAnalysis().start(new Stage());
-//                case "Transaction Management" -> new TransactionManager().start(new Stage());
-//                case "Bank Data Management" -> new BankDataManager().start(new Stage());
-//                case "Expenditure Classification System" -> new ExpenditureClassifier().start(new Stage());
-//                case "Seasonal Spikes" -> new SeasonalAnalysis().start(new Stage());
+                case "Transaction Management" -> new myapp.Transaction_Management_System().start(new Stage());
+                case "Bank Data Management" -> new myapp.Bank_Data_Management().start(new Stage());
+                case "Expenditure Classification System" -> new myapp.Free_Design_Classification().start(new Stage());
                 case "International Currency Exchange" -> new International().start(new Stage());
-//                case "AI Intelligent Classification" -> new AIClassifier().start(new Stage());
+                case "AI Intelligent Classification" -> new myapp.Intelligent_Transaction_Classifier().start(new Stage());
                 case "Settings" -> new Settings().start(new Stage());
-                case "Log out" ->{new Login().start(new Stage());primaryStage.close();}
-                default -> showDefaultWelcomePage(primaryStage, pageTitle); // ← 用默认页兜底
+                case "Log out" -> new Login().start(new Stage());
+                default -> showDefaultWelcomePage(primaryStage, pageTitle);
             }
-//            primaryStage.close(); // 是否关闭页面。全做完了才关。
+            primaryStage.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -226,7 +286,7 @@ public class Discover extends Application {
         label.setFont(Font.font("Arial", FontWeight.BOLD, 28));
         label.setFill(Color.web("#855FAF"));
 
-        Button backBtn = new Button("\u2190 Back");
+        Button backBtn = new Button("← Back");
         backBtn.setStyle("-fx-background-color: #855FAF; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10 20; -fx-background-radius: 6;");
         backBtn.setOnAction(e -> start(primaryStage));
 
