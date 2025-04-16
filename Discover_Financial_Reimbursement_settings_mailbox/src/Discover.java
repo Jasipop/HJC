@@ -55,6 +55,11 @@ public class Discover extends Application {
         itemsContainer.setAlignment(Pos.CENTER);
         itemsContainer.setPadding(new Insets(10));
 
+        Label noResultsLabel = new Label("Relevant functions are building forward...");
+        noResultsLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
+        noResultsLabel.setTextFill(Color.GRAY);
+        noResultsLabel.setVisible(false);
+
         ScrollPane scrollPane = new ScrollPane(itemsContainer);
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
@@ -93,7 +98,7 @@ public class Discover extends Application {
             itemsContainer.getChildren().add(btn);
         }
 
-        mainLayout.getChildren().addAll(titleBox, searchBox, scrollPane);
+        mainLayout.getChildren().addAll(titleBox, searchBox, scrollPane, noResultsLabel);
 
         root.getChildren().addAll(mainLayout);
 
@@ -148,6 +153,8 @@ public class Discover extends Application {
                 return false;
             });
             itemsContainer.getChildren().setAll(filteredButtons);
+            noResultsLabel.setVisible(filteredButtons.isEmpty());
+
         });
 
         // Animation
@@ -262,11 +269,11 @@ public class Discover extends Application {
                 case "Reminders" -> new NutlletReminder().start(new Stage());
                 case "Reimbursement Items" -> new ReimbursementList().start(new Stage());
                 case "Financial Analysis" -> new FinancialAnalysis().start(new Stage());
-                case "Transaction Management" -> new myapp.Transaction_Management_System().start(new Stage());
-                case "Bank Data Management" -> new myapp.Bank_Data_Management().start(new Stage());
-                case "Expenditure Classification System" -> new myapp.Free_Design_Classification().start(new Stage());
+                case "Transaction Management" -> new Transaction_Management_System().start(new Stage());
+                case "Bank Data Management" -> new Bank_Data_Management().start(new Stage());
+                case "Expenditure Classification System" -> new Free_Design_Classification().start(new Stage());
                 case "International Currency Exchange" -> new International().start(new Stage());
-                case "AI Intelligent Classification" -> new myapp.Intelligent_Transaction_Classifier().start(new Stage());
+                case "AI Intelligent Classification" -> new Intelligent_Transaction_Classifier().start(new Stage());
                 case "Settings" -> new Settings().start(new Stage());
                 case "Log out" -> new Login().start(new Stage());
                 default -> showDefaultWelcomePage(primaryStage, pageTitle);
