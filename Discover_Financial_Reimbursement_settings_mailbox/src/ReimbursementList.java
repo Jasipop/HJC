@@ -136,10 +136,70 @@ public class ReimbursementList extends Application {
         });
 
         root.getChildren().addAll(mainLayout, addButton);
+
+        // Bottom Navigation Bar
+        HBox navBar = new HBox();
+        navBar.setSpacing(0);
+        navBar.setAlignment(Pos.CENTER);
+        navBar.setPrefHeight(80);
+        navBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
+
+        Button homeBtn = createNavButtonWithEmoji("Home", "🏠"); // 🏠
+        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍"); // 🔍
+        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙️
+
+        homeBtn.setOnAction(e -> {
+            try { new Nutllet.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        discoverBtn.setOnAction(e -> {
+            try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        settingsBtn.setOnAction(e -> {
+            try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+
+        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
+        mainLayout.getChildren().add(navBar);
+
         Scene scene = new Scene(root, 1366, 768);
         primaryStage.setTitle("Reimbursements");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    // Helper method with emoji
+    private Button createNavButtonWithEmoji(String label, String emoji) {
+        VBox btnContainer = new VBox();
+        btnContainer.setAlignment(Pos.CENTER);
+        btnContainer.setSpacing(2);
+
+        Label emojiLabel = new Label(emoji);
+        emojiLabel.setStyle("-fx-font-size: 16px;");
+
+        Label textLabel = new Label(label);
+        textLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #7f8c8d;");
+
+        btnContainer.getChildren().addAll(emojiLabel, textLabel);
+
+        Button button = new Button();
+        button.setPrefWidth(456);
+        button.setPrefHeight(80);
+        button.setGraphic(btnContainer);
+        button.setStyle("-fx-background-color: white; -fx-border-color: transparent;");
+
+        return button;
+    }
+    private Button createNavButton(String label) {
+        Button button = new Button(label);
+        button.setPrefWidth(456); // 1366 / 3
+        button.setPrefHeight(60);
+        button.setStyle(
+                "-fx-background-color: white;" +
+                        "-fx-font-size: 16px;" +
+                        "-fx-text-fill: #7f8c8d;" +
+                        "-fx-border-color: transparent;"
+        );
+        return button;
     }
 
     private HBox createItem(String category, String detail, String amount, String date) {

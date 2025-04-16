@@ -31,6 +31,44 @@ public class ReimbursementAddNew extends Application {
         root.setPadding(new Insets(25, 30, 25, 30));
         root.setStyle("-fx-background-color: #FFD4EC54;");
 
+        // Back 按钮区域
+        Button backButton = new Button("← Back");
+        backButton.setStyle(
+                "-fx-background-color: #855FAF;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-padding: 6 14;" +
+                        "-fx-background-radius: 6;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-cursor: hand;"
+        );
+
+        backButton.setOnAction(e -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Unsaved Data");
+            alert.setHeaderText("Exit without saving?");
+            alert.setContentText("Leaving now will discard the current reimbursement form. Are you sure you want to go back?");
+
+            ButtonType yes = new ButtonType("Yes");
+            ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+            alert.getButtonTypes().setAll(yes, cancel);
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == yes) {
+                    try {
+                        new ReimbursementList().start(new Stage());
+                        primaryStage.close();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            });
+        });
+
+        HBox backBox = new HBox(backButton);
+        backBox.setAlignment(Pos.TOP_LEFT);
+
+
         Text title = new Text("Add New Reimbursement Item");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
         title.setFill(Color.web("#855FAF"));
@@ -162,12 +200,14 @@ public class ReimbursementAddNew extends Application {
         });
 
         root.getChildren().addAll(
+                backBox, // ← 添加 Back 按钮在最上方
                 titleBox, requiredNote, formGrid,
                 amountSectionTitle, amountDescription, amountField,
                 notesTitle, notes,
                 responsiblePersonLabel, responsiblePersonDescription,
                 personComboBox, financialOfficeButtons
         );
+
 
         Scene scene = new Scene(root, 1366, 768);
         primaryStage.setScene(scene);

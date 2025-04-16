@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -20,51 +21,29 @@ import java.net.URI;
 public class FinancialAnalysis extends Application {
 
     private final int[] years = {2014,2015,2016,2017,2018,2019, 2020, 2021, 2022, 2023, 2024};
-    private final int[] peakEvents = {154,130,113,78,120,105,53, 29, 42, 34, 69};
-    private final double[] peakAmount = {756.24,457.89,345.21,145.68,256.89,568.66, 253.7, 581.82, 164.8, 36.4, 132};
-    private final double[] peakSingleAmount = {309,270,233,178, 116.4,67.9, 20.06, 100,34.8, 15.7, 0};
+    private final int[] eventCounts = {154,130,113,78,120,105,53, 29, 42, 34, 69};
+    private final double[] totalAmounts = {756.24,457.89,345.21,145.68,256.89,568.66, 253.7, 581.82, 164.8, 36.4, 132};
+    private final double[] singleAmounts = {309,270,233,178, 116.4,67.9, 20.06, 100,34.8, 15.7, 0};
 
-    // 🎨 自定义颜色
     private final String lineColor = "#855FAF";
     private final String barColor = "#855FAF";
     private final String[] pieColors = {"#855FAF", "#CEA3ED", "#7D4B79", "#F05865", "#36344C"};
-    private final String backgroundColor = "#FFD4EC54"; // 半透明粉色背景
+    private final String backgroundColor = "#FFD4EC54";
 
     @Override
-    public void start(Stage stage) {
-
-        // 英文分析段落
-        Label analysis = new Label(
-                "The express delivery industry in China has witnessed fluctuating financial activity between 2019 and 2024. " +
-                        "While the number of financing events peaked in 2019, the highest total financing amount occurred in 2021, " +
-                        "suggesting a shift from frequent smaller investments to fewer but more strategic funding initiatives. " +
-                        "This trend indicates market consolidation and a focus on technological innovation, automation, and last-mile delivery optimization. " +
-                        "The decline in single financing amount in 2023 reflects tighter capital flows, possibly due to macroeconomic uncertainties. " +
-                        "Overall, the financial data stream illustrates a maturing industry adapting to digital transformation and competitive pressures."
-        );
-        // 修改analysis Label的设置部分
-        analysis.setWrapText(true);
-        analysis.setFont(Font.font("Arial", 20));
-        analysis.setTextFill(Color.web("#855FAF"));
-        analysis.setStyle(
-                "-fx-background-color: " + backgroundColor + ";" +
-                        "-fx-background-radius: 5;" +
-                        "-fx-padding: 10;" +  // 与饼图相同的内部边距
-                        "-fx-border-insets: 10;"  // 外部边距
-        );
-
-        VBox root = new VBox(30);
-        root.setPadding(new Insets(20));
-        root.setAlignment(Pos.TOP_CENTER);
-        root.setStyle("-fx-background-color: " + backgroundColor + ";");
+    public void start(Stage primaryStage) {
+        VBox mainContainer = new VBox();
+        mainContainer.setPadding(new Insets(20));
+        mainContainer.setSpacing(20);
+        mainContainer.setStyle("-fx-background-color: " + backgroundColor + ";");
 
         Text title = new Text("Financial Analysis Dashboard");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
         title.setFill(Color.web("#855FAF"));
 
-        LineChart<Number, Number> lineChart = createLineChart();
-        BarChart<String, Number> barChart = createBarChart();
-        PieChart pieChart = createPieChart();
+        LineChart<Number, Number> lineChart = buildLineChart();
+        BarChart<String, Number> barChart = buildBarChart();
+        PieChart pieChart = buildPieChart();
 
         Label pieTitle = new Label("Event rating");
         pieTitle.setFont(Font.font("Arial", FontWeight.BOLD, 24));
@@ -74,10 +53,22 @@ public class FinancialAnalysis extends Application {
         textTitle.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         textTitle.setTextFill(Color.web("#855FAF"));
 
-        // 创建DeepSeek按钮
-        Button AIButton = new Button("Ask More");
-        AIButton.setStyle("-fx-background-color: " + lineColor + "; -fx-text-fill: white; -fx-font-size: 16px;");
-        AIButton.setOnAction(e -> {
+        Label analysis = new Label(
+                "The express delivery industry in China has witnessed fluctuating financial activity between 2019 and 2024. " +
+                        "While the number of financing events peaked in 2019, the highest total financing amount occurred in 2021, " +
+                        "suggesting a shift from frequent smaller investments to fewer but more strategic funding initiatives. " +
+                        "This trend indicates market consolidation and a focus on technological innovation, automation, and last-mile delivery optimization. " +
+                        "The decline in single financing amount in 2023 reflects tighter capital flows, possibly due to macroeconomic uncertainties. " +
+                        "Overall, the financial data stream illustrates a maturing industry adapting to digital transformation and competitive pressures."
+        );
+        analysis.setWrapText(true);
+        analysis.setFont(Font.font("Arial", 20));
+        analysis.setTextFill(Color.web("#855FAF"));
+        analysis.setStyle("-fx-background-color: " + backgroundColor + "; -fx-background-radius: 5; -fx-padding: 10; -fx-border-insets: 10;");
+
+        Button aiButton = new Button("Ask More");
+        aiButton.setStyle("-fx-background-color: " + lineColor + "; -fx-text-fill: white; -fx-font-size: 16px;");
+        aiButton.setOnAction(e -> {
             try {
                 Desktop.getDesktop().browse(new URI("https://chat.deepseek.com/"));
             } catch (Exception ex) {
@@ -85,18 +76,49 @@ public class FinancialAnalysis extends Application {
             }
         });
 
-        root.getChildren().addAll(title, lineChart, barChart, pieTitle, pieChart, textTitle, analysis, AIButton);
+        VBox contentContainer = new VBox(30);
+        contentContainer.setPadding(new Insets(20));
+        contentContainer.setAlignment(Pos.TOP_CENTER);
+        contentContainer.setStyle("-fx-background-color: " + backgroundColor + ";");
+        contentContainer.getChildren().addAll(title, lineChart, barChart, pieTitle, pieChart, textTitle, analysis, aiButton);
 
-        ScrollPane scrollPane = new ScrollPane(root);
+        ScrollPane scrollPane = new ScrollPane(contentContainer);
         scrollPane.setFitToWidth(true);
 
-        Scene scene = new Scene(scrollPane, 1366, 768);
-        stage.setScene(scene);
-        stage.setTitle("Financial Analysis");
-        stage.show();
+        mainContainer.getChildren().add(scrollPane);
+
+        // Bottom Navigation Bar
+        HBox bottomNavigationBar = new HBox();
+        bottomNavigationBar.setSpacing(0);
+        bottomNavigationBar.setAlignment(Pos.CENTER);
+        bottomNavigationBar.setPrefHeight(80);
+        bottomNavigationBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
+
+        Button homeButton = createNavButtonWithEmoji("Home", "🏠");
+        Button discoverButton = createNavButtonWithEmoji("Discover", "🔍");
+        Button settingsButton = createNavButtonWithEmoji("Settings", "⚙");
+
+        homeButton.setOnAction(e -> {
+            try { new Nutllet.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        discoverButton.setOnAction(e -> {
+            try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        settingsButton.setOnAction(e -> {
+            try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+
+        bottomNavigationBar.getChildren().addAll(homeButton , discoverButton,settingsButton );
+
+        mainContainer.getChildren().add(bottomNavigationBar);
+
+        Scene scene = new Scene(mainContainer, 1366, 768);
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Financial Analysis");
+        primaryStage.show();
     }
 
-    private LineChart<Number, Number> createLineChart() {
+    private LineChart<Number, Number> buildLineChart() {
         NumberAxis xAxis = new NumberAxis(2014, 2024, 1);
         xAxis.setLabel("Year");
         xAxis.setTickLabelFill(Color.web("#855FAF"));
@@ -105,48 +127,42 @@ public class FinancialAnalysis extends Application {
         yAxis.setLabel("Peak Financing Events");
         yAxis.setTickLabelFill(Color.web("#855FAF"));
 
-        LineChart<Number, Number> lineChart = new LineChart<>(xAxis, yAxis);
-        lineChart.setTitle("Trend of Peak Financing Events");
-        lineChart.setStyle("-fx-background-color: transparent; -fx-plot-background-color: " + backgroundColor + ";");
-        lineChart.setLegendVisible(false);
-        lineChart.setPrefWidth(1000);
-        lineChart.setAlternativeRowFillVisible(false);
-        lineChart.setAlternativeColumnFillVisible(false);
+        LineChart<Number, Number> chart = new LineChart<>(xAxis, yAxis);
+        chart.setTitle("Trend of Peak Financing Events");
+        chart.setStyle("-fx-background-color: transparent; -fx-plot-background-color: " + backgroundColor + ";");
+        chart.setLegendVisible(false);
+        chart.setPrefWidth(1000);
+        chart.setAlternativeRowFillVisible(false);
+        chart.setAlternativeColumnFillVisible(false);
 
-        // 设置坐标轴和网格线样式
-        lineChart.lookup(".chart-plot-background").setStyle("-fx-background-color: " + backgroundColor + ";");
-        lineChart.lookup(".chart-horizontal-grid-lines").setStyle("-fx-stroke: #855FAF20;");
-        lineChart.lookup(".chart-vertical-grid-lines").setStyle("-fx-stroke: #855FAF20;");
-        lineChart.lookup(".chart-title").setStyle("-fx-text-fill: #855FAF; -fx-font-size: 20px;");
-        lineChart.lookup(".axis-label").setStyle("-fx-text-fill: #855FAF;");
-
-        XYChart.Series<Number, Number> series = new XYChart.Series<>();
+        XYChart.Series<Number, Number> dataSeries = new XYChart.Series<>();
         for (int i = 0; i < years.length; i++) {
-            XYChart.Data<Number, Number> data = new XYChart.Data<>(years[i], peakEvents[i]);
-            series.getData().add(data);
-            Tooltip tooltip = new Tooltip("Year: " + years[i] + "\nEvents: " + peakEvents[i]);
+            XYChart.Data<Number, Number> data = new XYChart.Data<>(years[i], eventCounts[i]);
+            dataSeries.getData().add(data);
+            Tooltip tooltip = new Tooltip("Year: " + years[i] + "\nEvents: " + eventCounts[i]);
             Tooltip.install(data.getNode(), tooltip);
         }
-        lineChart.getData().add(series);
+        chart.getData().add(dataSeries);
 
-        lineChart.applyCss();
-        lineChart.layout();
+        chart.applyCss();
+        chart.layout();
 
-        for (XYChart.Data<Number, Number> data : series.getData()) {
+        for (XYChart.Data<Number, Number> data : dataSeries.getData()) {
             Node node = data.getNode();
             if (node != null) {
                 node.setStyle("-fx-background-color: " + lineColor + ", white;");
             }
         }
 
-        Node line = lineChart.lookup(".chart-series-line");
+        Node line = chart.lookup(".chart-series-line");
         if (line != null) {
             line.setStyle("-fx-stroke: " + lineColor + "; -fx-stroke-width: 2px;");
         }
-        return lineChart;
+
+        return chart;
     }
 
-    private BarChart<String, Number> createBarChart() {
+    private BarChart<String, Number> buildBarChart() {
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Year");
         xAxis.setTickLabelFill(Color.web("#855FAF"));
@@ -155,74 +171,90 @@ public class FinancialAnalysis extends Application {
         yAxis.setLabel("Financing Amount (billion yuan)");
         yAxis.setTickLabelFill(Color.web("#855FAF"));
 
-        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-        barChart.setTitle("Peak Financing Amount");
-        barChart.setStyle("-fx-background-color: transparent; -fx-plot-background-color: " + backgroundColor + ";");
-        barChart.setLegendVisible(false);
-        barChart.setCategoryGap(20);
-        barChart.setBarGap(5);
-        barChart.setPrefWidth(1000);
-        barChart.setAlternativeRowFillVisible(false);
-        barChart.setAlternativeColumnFillVisible(false);
+        BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
+        chart.setTitle("Peak Financing Amount");
+        chart.setStyle("-fx-background-color: transparent; -fx-plot-background-color: " + backgroundColor + ";");
+        chart.setLegendVisible(false);
+        chart.setCategoryGap(20);
+        chart.setBarGap(5);
+        chart.setPrefWidth(1000);
+        chart.setAlternativeRowFillVisible(false);
+        chart.setAlternativeColumnFillVisible(false);
 
-        barChart.lookup(".chart-plot-background").setStyle("-fx-background-color: " + backgroundColor + ";");
-        barChart.lookup(".chart-horizontal-grid-lines").setStyle("-fx-stroke: #855FAF20;");
-        barChart.lookup(".chart-vertical-grid-lines").setStyle("-fx-stroke: #855FAF20;");
-        barChart.lookup(".chart-title").setStyle("-fx-text-fill: #855FAF; -fx-font-size: 20px;");
-        barChart.lookup(".axis-label").setStyle("-fx-text-fill: #855FAF;");
-
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        XYChart.Series<String, Number> dataSeries = new XYChart.Series<>();
         for (int i = 0; i < years.length; i++) {
-            XYChart.Data<String, Number> data = new XYChart.Data<>(String.valueOf(years[i]), peakAmount[i]);
-            series.getData().add(data);
-            Tooltip tooltip = new Tooltip("Year: " + years[i] + "\nAmount: " + peakAmount[i] + "B");
+            XYChart.Data<String, Number> data = new XYChart.Data<>(String.valueOf(years[i]), totalAmounts[i]);
+            dataSeries.getData().add(data);
+            Tooltip tooltip = new Tooltip("Year: " + years[i] + "\nAmount: " + totalAmounts[i] + "B");
             Tooltip.install(data.getNode(), tooltip);
         }
-        barChart.getData().add(series);
+        chart.getData().add(dataSeries);
 
-        barChart.applyCss();
-        barChart.layout();
+        chart.applyCss();
+        chart.layout();
 
-        for (XYChart.Data<String, Number> data : series.getData()) {
+        for (XYChart.Data<String, Number> data : dataSeries.getData()) {
             Node node = data.getNode();
             if (node != null) {
                 node.setStyle("-fx-bar-fill: " + barColor + ";");
             }
         }
-        return barChart;
+
+        return chart;
     }
 
-    private PieChart createPieChart() {
-        PieChart pieChart = new PieChart();
-        pieChart.setTitle("Peak Single Financing Amount");
-        pieChart.setStyle("-fx-background-color: " + backgroundColor + ";");
-        pieChart.lookup(".chart-title").setStyle("-fx-text-fill: #855FAF; -fx-font-size: 20px;");
+    private PieChart buildPieChart() {
+        PieChart chart = new PieChart();
+        chart.setTitle("Peak Single Financing Amount");
+        chart.setStyle("-fx-background-color: " + backgroundColor + ";");
+        chart.setLegendVisible(false);
+        chart.setLabelsVisible(true);
+        chart.setClockwise(true);
+        chart.setStartAngle(90);
+        chart.setPrefWidth(600);
 
         for (int i = 0; i < years.length; i++) {
-            double value = peakSingleAmount[i];
+            double value = singleAmounts[i];
             if (value > 0) {
                 PieChart.Data slice = new PieChart.Data(String.valueOf(years[i]), value);
-                pieChart.getData().add(slice);
+                chart.getData().add(slice);
                 Tooltip tooltip = new Tooltip("Year: " + years[i] + "\nSingle Amount: " + value + "B");
                 Tooltip.install(slice.getNode(), tooltip);
             }
         }
 
-        pieChart.applyCss();
-        pieChart.layout();
-        pieChart.setLegendVisible(false);
+        chart.applyCss();
+        chart.layout();
 
-        for (PieChart.Data d : pieChart.getData()) {
-            Tooltip tooltip = new Tooltip(d.getName() + ": " + (int) d.getPieValue() + "B");
-            Tooltip.install(d.getNode(), tooltip);
-            d.getNode().setStyle("-fx-pie-color: " + pieColors[pieChart.getData().indexOf(d) % pieColors.length] + ";");
+        for (PieChart.Data data : chart.getData()) {
+            Tooltip tooltip = new Tooltip(data.getName() + ": " + (int) data.getPieValue() + "B");
+            Tooltip.install(data.getNode(), tooltip);
+            data.getNode().setStyle("-fx-pie-color: " + pieColors[chart.getData().indexOf(data) % pieColors.length] + ";");
         }
 
-        pieChart.setLabelsVisible(true);
-        pieChart.setClockwise(true);
-        pieChart.setStartAngle(90);
-        pieChart.setPrefWidth(600);
-        return pieChart;
+        return chart;
+    }
+
+    private Button createNavButtonWithEmoji(String labelText, String emojiSymbol) {
+        VBox buttonContent = new VBox();
+        buttonContent.setAlignment(Pos.CENTER);
+        buttonContent.setSpacing(2);
+
+        Label emojiLabel = new Label(emojiSymbol);
+        emojiLabel.setStyle("-fx-font-size: 16px;");
+
+        Label textLabel = new Label(labelText);
+        textLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #7f8c8d;");
+
+        buttonContent.getChildren().addAll(emojiLabel, textLabel);
+
+        Button navigationButton = new Button();
+        navigationButton.setPrefWidth(456);
+        navigationButton.setPrefHeight(80);
+        navigationButton.setGraphic(buttonContent);
+        navigationButton.setStyle("-fx-background-color: white; -fx-border-color: transparent;");
+
+        return navigationButton;
     }
 
     public static void main(String[] args) {

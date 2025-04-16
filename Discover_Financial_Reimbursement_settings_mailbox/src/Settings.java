@@ -60,13 +60,13 @@ public class Settings extends Application {
         scrollPane.setPrefHeight(600); // 控制高度范围
 
         String[] pastelColors = {
-                "#FFB6C1E6", // #FFB6C1 with alpha 0.9
-                "#FFDAB9E6", // #FFDAB9 with alpha 0.9
-                "#FFFACDE6", // #FFFACD with alpha 0.9
-                "#E0FFFFE6", // #E0FFFF with alpha 0.9
-                "#D8BFD8E6", // #D8BFD8 with alpha 0.9
-                "#C6E2FFE6", // #C6E2FF with alpha 0.9
-                "#E6E6FAE6"  // #E6E6FA with alpha 0.9
+                "#FFB6C1B3", // #FFB6C1 with alpha 0.7
+                "#FFDAB9B3", // #FFDAB9 with alpha 0.7
+                "#FFFACDB3", // #FFFACD with alpha 0.7
+                "#E0FFFFB3", // #E0FFFF with alpha 0.7
+                "#D8BFD8B3", // #D8BFD8 with alpha 0.7
+                "#C6E2FFB3", // #C6E2FF with alpha 0.7
+                "#E6E6FAB3"  // #E6E6FA with alpha 0.7
         };
 
         String[] titles = {
@@ -94,6 +94,33 @@ public class Settings extends Application {
 
         root.getChildren().addAll(mainLayout);
 
+        // Bottom Navigation Bar with highlight
+        HBox bottomNavigationBar = new HBox();
+        bottomNavigationBar.setSpacing(0);
+        bottomNavigationBar.setAlignment(Pos.CENTER);
+        bottomNavigationBar.setPrefHeight(80);
+        bottomNavigationBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
+
+        String currentPage = "Settings";
+
+        Button homeButton = createNavButtonWithHighlight("Home", "🏠", currentPage.equals("Home"));
+        Button discoverButton = createNavButtonWithHighlight("Discover", "🔍", currentPage.equals("Discover"));
+        Button settingsButton = createNavButtonWithHighlight("Settings", "⚙", currentPage.equals("Settings"));
+
+        homeButton.setOnAction(e -> {
+            try { new Nutllet.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        discoverButton.setOnAction(e -> {
+            try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        settingsButton.setOnAction(e -> {
+            // 当前页不跳转
+        });
+
+        bottomNavigationBar.getChildren().addAll(homeButton , discoverButton,settingsButton );
+        mainLayout.getChildren().add(bottomNavigationBar);
+
+
         // Animation
         FadeTransition fade = new FadeTransition(Duration.seconds(1), mainLayout);
         fade.setFromValue(0);
@@ -111,6 +138,30 @@ public class Settings extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+
+
+    private Button createNavButtonWithHighlight(String labelText, String emojiSymbol, boolean isActive) {
+        VBox buttonContent = new VBox();
+        buttonContent.setAlignment(Pos.CENTER);
+        buttonContent.setSpacing(2);
+
+        Label emojiLabel = new Label(emojiSymbol);
+        emojiLabel.setStyle("-fx-font-size: 16px;" + (isActive ? " -fx-text-fill: #855FAF;" : ""));
+
+        Label textLabel = new Label(labelText);
+        textLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + (isActive ? "#855FAF; -fx-font-weight: bold;" : "#7f8c8d;"));
+
+        buttonContent.getChildren().addAll(emojiLabel, textLabel);
+
+        Button navigationButton = new Button();
+        navigationButton.setPrefWidth(456);
+        navigationButton.setPrefHeight(80);
+        navigationButton.setGraphic(buttonContent);
+        navigationButton.setStyle("-fx-background-color: " + (isActive ? "#F0F0F0;" : "white;") + " -fx-border-color: transparent;");
+
+        return navigationButton;
+    }
+
 
     private void addHoverAnimation(Button button) {
         button.setOnMouseEntered(e -> {
