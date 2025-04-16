@@ -25,12 +25,13 @@ public class Settings extends Application {
         mainLayout.setSpacing(20);
         mainLayout.setAlignment(Pos.TOP_CENTER);
         mainLayout.setBackground(new Background(new BackgroundFill(
-                Color.web("#FFD4EC", 0.3)
+                Color.web("#E6F0FF", 0.3)
                 , new CornerRadii(0), Insets.EMPTY)));
 
         Text title = new Text("Settings");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
-        title.setFill(Color.web("#855FAF"));
+//        title.setFill(Color.web("#855FAF"));
+        title.setFill(Color.BLACK);
         HBox titleBox = new HBox(title);
         titleBox.setAlignment(Pos.CENTER);
 

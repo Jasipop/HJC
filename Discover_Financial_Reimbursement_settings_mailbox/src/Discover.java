@@ -80,6 +80,8 @@ public class Discover extends Application {
                 "Seasonal Spikes",
                 "International Currency Exchange",
                 "AI Intelligent Classification",
+                "Settings",
+                "Log out",
         };
 
         String[] descriptions = {
@@ -94,6 +96,8 @@ public class Discover extends Application {
                 "Special date budget alerts",
                 "Real-time multi-currency tracking",
                 "AI transaction categorization with manual edits",
+                "Set default and preference",
+                "Back to the login page",
         };
 
         for (int i = 0; i < titles.length; i++) {
@@ -119,7 +123,7 @@ public class Discover extends Application {
         slide.play();
 
         Scene scene = new Scene(root, 1366, 768);
-        primaryStage.setTitle("Settings");
+        primaryStage.setTitle("Discover");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
@@ -149,11 +153,13 @@ public class Discover extends Application {
             case "Financial Analysis" -> "📊";
             case "Transaction Management" -> "💳";
             case "Bank Data Management" -> "🏦";
-            case "Expenditure Classification System" -> "👓️";
+            case "Expenditure Classification System" -> "👓";
             case "Seasonal Spikes" -> "📈";
             case "International Currency Exchange" -> "💱";
             case "AI Intelligent Classification" -> "🤖";
-            default -> "⚙️";
+            case "Settings" ->"🍥";
+            case "Log out" ->"✨";
+            default -> "⚙";
         };
     }
 
@@ -201,6 +207,8 @@ public class Discover extends Application {
 //                case "Seasonal Spikes" -> new SeasonalAnalysis().start(new Stage());
                 case "International Currency Exchange" -> new International().start(new Stage());
 //                case "AI Intelligent Classification" -> new AIClassifier().start(new Stage());
+                case "Settings" -> new Settings().start(new Stage());
+                case "Log out" ->{new Login().start(new Stage());primaryStage.close();}
                 default -> showDefaultWelcomePage(primaryStage, pageTitle); // ← 用默认页兜底
             }
 //            primaryStage.close(); // 是否关闭页面。全做完了才关。
