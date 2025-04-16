@@ -132,7 +132,31 @@ public class Bank_Data_Management extends Application {
         contentWrapper.setPadding(new Insets(0));
         contentWrapper.setStyle("-fx-background-color: white;");
 
-        VBox mainLayout = new VBox(0, titleBox, contentWrapper);
+        // Bottom Navigation Bar
+        HBox navBar = new HBox();
+        navBar.setSpacing(0);
+        navBar.setAlignment(Pos.CENTER);
+        navBar.setPrefHeight(80);
+        navBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
+
+        Button homeBtn = createNavButtonWithEmoji("Home", "🏠"); // 🏠
+        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍"); // 🔍
+        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙
+
+        homeBtn.setOnAction(e -> {
+            try { new Nutllet.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        discoverBtn.setOnAction(e -> {
+            try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        settingsBtn.setOnAction(e -> {
+            try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+
+        navBar.getChildren().addAll(settingsBtn, discoverBtn, homeBtn); // 从右到左
+
+        VBox mainLayout = new VBox(0, titleBox, contentWrapper, navBar);
+
         mainLayout.setStyle("-fx-background-color: white; -fx-spacing: 0;");
         mainLayout.setAlignment(Pos.TOP_CENTER);
 
@@ -216,7 +240,7 @@ public class Bank_Data_Management extends Application {
                         "-fx-border-radius: 12;" +
                         "-fx-border-color: #e0e0e0;" +
                         "-fx-border-width: 1;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 15, 0.7, 0, 4);" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 6, 0, 0, 2);" +
                         "-fx-pref-width: 700;" +
                         "-fx-pref-height: 620;"
         );
@@ -227,9 +251,9 @@ public class Bank_Data_Management extends Application {
 
         // 移除额外的ScrollPane包装
         table.setStyle(
-            "-fx-font-size: 14px;" +
-            "-fx-background-color: transparent;" +
-            "-fx-border-color: transparent;"
+                "-fx-font-size: 14px;" +
+                        "-fx-background-color: transparent;" +
+                        "-fx-border-color: transparent;"
         );
 
         // 说明文字样式调整
@@ -267,7 +291,7 @@ public class Bank_Data_Management extends Application {
                         "-fx-border-radius: 12;" +
                         "-fx-border-color: #e0e0e0;" +
                         "-fx-border-width: 1;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 15, 0.7, 0, 4);" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 6, 0, 0, 2);" +
                         "-fx-pref-width: 400;"
         );
 
@@ -398,6 +422,40 @@ public class Bank_Data_Management extends Application {
                 new Alert(Alert.AlertType.ERROR, "Failed to read file.").showAndWait();
             }
         }
+    }
+    // Helper method with emoji
+    private Button createNavButtonWithEmoji(String label, String emoji) {
+        VBox btnContainer = new VBox();
+        btnContainer.setAlignment(Pos.CENTER);
+        btnContainer.setSpacing(2);
+
+        Label emojiLabel = new Label(emoji);
+        emojiLabel.setStyle("-fx-font-size: 16px;");
+
+        Label textLabel = new Label(label);
+        textLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #7f8c8d;");
+
+        btnContainer.getChildren().addAll(emojiLabel, textLabel);
+
+        Button button = new Button();
+        button.setPrefWidth(456);
+        button.setPrefHeight(80);
+        button.setGraphic(btnContainer);
+        button.setStyle("-fx-background-color: white; -fx-border-color: transparent;");
+
+        return button;
+    }
+    private Button createNavButton(String label) {
+        Button button = new Button(label);
+        button.setPrefWidth(456); // 1366 / 3
+        button.setPrefHeight(60);
+        button.setStyle(
+                "-fx-background-color: white;" +
+                        "-fx-font-size: 16px;" +
+                        "-fx-text-fill: #7f8c8d;" +
+                        "-fx-border-color: transparent;"
+        );
+        return button;
     }
 
     public static void main(String[] args) {
