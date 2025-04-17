@@ -11,10 +11,14 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
-
+import java.util.Locale;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
+//import org.json.JSONObject;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 
 public class International extends Application {
@@ -98,6 +102,7 @@ public class International extends Application {
         buttonBox.getChildren().addAll(new Node[]{clearButton, confirmButton});
         buttonBox.setAlignment(Pos.BOTTOM_RIGHT);
 
+
         // 添加所有组件到主布局
         mainLayout.getChildren().addAll(
                 title,
@@ -119,9 +124,62 @@ public class International extends Application {
         });
 
         confirmButton.setOnAction(e -> {
-            // 这里添加确认逻辑
-            System.out.println("Transaction confirmed");
+            // 1. 获取用户输入
+            String localCurrency = localCurrencyCombo.getValue();
+            String foreignCurrency = foreignCurrencyCombo.getValue();
+            String amountText = amountField.getText();
+            LocalDate date = timePicker.getValue();
+
+            // 2. 验证输入
+            if (localCurrency == null || foreignCurrency == null ||
+                    amountText.isEmpty() || date == null) {
+                showAlert("Error", "Please fill all required fields!");
+                return;
+            }
+
+            try {
+                double foreignAmount = Double.parseDouble(amountText);
+
+                // 3. 获取汇率（示例API，实际需替换为真实API）
+                double exchangeRate = getExchangeRate(foreignCurrency, localCurrency, date);
+
+                // 4. 计算本币金额
+                double localAmount = foreignAmount * exchangeRate;
+
+                // 5. 显示结果
+                showAlert("Result",
+                        String.format("%.2f %s = %.2f %s (Rate: 1 %s = %.4f %s)",
+                                foreignAmount, foreignCurrency,
+                                localAmount, localCurrency,
+                                foreignCurrency, exchangeRate, localCurrency)
+                );
+
+            } catch (NumberFormatException ex) {
+                showAlert("Error", "Invalid amount format!");
+            } catch (Exception ex) {
+                showAlert("Error", "Failed to fetch exchange rate: " + ex.getMessage());
+            }
         });
+    }
+
+    // --- 汇率查询方法 ---
+    private double getExchangeRate(String fromCurrency, String toCurrency, LocalDate date) throws Exception {
+        // 示例：使用固定汇率（实际项目应调用API）
+        if (fromCurrency.equals("USD") && toCurrency.equals("CNY")) {
+            return 7.2; // 模拟汇率
+        } else if (fromCurrency.equals("EUR") && toCurrency.equals("CNY")) {
+            return 7.8;
+        }
+        throw new Exception("Unsupported currency pair");
+    }
+
+    // --- 显示弹窗 ---
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     public static void main(String[] args) {
