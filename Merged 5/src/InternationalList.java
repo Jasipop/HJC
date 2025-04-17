@@ -149,13 +149,13 @@ public class InternationalList extends Application {
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙️
 
         homeBtn.setOnAction(e -> {
-            //try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverBtn.setOnAction(e -> {
-            //try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         settingsBtn.setOnAction(e -> {
-            //try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
