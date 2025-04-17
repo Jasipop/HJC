@@ -24,6 +24,21 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javafx.scene.Cursor;
 import javafx.application.HostServices;
+import javafx.scene.Node;
+
+class Discover extends Application {
+    public void start(Stage stage) {
+        stage.setScene(new Scene(new Label("Discover Page"), 1366, 768));
+        stage.show();
+    }
+}
+
+class Settings extends Application {
+    public void start(Stage stage) {
+        stage.setScene(new Scene(new Label("Settings Page"), 1366, 768));
+        stage.show();
+    }
+}
 
 public class Nutllet extends Application {
     private static final Color PRIMARY_PURPLE = Color.rgb(128, 100, 228);
@@ -60,7 +75,7 @@ public class Nutllet extends Application {
         StackPane rootContainer = new StackPane();
         rootContainer.getChildren().addAll(root, floatButtons);
         StackPane.setAlignment(floatButtons, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(floatButtons, new Insets(640, 20, 70, 0));
+        StackPane.setMargin(floatButtons, new Insets(620, 20, 70, 0));
 
         Scene scene = new Scene(rootContainer, 1366, 768);
         primaryStage.setTitle("NUTLLET - Financial Management");
@@ -366,49 +381,103 @@ public class Nutllet extends Application {
 
     // 修改后的底部导航栏方法
     private HBox createBottomNavigation() {
-        HBox navBar = new HBox(60);
-        navBar.setBackground(new Background(new BackgroundFill(DARK_NAV_BG, CornerRadii.EMPTY, Insets.EMPTY)));
-        navBar.setPadding(new Insets(15, 100, 15, 100)); // 增加水平padding
+        HBox navBar = new HBox();
+        navBar.setSpacing(0);
         navBar.setAlignment(Pos.CENTER);
+        navBar.setPrefHeight(80);
+        navBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
+
+        // 创建带图标的导航按钮
+        Button homeBtn = createNavButtonWithEmoji("Home", "🏠");
+        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍");
+        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙");
+
+        // 设置Home按钮初始颜色
+        setButtonColor(homeBtn, true);  // 紫色
+        setButtonColor(discoverBtn, false); // 默认灰色
+        setButtonColor(settingsBtn, false); // 默认灰色
+
+        // 事件处理（保持原有逻辑）
+        homeBtn.setOnAction(e -> handleNavigation(homeBtn, new Nutllet()));
+        discoverBtn.setOnAction(e -> handleNavigation(discoverBtn, new Discover()));
+        settingsBtn.setOnAction(e -> handleNavigation(settingsBtn, new Settings()));
+
+        // 从右到左排列按钮
+        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
         
-        String[][] navItems = {
-            {"HOME", "M2 12l10-9 10 9v12H2z"},
-            {"DISCOVER", "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"},
-            {"SETTINGS", "M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"}
-        };
-        
-        for (String[] item : navItems) {
-            VBox navButton = createNavItem(item[0], item[1]);
-            navBar.getChildren().add(navButton);
-        }
+        // 设置按钮等宽
+        HBox.setHgrow(settingsBtn, Priority.ALWAYS);
+        HBox.setHgrow(discoverBtn, Priority.ALWAYS);
+        HBox.setHgrow(homeBtn, Priority.ALWAYS);
+
         return navBar;
     }
 
-    private VBox createNavItem(String title, String svgPath) {
-        VBox container = new VBox(5);
-        container.setAlignment(Pos.CENTER);
-        
-        SVGPath icon = new SVGPath();
-        icon.setContent(svgPath);
-        icon.setFill(Color.WHITE);
-        icon.setScaleX(1.2);
-        icon.setScaleY(1.2);
+    private void handleNavigation(Button sourceButton, Application app) {
+        try {
+            app.start(new Stage());
+            ((Stage) sourceButton.getScene().getWindow()).close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
-        Label label = new Label(title);
-        label.setStyle("-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 12px;");
+    private Button createNavButtonWithEmoji(String label, String emoji) {
+        VBox btnContainer = new VBox();
+        btnContainer.setAlignment(Pos.CENTER);
+        btnContainer.setSpacing(2);
 
-        StackPane clickArea = new StackPane(container);
-        clickArea.setStyle("-fx-cursor: hand; -fx-padding: 10px;");
-        clickArea.setOnMouseClicked(e -> handleNavClick(title));
+        // 表情符号标签
+        Label emojiLabel = new Label(emoji);
+        emojiLabel.setStyle("-fx-font-size: 16px;");
+
+        // 文本标签
+        Label textLabel = new Label(label);
+        textLabel.setStyle("-fx-font-size: 14px;");
+
+        btnContainer.getChildren().addAll(emojiLabel, textLabel);
+
+        // 按钮样式设置
+        Button button = new Button();
+        button.setPrefWidth(456);
+        button.setPrefHeight(80);
+        button.setGraphic(btnContainer);
+        button.setStyle("-fx-background-color: white; -fx-border-color: transparent;");
         
-        clickArea.hoverProperty().addListener((obs, oldVal, isHovering) -> {
-            container.setBackground(isHovering ? 
-                new Background(new BackgroundFill(NAV_HOVER, new CornerRadii(5), Insets.EMPTY)) : 
-                Background.EMPTY);
+        // 悬停效果
+        button.hoverProperty().addListener((obs, oldVal, isHovering) -> {
+            // 获取按钮的激活状态
+            Boolean isActive = (Boolean) button.getUserData();
+            
+            // 如果是激活状态，不改变背景色
+            if (isActive != null && isActive) return;
+
+            // 非激活按钮处理悬停效果
+            String bgColor = isHovering ? "#f8f9fa" : "white";
+            button.setStyle("-fx-background-color: " + bgColor + "; -fx-border-color: transparent;");
         });
+
+        return button;
+    }
+
+    // 设置按钮颜色状态
+    private void setButtonColor(Button button, boolean isActive) {
+        VBox container = (VBox) button.getGraphic();
+        String color = isActive ? "#8064E4" : "#7f8c8d";
         
-        container.getChildren().addAll(icon, label);
-        return container;
+        // 存储激活状态到按钮属性
+        button.setUserData(isActive); // 新增
+        
+        // 设置文字颜色
+        for (Node node : container.getChildren()) {
+            if (node instanceof Label) {
+                ((Label) node).setStyle("-fx-text-fill: " + color + ";");
+            }
+        }
+        
+        // 强制设置激活按钮背景色
+        String bgColor = isActive ? "#f8f9fa" : "white"; // 移除悬停判断
+        button.setStyle("-fx-background-color: " + bgColor + "; -fx-border-color: transparent;");
     }
 
     private PieChart createPieChart() {
