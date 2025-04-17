@@ -617,12 +617,28 @@ public class Nutllet extends Application {
         Button modifyBtn = new Button("Modification reminder");
         modifyBtn.setStyle("-fx-background-color: " + PRIMARY_PURPLE.toString().replace("0x", "#") +
                 "; -fx-text-fill: white; -fx-padding: 8 20;");
+        modifyBtn.setOnAction(e -> {
+            try {
+                new NutlletAddNewReminder().start(new Stage());
+                ((Stage) modifyBtn.getScene().getWindow()).close(); // 关闭当前页面
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
 
         Button detailsBtn = new Button("more details");
         detailsBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " +
                 PRIMARY_PURPLE.toString().replace("0x", "#") +
                 "; -fx-border-color: " + PRIMARY_PURPLE.toString().replace("0x", "#") +
                 "; -fx-border-radius: 3; -fx-padding: 8 20;");
+        detailsBtn.setOnAction(e -> {
+            try {
+                new NutlletReminder().start(new Stage());
+                ((Stage) detailsBtn.getScene().getWindow()).close(); // 关闭当前页面
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
 
         HBox buttonBox = new HBox(15, modifyBtn, detailsBtn);
         buttonBox.setPadding(new Insets(20, 0, 0, 0));
