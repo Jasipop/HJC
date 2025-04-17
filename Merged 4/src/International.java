@@ -11,16 +11,23 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
-
+import java.util.Locale;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
+//import org.json.JSONObject;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 
 public class International extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+
+        BorderPane root = new BorderPane();
+
         // 主布局
         VBox mainLayout = new VBox(15);
         mainLayout.setPadding(new Insets(25, 30, 25, 30));
@@ -98,6 +105,7 @@ public class International extends Application {
         buttonBox.getChildren().addAll(new Node[]{clearButton, confirmButton});
         buttonBox.setAlignment(Pos.BOTTOM_RIGHT);
 
+
         // 添加所有组件到主布局
         mainLayout.getChildren().addAll(
                 title,
@@ -105,8 +113,34 @@ public class International extends Application {
                 buttonBox
         );
 
+        // Bottom Navigation Bar
+        HBox navBar = new HBox();
+        navBar.setSpacing(0);
+        navBar.setAlignment(Pos.CENTER);
+        navBar.setPrefHeight(80);
+        navBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
+
+        Button homeBtn = createNavButtonWithEmoji("Home", "🏠"); // 🏠
+        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍"); // 🔍
+        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙️
+
+        homeBtn.setOnAction(e -> {
+            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        discoverBtn.setOnAction(e -> {
+            try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        settingsBtn.setOnAction(e -> {
+            try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+
+        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
+
+        root.setCenter(mainLayout);
+        root.setBottom(navBar);
+
         // 设置场景和舞台
-        Scene scene = new Scene(mainLayout, 1366,768);
+        Scene scene = new Scene(root, 1366,768);
         primaryStage.setTitle("International Transaction Recorder");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -119,9 +153,98 @@ public class International extends Application {
         });
 
         confirmButton.setOnAction(e -> {
-            // 这里添加确认逻辑
-            System.out.println("Transaction confirmed");
+            // 1. 获取用户输入
+            String localCurrency = localCurrencyCombo.getValue();
+            String foreignCurrency = foreignCurrencyCombo.getValue();
+            String amountText = amountField.getText();
+            LocalDate date = timePicker.getValue();
+
+            // 2. 验证输入
+            if (localCurrency == null || foreignCurrency == null ||
+                    amountText.isEmpty() || date == null) {
+                showAlert("Error", "Please fill all required fields!");
+                return;
+            }
+
+            try {
+                double foreignAmount = Double.parseDouble(amountText);
+
+                // 3. 获取汇率（示例API，实际需替换为真实API）
+                double exchangeRate = getExchangeRate(foreignCurrency, localCurrency, date);
+
+                // 4. 计算本币金额
+                double localAmount = foreignAmount * exchangeRate;
+
+                // 5. 显示结果
+                showAlert("Result",
+                        String.format("%.2f %s = %.2f %s (Rate: 1 %s = %.4f %s)",
+                                foreignAmount, foreignCurrency,
+                                localAmount, localCurrency,
+                                foreignCurrency, exchangeRate, localCurrency)
+                );
+
+            } catch (NumberFormatException ex) {
+                showAlert("Error", "Invalid amount format!");
+            } catch (Exception ex) {
+                showAlert("Error", "Failed to fetch exchange rate: " + ex.getMessage());
+            }
         });
+    }
+
+    // Helper method with emoji
+    private Button createNavButtonWithEmoji(String label, String emoji) {
+        VBox btnContainer = new VBox();
+        btnContainer.setAlignment(Pos.CENTER);
+        btnContainer.setSpacing(2);
+
+        Label emojiLabel = new Label(emoji);
+        emojiLabel.setStyle("-fx-font-size: 16px;");
+
+        Label textLabel = new Label(label);
+        textLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #7f8c8d;");
+
+        btnContainer.getChildren().addAll(emojiLabel, textLabel);
+
+        Button button = new Button();
+        button.setPrefWidth(456);
+        button.setPrefHeight(80);
+        button.setGraphic(btnContainer);
+        button.setStyle("-fx-background-color: white; -fx-border-color: transparent;");
+
+        return button;
+    }
+    private Button createNavButton(String label) {
+        Button button = new Button(label);
+        button.setPrefWidth(456); // 1366 / 3
+        button.setPrefHeight(60);
+        button.setStyle(
+                "-fx-background-color: white;" +
+                        "-fx-font-size: 16px;" +
+                        "-fx-text-fill: #7f8c8d;" +
+                        "-fx-border-color: transparent;"
+        );
+        return button;
+    }
+
+
+    // --- 汇率查询方法 ---
+    private double getExchangeRate(String fromCurrency, String toCurrency, LocalDate date) throws Exception {
+        // 示例：使用固定汇率（实际项目应调用API）
+        if (fromCurrency.equals("USD") && toCurrency.equals("CNY")) {
+            return 7.2; // 模拟汇率
+        } else if (fromCurrency.equals("EUR") && toCurrency.equals("CNY")) {
+            return 7.8;
+        }
+        throw new Exception("Unsupported currency pair");
+    }
+
+    // --- 显示弹窗 ---
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     public static void main(String[] args) {
