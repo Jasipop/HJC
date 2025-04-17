@@ -116,7 +116,7 @@ public class Discover extends Application {
         Button settingsButton = createNavButtonWithHighlight("Settings", "⚙", currentPage.equals("Settings"));
 
         homeButton.setOnAction(e -> {
-            try { new Nutllet.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverButton.setOnAction(e -> {
             // 当前页不跳转
@@ -273,6 +273,7 @@ public class Discover extends Application {
                 case "Bank Data Management" -> new Bank_Data_Management().start(new Stage());
                 case "Expenditure Classification System" -> new Free_Design_Classification().start(new Stage());
                 case "International Currency Exchange" -> new International().start(new Stage());
+                case "Seasonal Spikes" ->new UI_1().start(new Stage());
                 case "AI Intelligent Classification" -> new Intelligent_Transaction_Classifier().start(new Stage());
                 case "Settings" -> new Settings().start(new Stage());
                 case "Log out" -> new Login().start(new Stage());
