@@ -1,6 +1,7 @@
 //package Nutllet;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -178,7 +179,9 @@ public class Nutllet extends Application {
                     "Currently 35% of the budget remains, and you may consider transferring part of the funds " +
                     "to a financial management account to earn returns."
     );
-    private Circle dot1, dot2;
+//    private Circle dot1, dot2;
+    private StackPane dot1, dot2;
+
     private TextArea aiContent;
 
     private VBox createAIConsumptionSection() {
@@ -189,57 +192,73 @@ public class Nutllet extends Application {
         )));
         container.setAlignment(Pos.TOP_CENTER);
 
-        // 标题样式强化
+        // 标题部分保持不变
         Label title = new Label("AI Consumption Analysis");
         title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 24));
         title.setTextFill(PRIMARY_PURPLE);
         title.setPadding(new Insets(0, 0, 15, 0));
 
-        // 支持多行居中的内容区域
+        // 文本内容容器
+        VBox textContainer = new VBox();
+        textContainer.setAlignment(Pos.TOP_CENTER);
+
         aiContent = new TextArea();
         aiContent.setEditable(false);
         aiContent.setWrapText(true);
-        aiContent.setStyle("-fx-background-color: transparent; " +
+        aiContent.setStyle("-fx-background-color: white; " +  // 添加白色背景
                 "-fx-text-fill: #666666; " +
                 "-fx-font-size: 14px; " +
                 "-fx-font-family: 'Segoe UI'; " +
-                "-fx-text-alignment: center;");  // 文本居中
+                "-fx-border-radius: 8; " +
+                "-fx-background-radius: 8;");
         aiContent.setPrefHeight(180);
-        aiContent.setMouseTransparent(true);  // 禁用文本选择
-        aiContent.setText(aiContents.get(currentAIPage));
+        aiContent.setMouseTransparent(true);
 
-        // 控制容器布局优化
-        VBox controlContainer = new VBox(20);
-        controlContainer.setAlignment(Pos.CENTER);
+        // 将文本区域包裹在单独容器中
+        StackPane textWrapper = new StackPane(aiContent);
+        textWrapper.setPadding(new Insets(15));
+        textContainer.getChildren().add(textWrapper);
 
-        // 增强分页指示器
+        // 分页控制容器（新增底部容器）
+        VBox paginationContainer = new VBox(20);
+        paginationContainer.setAlignment(Pos.CENTER);
+
         HBox pagination = new HBox(15);
         pagination.setAlignment(Pos.CENTER);
         dot1 = createInteractiveDot(0);
         dot2 = createInteractiveDot(1);
         pagination.getChildren().addAll(dot1, dot2);
 
-        // 带图标的功能按钮
+        // 功能按钮
         Button actionButton = createActionButton();
 
-        controlContainer.getChildren().addAll(actionButton, pagination);
-        container.getChildren().addAll(title, aiContent, controlContainer);
+        // 控制元素布局调整
+        paginationContainer.getChildren().addAll(actionButton, pagination);
 
+        // 整体布局结构调整
+        container.getChildren().addAll(title, textContainer, paginationContainer); // 分页容器移至最下方
+        VBox.setMargin(paginationContainer, new Insets(20,0,0,0)); // 增加顶部间距
+
+        // 初始化内容
+        switchAIPage(currentAIPage);
         return container;
     }
 
-    private Circle createInteractiveDot(int pageIndex) {
+    private StackPane createInteractiveDot(int pageIndex) {
         Circle dot = new Circle(6);
         dot.setFill(pageIndex == currentAIPage ? PRIMARY_PURPLE : Color.web("#D8D8D8"));
         dot.setStroke(Color.web("#999999"));
         dot.setStrokeWidth(0.5);
-        dot.setCursor(Cursor.HAND);
 
-        dot.setOnMouseClicked(e -> {
-            currentAIPage = pageIndex;
-            updateAIContent();
+        StackPane clickableDot = new StackPane(dot);
+        clickableDot.setPadding(new Insets(8));  // 扩大点击区域
+        clickableDot.setCursor(Cursor.HAND);
+        clickableDot.setOnMouseClicked(e -> {
+            if(pageIndex != currentAIPage) {
+                Platform.runLater(() -> switchAIPage(pageIndex));
+            }
         });
-        return dot;
+        return clickableDot;
     }
 
     private Button createActionButton() {
@@ -266,36 +285,26 @@ public class Nutllet extends Application {
         return button;
     }
 
+    // 修改后的分页切换方法
     private void switchAIPage(int page) {
         currentAIPage = page;
         aiContent.setText(aiContents.get(currentAIPage));
-        dot1.setFill(currentAIPage == 0 ? PRIMARY_PURPLE : Color.web("#D8D8D8"));
-        dot2.setFill(currentAIPage == 1 ? PRIMARY_PURPLE : Color.web("#D8D8D8"));
+
+        // 更新分页点颜色（通过访问StackPane中的圆形）
+        updateDotColor(dot1, 0);
+        updateDotColor(dot2, 1);
 
         // 动态样式调整
-        if(currentAIPage == 1) {
-            aiContent.setStyle("-fx-text-fill: #666666; -fx-font-size: 15px;");
-        } else {
-            aiContent.setStyle("-fx-text-fill: #333333; -fx-font-size: 14px;");
-        }
-    }
-    private void updateAIContent() {
-        aiContent.setText(aiContents.get(currentAIPage));
-        dot1.setFill(currentAIPage == 0 ? PRIMARY_PURPLE : Color.web("#D8D8D8"));
-        dot2.setFill(currentAIPage == 1 ? PRIMARY_PURPLE : Color.web("#D8D8D8"));
-
-        // 动态调整内容格式
-        if(currentAIPage == 1) {
-            aiContent.setStyle("-fx-text-fill: #666666; " +
-                    "-fx-font-size: 15px; " +
-                    "-fx-font-family: 'Segoe UI'; " +
-                    "-fx-text-alignment: center;");
-        } else {
-            aiContent.setStyle("-fx-text-fill: #333333; " +
-                    "-fx-font-size: 14px;");
-        }
+        String styleBase = "-fx-background-color: transparent; -fx-font-family: 'Segoe UI';";
+        aiContent.setStyle(styleBase + (currentAIPage == 1 ?
+                "-fx-text-fill: #666666; -fx-font-size: 15px;" :
+                "-fx-text-fill: #333333; -fx-font-size: 14px;"));
     }
 
+    private void updateDotColor(StackPane dotPane, int targetPage) {
+        Circle dot = (Circle) dotPane.getChildren().get(0);
+        dot.setFill(currentAIPage == targetPage ? PRIMARY_PURPLE : Color.web("#D8D8D8"));
+    }
 
     // 保留其他原有方法（完整实现）
     private HBox createHeader() {

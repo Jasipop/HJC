@@ -1,3 +1,5 @@
+//package Nutllet;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,7 +17,7 @@ import java.util.Map;
 
 public class Login extends Application {
     private Stage loginStage;
-
+    private Scene loginScene;
 
     private Map<String, String> userCredentials = new HashMap<>();
     private static final String CREDENTIALS_FILE = "user_credentials.csv";
@@ -82,7 +84,7 @@ public class Login extends Application {
         // Signup button
         Button signupButton = new Button("Click to sign up");
         signupButton.setStyle("-fx-background-color: #71b6c5; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px; -fx-pref-height: 40px;");
-        signupButton.setOnAction(e -> handleSignup(usernameField.getText(), passwordField.getText()));
+        signupButton.setOnAction(e -> showRegistrationForm());
 
 
         // Forgot password link
@@ -102,8 +104,8 @@ public class Login extends Application {
         mainContainer.getChildren().addAll(titleLabel, instructionLabel, formContainer);
 
         // Set scene
-        Scene scene = new Scene(mainContainer);
-        primaryStage.setScene(scene);
+        loginScene = new Scene(mainContainer);  // 将场景保存到成员变量
+        primaryStage.setScene(loginScene);
         primaryStage.show();
     }
 
@@ -184,4 +186,101 @@ public class Login extends Application {
             e.printStackTrace();
         }
     }
+    private void showRegistrationForm() {
+        // 创建注册页面容器
+        VBox regMainContainer = new VBox(20);
+        regMainContainer.setAlignment(Pos.CENTER);
+        regMainContainer.setPadding(new Insets(20));
+        regMainContainer.setStyle("-fx-background-color: #FFD4EC54;");
+
+        // 注册标题
+        Label regTitleLabel = new Label("Sign Up");
+        regTitleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
+        regTitleLabel.setTextFill(Color.web("#855FAF"));
+
+        // 注册说明
+        Label regInstruction = new Label("Create your new account");
+        regInstruction.setFont(Font.font("Arial", 16));
+        regInstruction.setTextFill(Color.web("#666666"));
+
+        // 注册表单容器
+        VBox regFormContainer = new VBox(15);
+        regFormContainer.setAlignment(Pos.CENTER);
+        regFormContainer.setMaxWidth(400);
+        regFormContainer.setPadding(new Insets(30, 40, 30, 40));
+        regFormContainer.setStyle("-fx-background-color: rgba(237,223,248,0.88); -fx-border-radius: 5; -fx-background-radius: 5;");
+
+        // 用户名输入
+        Label regUserLabel = new Label("Choose a username");
+        regUserLabel.setFont(Font.font("Arial", 14));
+        regUserLabel.setTextFill(Color.web("#333333"));
+
+        TextField regUsernameField = new TextField();
+        regUsernameField.setPromptText("Username (4-20 characters)");
+        regUsernameField.setStyle("-fx-pref-height: 40; -fx-font-size: 14;");
+
+        // 密码输入
+        Label regPassLabel = new Label("Create password");
+        regPassLabel.setFont(Font.font("Arial", 14));
+        regPassLabel.setTextFill(Color.web("#333333"));
+
+        PasswordField regPasswordField = new PasswordField();
+        regPasswordField.setPromptText("Password (min 8 characters)");
+        regPasswordField.setStyle("-fx-pref-height: 40; -fx-font-size: 14;");
+
+        // 确认密码
+        Label confirmPassLabel = new Label("Confirm password");
+        confirmPassLabel.setFont(Font.font("Arial", 14));
+        confirmPassLabel.setTextFill(Color.web("#333333"));
+
+        PasswordField confirmPasswordField = new PasswordField();
+        confirmPasswordField.setPromptText("Re-enter your password");
+        confirmPasswordField.setStyle("-fx-pref-height: 40; -fx-font-size: 14;");
+
+        // 注册按钮
+        Button registerButton = new Button("Create Account");
+        registerButton.setStyle("-fx-background-color: #71b6c5; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 200px; -fx-pref-height: 40px;");
+
+        // 返回登录链接
+        Hyperlink backToLoginLink = new Hyperlink("Back to Login");
+        backToLoginLink.setStyle("-fx-text-fill: #666666; -fx-font-size: 12;");
+
+        // 组装注册表单
+        regFormContainer.getChildren().addAll(
+                regUserLabel, regUsernameField,
+                regPassLabel, regPasswordField,
+                confirmPassLabel, confirmPasswordField,
+                registerButton, backToLoginLink
+        );
+
+        // 组装主容器
+        regMainContainer.getChildren().addAll(regTitleLabel, regInstruction, regFormContainer);
+
+        // 创建新场景
+        Scene regScene = new Scene(regMainContainer, 1366, 768);
+
+        // 注册按钮事件处理
+        registerButton.setOnAction(e -> {
+            String username = regUsernameField.getText().trim();
+            String password = regPasswordField.getText().trim();
+            String confirmPass = confirmPasswordField.getText().trim();
+
+            if (!password.equals(confirmPass)) {
+                showAlert("Error", "Passwords do not match!");
+                return;
+            }
+
+            handleSignup(username, password); // 复用原有的注册逻辑
+            loginStage.setScene(loginScene); // 返回登录页
+        });
+
+        // 返回登录链接事件
+        backToLoginLink.setOnAction(e ->
+                loginStage.setScene(loginScene)  // 使用保存的登录场景
+        );
+
+        // 切换场景
+        loginStage.setScene(regScene);
+    }
+
 }

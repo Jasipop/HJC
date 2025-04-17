@@ -18,8 +18,44 @@ import javafx.util.Duration;
 
 public class Mailbox extends Application {
 
+    private VBox itemsContainer;
+    private String[] titles, descriptions, emojis;
+    private final String[] pastelColors = {
+            "#D8F0FF", "#D0ECFF", "#C8E8FF",
+            "#C0E4FF", "#B8E0FF", "#B0DCFF", "#A8D8FF"
+    };
+    private Stage currentStage;
+
+
     @Override
     public void start(Stage primaryStage) {
+
+        this.currentStage = primaryStage;
+        this.titles = new String[]{
+                "System Update v1.1.3", "New Message Received", "Project Deadline Incoming",
+                "Team Meeting Reminder", "Monthly Report Ready", "Account Security Alert",
+                "New Feature Available", "Scheduled Maintenance Notice", "Nutlet is Now Live",
+                "v1.1.2 Update Released"
+        };
+
+        this.descriptions = new String[]{
+                "A new system update (v1.1.3) is now available. Please download and install it for the best experience.",
+                "You have received a new message from John. Check your inbox to read it.",
+                "Your project submission is due tomorrow. Make sure everything is finalized.",
+                "Reminder: There will be a team meeting today at 3:00 PM. Please be prepared.",
+                "Your monthly activity report is ready. View it now to stay on top of your progress.",
+                "A critical security update is required. Please update your account credentials if prompted.",
+                "A new productivity tool has been added. Explore it now to enhance your workflow.",
+                "Scheduled system maintenance will occur this Friday at 2:00 AM. Please save your work in advance.",
+                "Nutlet is now officially available! Thank you for joining us on this journey.",
+                "A new version (v1.1.2) has been released. Reimbursement functionality is now available. Please update to enjoy the new features."
+        };
+
+        this.emojis = new String[]{
+                "🔄", "👋", "🔧", "✨", "🔒", "📊", "👥", "⏰", "✉️", "🖥️"
+        };
+
+
         StackPane root = new StackPane();
 
         VBox mainLayout = new VBox();
@@ -50,6 +86,11 @@ public class Mailbox extends Application {
         searchBox.setPrefWidth(800);
         searchBox.setAlignment(Pos.CENTER);
 
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filterMessages(newValue.trim().toLowerCase());
+        });
+
+
         ImageView mailboxIcon = new ImageView(new Image("mailbox.png"));
         mailboxIcon.setFitHeight(100);
         mailboxIcon.setPreserveRatio(true);
@@ -62,7 +103,7 @@ public class Mailbox extends Application {
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent; " +
                 "-fx-scrollbar-color: #3A5FCD #E6F0FF;");
 
-        VBox itemsContainer = new VBox();
+        itemsContainer = new VBox();
         itemsContainer.setSpacing(15);
         itemsContainer.setAlignment(Pos.CENTER);
         itemsContainer.setPadding(new Insets(0, 10, 20, 10));
@@ -75,38 +116,7 @@ public class Mailbox extends Application {
                 "#C0E4FF", "#B8E0FF", "#B0DCFF", "#A8D8FF"
         };
 
-        // 通知数据
-        String[] titles = {
-                "System Update v1.1.3",
-                "New Message Received",
-                "Project Deadline Incoming",
-                "Team Meeting Reminder",
-                "Monthly Report Ready",
-                "Account Security Alert",
-                "New Feature Available",
-                "Scheduled Maintenance Notice",
-                "Nutlet is Now Live",
-                "v1.1.2 Update Released"
-        };
 
-        String[] descriptions = {
-                "A new system update (v1.1.3) is now available. Please download and install it for the best experience.",
-                "You have received a new message from John. Check your inbox to read it.",
-                "Your project submission is due tomorrow. Make sure everything is finalized.",
-                "Reminder: There will be a team meeting today at 3:00 PM. Please be prepared.",
-                "Your monthly activity report is ready. View it now to stay on top of your progress.",
-                "A critical security update is required. Please update your account credentials if prompted.",
-                "A new productivity tool has been added. Explore it now to enhance your workflow.",
-                "Scheduled system maintenance will occur this Friday at 2:00 AM. Please save your work in advance.",
-                "Nutlet is now officially available! Thank you for joining us on this journey.",
-                "A new version (v1.1.2) has been released. Reimbursement functionality is now available. Please update to enjoy the new features."
-        };
-
-
-        String[] emojis = {
-                "🔄", "👋", "🔧", "✨", "🔒",
-                "📊", "👥", "⏰", "✉️", "🖥️"
-        };
 
         // 创建通知按钮（增加到10个展示滚动效果）
         for (int i = 0; i < titles.length; i++) {
@@ -169,6 +179,32 @@ public class Mailbox extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+
+    private void filterMessages(String keyword) {
+        itemsContainer.getChildren().clear();  // 清空旧消息按钮
+
+        boolean found = false;
+
+        for (int i = 0; i < titles.length; i++) {
+            if (titles[i].toLowerCase().contains(keyword) ||
+                    descriptions[i].toLowerCase().contains(keyword)) {
+                Button btn = createMessageButton(currentStage, titles[i], descriptions[i], emojis[i], pastelColors[i % pastelColors.length]);
+                addHoverAnimation(btn);
+                itemsContainer.getChildren().add(btn);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            Label noResult = new Label("No relevant information");
+            noResult.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
+            noResult.setStyle("-fx-text-fill: #3f81d1;");
+            noResult.setPadding(new Insets(20));
+            itemsContainer.getChildren().add(noResult);
+        }
+    }
+
+
 
     // Helper method with emoji
     private Button createNavButtonWithEmoji(String label, String emoji) {
