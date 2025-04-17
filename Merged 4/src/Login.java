@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Login extends Application {
+    private Stage loginStage;
+
 
     private Map<String, String> userCredentials = new HashMap<>();
     private static final String CREDENTIALS_FILE = "user_credentials.csv";
@@ -24,6 +26,7 @@ public class Login extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        this.loginStage = primaryStage;
         loadCredentials();
 
         primaryStage.setTitle("Login System");
@@ -73,12 +76,12 @@ public class Login extends Application {
 
         // Login button
         Button loginButton = new Button("Log in");
-        loginButton.setStyle("-fx-background-color: #855faf; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 120px; -fx-pref-height: 40px;");
+        loginButton.setStyle("-fx-background-color: #855faf; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px; -fx-pref-height: 40px;");
         loginButton.setOnAction(e -> handleLogin(usernameField.getText(), passwordField.getText()));
 
         // Signup button
-        Button signupButton = new Button("Sign in");
-        signupButton.setStyle("-fx-background-color: #71b6c5; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 120px; -fx-pref-height: 40px;");
+        Button signupButton = new Button("Click to sign up");
+        signupButton.setStyle("-fx-background-color: #71b6c5; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px; -fx-pref-height: 40px;");
         signupButton.setOnAction(e -> handleSignup(usernameField.getText(), passwordField.getText()));
 
 
@@ -112,7 +115,18 @@ public class Login extends Application {
 
         if (userCredentials.containsKey(username) && userCredentials.get(username).equals(password)) {
             showAlert("Success", "Login successful!");
-            new Discover().start(new Stage());
+
+            // 启动主界面
+            Stage nutlletStage = new Stage();
+            try {
+                new Nutllet().start(nutlletStage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // 关闭当前登录窗口
+            loginStage.close();
+
         } else {
             showAlert("Error", "Invalid username or password.");
         }
