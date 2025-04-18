@@ -27,6 +27,7 @@ public class InternationalList extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        BorderPane rootplus = new BorderPane();
         StackPane root = new StackPane();
 
         VBox mainLayout = new VBox();
@@ -159,9 +160,11 @@ public class InternationalList extends Application {
         });
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
-        mainLayout.getChildren().add(navBar);
 
-        Scene scene = new Scene(root, 1366, 768);
+        rootplus.setCenter(mainLayout);
+        rootplus.setBottom(navBar);
+
+        Scene scene = new Scene(rootplus, 1366, 768);
         primaryStage.setTitle("Reimbursements");
         primaryStage.setScene(scene);
         primaryStage.show();

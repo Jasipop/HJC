@@ -1,4 +1,4 @@
-//package Nutllet;
+//package Merge;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -27,6 +27,13 @@ import java.util.stream.Collectors;
 import javafx.scene.Cursor;
 import javafx.application.HostServices;
 import javafx.scene.Node;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Alert;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 public class Nutllet extends Application {
     private static final Color PRIMARY_PURPLE = Color.rgb(133, 95, 175);
     private static final Color LIGHT_PURPLE_BG = Color.rgb(245, 241, 255);
@@ -38,11 +45,14 @@ public class Nutllet extends Application {
     private ObservableList<String> transactionItems = FXCollections.observableArrayList();
     private double totalExpenditure;
     private HostServices hostServices;
+    private List<Expense> expenses = new ArrayList<>();
+    private PieChart pieChart;
+    private Label balanceValue;
 
     @Override
     public void start(Stage primaryStage) {
         String csvFileName = "deals.csv";
-        List<Expense> expenses = loadExpensesFromCSV(csvFileName);
+        loadExpensesFromCSV(csvFileName);
         processData(expenses);
         this.hostServices = getHostServices();
         BorderPane root = new BorderPane();
@@ -105,13 +115,13 @@ public class Nutllet extends Application {
         VBox balanceBox = new VBox(5);
         Label balanceTitle = new Label("Total expenditure");
         balanceTitle.setStyle("-fx-text-fill: #666666; -fx-font-size: 14px;");
-        Label balanceValue = new Label(String.format("¥ %.2f", totalExpenditure));
+        this.balanceValue = new Label(String.format("¥ %.2f", totalExpenditure));
         balanceValue.setStyle("-fx-text-fill: #333333; -fx-font-size: 32px; -fx-font-weight: bold;");
         balanceBox.getChildren().addAll(balanceTitle, balanceValue);
-
+        this.pieChart = createPieChart();
         leftPanel.getChildren().addAll(
                 balanceBox,
-                createPieChart(),
+                this.pieChart,
                 createProgressSection(),
                 createButtonPanel()
         );
@@ -179,7 +189,7 @@ public class Nutllet extends Application {
                     "Currently 35% of the budget remains, and you may consider transferring part of the funds " +
                     "to a financial management account to earn returns."
     );
-//    private Circle dot1, dot2;
+    //    private Circle dot1, dot2;
     private StackPane dot1, dot2;
 
     private TextArea aiContent;
@@ -408,7 +418,134 @@ public class Nutllet extends Application {
     }
 
     private void handleFloatButtonClick(String buttonType) {
-        System.out.println("触发功能: " + buttonType);
+        if ("Manual Input".equals(buttonType)) {
+            showManualInputDialog();
+        } else {
+            System.out.println("触发功能: " + buttonType);
+        }
+    }
+    private void showManualInputDialog() {
+        Dialog<Expense> dialog = new Dialog<>();
+        dialog.setTitle("Manually enter consumption records");
+        dialog.setHeaderText("Please enter detailed consumption information");
+
+        ButtonType confirmButtonType = new ButtonType("Confirm", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButtonType = new ButtonType("Cancel",ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, cancelButtonType);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        // 创建表单字段
+        TextField timeField = new TextField();
+        timeField.setPromptText("YYYY-MM-DD HH:mm:ss");
+        TextField counterpartField = new TextField();
+        TextField productField = new TextField();
+        TextField amountField = new TextField();
+
+        grid.add(new Label("Time of transaction:"), 0, 0);
+        grid.add(timeField, 1, 0);
+        grid.add(new Label("Counterparty:"), 0, 1);
+        grid.add(counterpartField, 1, 1);
+        grid.add(new Label("Product Description:"), 0, 2);
+        grid.add(productField, 1, 2);
+        grid.add(new Label("Amount (Yuan):"), 0, 3);
+        grid.add(amountField, 1, 3);
+
+        dialog.getDialogPane().setContent(grid);
+
+        Node confirmButton = dialog.getDialogPane().lookupButton(confirmButtonType);
+        confirmButton.setDisable(true);
+
+        // 输入验证
+        ChangeListener<String> inputValidator = new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable,
+                                String oldValue, String newValue) {
+                boolean isValid = !timeField.getText().isEmpty()
+                        && !counterpartField.getText().isEmpty()
+                        && !productField.getText().isEmpty()
+                        && !amountField.getText().matches(".*[^0-9.].*");
+                confirmButton.setDisable(!isValid);
+            }
+        };
+
+        timeField.textProperty().addListener(inputValidator);
+        counterpartField.textProperty().addListener(inputValidator);
+        productField.textProperty().addListener(inputValidator);
+        amountField.textProperty().addListener(inputValidator);
+
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType == confirmButtonType) {
+                try {
+                    LocalDateTime time = LocalDateTime.parse(timeField.getText(),
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    double amount = Double.parseDouble(amountField.getText());
+                    return new Expense(time, amount, counterpartField.getText(),
+                            productField.getText(), "支出", "支付成功");
+                } catch (Exception e) {
+                    new Alert(Alert.AlertType.ERROR, "Invalid input format").show();
+                }
+            }
+            return null;
+        });
+
+        Optional<Expense> result = dialog.showAndWait();
+        result.ifPresent(expense -> {
+            expenses.add(expense);
+            processData(expenses);
+            updateUI();
+            saveExpensesToCSV("deals.csv"); // 新增保存方法
+        });
+    }
+    // 新增保存方法
+    private void saveExpensesToCSV(String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            // 写入文件头
+            writer.write("微信支付账单明细 微信昵称：[Q·ð 起始时间：[2025-04-10 09:40:16] 终止时间：[2025-04-18 19:55:33]");
+            writer.newLine();
+            writer.write("----------------------微信支付账单明细列表--------------------");
+            writer.newLine();
+            writer.write("交易时间,交易类型,交易对方,商品,收/支,金额(元),支付方式,当前状态,交易单号,商户单号,备注");
+            writer.newLine();
+
+            // 写入所有记录
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            for (Expense expense : expenses) {
+                String line = String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"¥%.2f\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"",
+                        expense.getTransactionTime().format(formatter),
+                        "商户消费",
+                        expense.getCounterpart(),
+                        expense.getProduct(),
+                        expense.getType(),
+                        expense.getAmount(),
+                        "零钱",
+                        expense.getStatus(),
+                        "", "", ""
+                );
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            new Alert(Alert.AlertType.ERROR, "保存失败: " + e.getMessage()).show();
+        }
+    }
+
+    // 更新UI的方法
+    private void updateUI() {
+        // 安全检测
+        if (pieChart != null) {
+            pieChart.getData().clear();
+            pieChart.getData().addAll(categoryTotals.entrySet().stream()
+                    .map(entry -> new PieChart.Data(entry.getKey(), entry.getValue()))
+                    .collect(Collectors.toList()));
+        }
+
+        if (balanceValue != null) {
+            balanceValue.setText(String.format("¥ %.2f", totalExpenditure));
+        }
     }
 
     // 修改后的底部导航栏方法
@@ -645,8 +782,8 @@ public class Nutllet extends Application {
         return buttonBox;
     }
 
-    private List<Expense> loadExpensesFromCSV(String filePath) {
-        List<Expense> expenses = new ArrayList<>();
+    private void loadExpensesFromCSV(String filePath) {
+        expenses.clear(); // 使用已初始化的成员变量
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             boolean isDataSection = false;
@@ -655,27 +792,41 @@ public class Nutllet extends Application {
             while ((line = br.readLine()) != null) {
                 if (line.contains("微信支付账单明细列表")) {
                     isDataSection = true;
-                    headers = Arrays.asList(br.readLine().split(","));
+                    headers = Arrays.asList(br.readLine().split(",")); // 读取标题行
                     continue;
                 }
 
                 if (isDataSection && !line.trim().isEmpty()) {
                     Map<String, String> record = parseCSVLine(line, headers);
-                    if ("支出".equals(record.get("收/支")) && "支付成功".equals(record.get("当前状态"))) {
+
+                    // 确保字段正确性
+                    if ("支出".equals(record.get("收/支")) &&
+                            "支付成功".equals(record.get("当前状态"))) {
+
+                        // 明确解析所有必要字段
+                        LocalDateTime time = LocalDateTime.parse(
+                                record.get("交易时间"),
+                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        );
+                        double amount = Double.parseDouble(
+                                record.get("金额(元)").replace("¥", "").trim()
+                        );
+                        String counterpart = record.get("交易对方");
+                        String product = record.get("商品");
+                        String type = record.get("收/支");
+                        String status = record.get("当前状态");
+
+                        // 正确创建Expense对象并添加到列表
                         Expense expense = new Expense(
-                                LocalDateTime.parse(record.get("交易时间"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                                Double.parseDouble(record.get("金额(元)").replace("¥", "").trim()),
-                                record.get("交易对方"),
-                                record.get("商品")
+                                time, amount, counterpart, product, type, status
                         );
                         expenses.add(expense);
                     }
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "加载数据失败: " + e.getMessage()).show();
         }
-        return expenses;
     }
 
     private Map<String, String> parseCSVLine(String line, List<String> headers) {
@@ -716,15 +867,21 @@ public class Nutllet extends Application {
         String counterpart = expense.getCounterpart().toLowerCase();
         String product = expense.getProduct().toLowerCase();
 
-        if (counterpart.contains("美团") || counterpart.contains("食堂") || product.contains("餐")) {
+        if (counterpart.contains("美团") || counterpart.contains("食堂") || product.contains("餐") || product.contains("茶") || counterpart.contains("农夫山泉")|| counterpart.contains("岳西科技")) {
             return "Catering";
-        } else if (counterpart.contains("滴滴") || counterpart.contains("加油站")) {
+        } else if (counterpart.contains("滴滴") || counterpart.contains("加油站") || counterpart.contains("石油") || counterpart.contains("北京一卡通") || counterpart.contains("携程")) {
             return "Traffic";
-        } else if (counterpart.contains("电影院") || product.contains("游戏")) {
+        } else if (counterpart.contains("电影院") || product.contains("游戏") || counterpart.contains("休息") || counterpart.contains("Apple")|| product.contains("apple")) {
             return "Entertainment";
-        } else if (counterpart.contains("超市") || product.contains("日用品")) {
+        } else if (counterpart.contains("超市") || product.contains("日用品") || counterpart.contains("叮咚") || counterpart.contains("京东到家")) {
             return "Living";
-        } else {
+        }else if (product.contains("会员")) {
+            return "Periodic";
+        }else if (product.contains("转账") || product.contains("/")) {
+            return "Social";
+        }else if (product.contains("银行")) {
+            return "Funds flow";
+        }else {
             return "Other";
         }
     }
@@ -734,20 +891,26 @@ public class Nutllet extends Application {
         private double amount;
         private String counterpart;
         private String product;
+        private String type;
+        private String status;
 
-        public Expense(LocalDateTime transactionTime, double amount, String counterpart, String product) {
+        public Expense(LocalDateTime transactionTime, double amount, String counterpart,
+                       String product, String type, String status) {
             this.transactionTime = transactionTime;
             this.amount = amount;
             this.counterpart = counterpart;
             this.product = product;
+            this.type = type;
+            this.status = status;
         }
-
         public LocalDateTime getTransactionTime() { return transactionTime; }
         public double getAmount() { return amount; }
         public String getCounterpart() { return counterpart; }
         public String getProduct() { return product; }
+        // 补充getter方法
+        public String getType() { return type; }
+        public String getStatus() { return status; }
     }
-
     public static void main(String[] args) {
         launch(args);
     }

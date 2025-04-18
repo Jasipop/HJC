@@ -53,7 +53,7 @@ public class Transaction_Management_System extends Application {
     public void start(Stage primaryStage) {
         initializeData();
         setupTypeChart();
-
+        BorderPane root = new BorderPane();
         VBox leftPanel = createLeftPanel();
         VBox rightPanel = createRightPanel();
         HBox mainContent = createMainContent(leftPanel, rightPanel);
@@ -62,7 +62,7 @@ public class Transaction_Management_System extends Application {
         // Set background color for the entire scene
         mainLayout.setStyle("-fx-background-color: #f8f0ff;");
 
-        Scene scene = new Scene(mainLayout, 1366, 768);
+        Scene scene = new Scene(root, 1366, 768);
         primaryStage.setTitle("Transaction Management");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -89,7 +89,8 @@ public class Transaction_Management_System extends Application {
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
 
-        mainLayout.getChildren().add(navBar);
+        root.setCenter(mainLayout);
+        root.setBottom(navBar);
     }
 
     private void initializeData() {
