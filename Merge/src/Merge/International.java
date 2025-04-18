@@ -109,7 +109,7 @@ public class International extends Application {
         Label localCurrencyLabel = new Label("Local currency *");
         localCurrencyLabel.setStyle("-fx-text-fill: #2c3e50; -fx-font-size: 16px;");
         ComboBox<String> localCurrencyCombo = new ComboBox<>();
-        localCurrencyCombo.getItems().addAll("CNY", "USD", "EUR", "GBP");
+        localCurrencyCombo.getItems().addAll("CNY", "USD", "EUR", "GBP", "JPY", "HKD", "AUD", "NZD","SGD","CHF","CAD","MOP","MYR","RUB","ZAR","KRW","AED","SAR","HUF","PLN","DKK","SEK","NOK","TRY","MXN","THB");
         localCurrencyCombo.setValue("CNY");
         localCurrencyCombo.setStyle("-fx-background-color: #f9f9f9; -fx-border-color: #bdc3c7; -fx-font-size: 16px; -fx-pref-height: 40px;");
         localCurrencyCombo.setPrefWidth(500);
@@ -118,7 +118,7 @@ public class International extends Application {
         Label foreignCurrencyLabel = new Label("Foreign currency *");
         foreignCurrencyLabel.setStyle("-fx-text-fill: #2c3e50; -fx-font-size: 16px;");
         ComboBox<String> foreignCurrencyCombo = new ComboBox<>();
-        foreignCurrencyCombo.getItems().addAll("CNY", "USD", "EUR", "GBP");
+        foreignCurrencyCombo.getItems().addAll("CNY", "USD", "EUR", "GBP", "JPY", "HKD", "AUD", "NZD","SGD","CHF","CAD","MOP","MYR","RUB","ZAR","KRW","AED","SAR","HUF","PLN","DKK","SEK","NOK","TRY","MXN","THB");
         foreignCurrencyCombo.setStyle("-fx-background-color: #f9f9f9; -fx-border-color: #bdc3c7; -fx-font-size: 16px; -fx-pref-height: 40px;");
         foreignCurrencyCombo.setPromptText("Click here to input the kind of foreign currency");
         foreignCurrencyCombo.setPrefWidth(500);
