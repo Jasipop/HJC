@@ -28,6 +28,7 @@ public class ReimbursementList extends Application {
     @Override
     public void start(Stage primaryStage) {
         StackPane root = new StackPane();
+        BorderPane rootplus = new BorderPane();
 
         VBox mainLayout = new VBox();
         mainLayout.setPadding(new Insets(20));
@@ -136,6 +137,7 @@ public class ReimbursementList extends Application {
         });
 
         root.getChildren().addAll(mainLayout, addButton);
+        rootplus.setCenter(root);
 
         // Bottom Navigation Bar
         HBox navBar = new HBox();
@@ -159,9 +161,9 @@ public class ReimbursementList extends Application {
         });
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
-        mainLayout.getChildren().add(navBar);
+        rootplus.setBottom(navBar);
 
-        Scene scene = new Scene(root, 1366, 768);
+        Scene scene = new Scene(rootplus, 1366, 768);
         primaryStage.setTitle("Reimbursements");
         primaryStage.setScene(scene);
         primaryStage.show();

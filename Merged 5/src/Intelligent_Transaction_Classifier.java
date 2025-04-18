@@ -65,6 +65,11 @@ public class Intelligent_Transaction_Classifier extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        BorderPane root = new BorderPane();
+        Scene scene = new Scene(root,1366, 768);
+        primaryStage.setTitle("AI Transaction Classifier");
+        primaryStage.setScene(scene);
+
         this.hostServices = getHostServices();
         initializeData();
         TableView<Transaction> table = createTableView();
@@ -75,10 +80,6 @@ public class Intelligent_Transaction_Classifier extends Application {
         HBox content = createMainContent(tableCard, rightPanel);
         ScrollPane scrollPane = createScrollPane(content);
         VBox mainLayout = createMainLayout(scrollPane);
-
-        Scene scene = new Scene(mainLayout,1366, 768);
-        primaryStage.setTitle("AI Transaction Classifier");
-        primaryStage.setScene(scene);
 
         setupSizeBindings(tableCard, rightPanel, mainLayout);
         primaryStage.show();
@@ -104,7 +105,10 @@ public class Intelligent_Transaction_Classifier extends Application {
         });
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
-        mainLayout.getChildren().add(navBar);
+
+        root.setCenter(mainLayout);
+        root.setBottom(navBar);
+
     }
 
     private void initializeData() {

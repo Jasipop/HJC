@@ -12,14 +12,12 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.util.StringConverter;
-import java.util.Arrays;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.nio.charset.StandardCharsets;
 
 import java.io.*;
-import java.util.Locale;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
