@@ -1,3 +1,5 @@
+//package Merge;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -11,14 +13,36 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 
 import java.io.*;
 import java.util.Locale;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-
+import java.time.format.DateTimeParseException;
+import java.util.Map;
+import java.util.HashMap;
 
 public class International extends Application {
+
+    private static final Map<LocalDate, Map<String, Double>> dateRatesMap = new HashMap<>();
+
+    static {
+        loadExchangeRates();
+    }
+
+    private static class CurrencyPairInfo {
+        String normalizedPair;
+        double divisor;
+
+        CurrencyPairInfo(String pair, double divisor) {
+            this.normalizedPair = pair;
+            this.divisor = divisor;
+        }
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -85,7 +109,7 @@ public class International extends Application {
         Label localCurrencyLabel = new Label("Local currency *");
         localCurrencyLabel.setStyle("-fx-text-fill: #2c3e50; -fx-font-size: 16px;");
         ComboBox<String> localCurrencyCombo = new ComboBox<>();
-        localCurrencyCombo.getItems().addAll("CNY", "USD", "EUR", "GBP");
+        localCurrencyCombo.getItems().addAll("CNY", "USD", "EUR", "GBP", "JPY", "HKD", "AUD", "NZD","SGD","CHF","CAD","MOP","MYR","RUB","ZAR","KRW","AED","SAR","HUF","PLN","DKK","SEK","NOK","TRY","MXN","THB");
         localCurrencyCombo.setValue("CNY");
         localCurrencyCombo.setStyle("-fx-background-color: #f9f9f9; -fx-border-color: #bdc3c7; -fx-font-size: 16px; -fx-pref-height: 40px;");
         localCurrencyCombo.setPrefWidth(500);
@@ -94,7 +118,7 @@ public class International extends Application {
         Label foreignCurrencyLabel = new Label("Foreign currency *");
         foreignCurrencyLabel.setStyle("-fx-text-fill: #2c3e50; -fx-font-size: 16px;");
         ComboBox<String> foreignCurrencyCombo = new ComboBox<>();
-        foreignCurrencyCombo.getItems().addAll("CNY", "USD", "EUR", "GBP");
+        foreignCurrencyCombo.getItems().addAll("CNY", "USD", "EUR", "GBP", "JPY", "HKD", "AUD", "NZD","SGD","CHF","CAD","MOP","MYR","RUB","ZAR","KRW","AED","SAR","HUF","PLN","DKK","SEK","NOK","TRY","MXN","THB");
         foreignCurrencyCombo.setStyle("-fx-background-color: #f9f9f9; -fx-border-color: #bdc3c7; -fx-font-size: 16px; -fx-pref-height: 40px;");
         foreignCurrencyCombo.setPromptText("Click here to input the kind of foreign currency");
         foreignCurrencyCombo.setPrefWidth(500);
@@ -214,20 +238,179 @@ public class International extends Application {
     }
 
     // --- 汇率查询方法 ---
-    private double getExchangeRate(String fromCurrency, String toCurrency, String date) throws Exception {
-        // 示例：使用固定汇率（实际项目应调用API）
-        if (fromCurrency.equals("USD") && toCurrency.equals("CNY")) {
-            return 7.3; // 模拟汇率
-        } else if (fromCurrency.equals("EUR") && toCurrency.equals("CNY")) {
-            return 8.3;
-        } else if (fromCurrency.equals("GBP") && toCurrency.equals("CNY")) {
-            return 9.7;
+    private double getExchangeRate(String fromCurrency, String toCurrency, String dateStr) throws Exception {
+        // 参数标准化
+        fromCurrency = fromCurrency.toUpperCase().trim();
+        toCurrency = toCurrency.toUpperCase().trim();
+        if (fromCurrency.equals(toCurrency)) return 1.0;
+
+        // 日期解析
+        LocalDate date;
+        try {
+            date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        } catch (DateTimeParseException e) {
+            throw new Exception("日期格式错误，请使用yyyy/MM/dd格式");
         }
 
+        // 获取当日汇率
+        Map<String, Double> rates = dateRatesMap.get(date);
+        if (rates == null) {
+            throw new Exception("无" + dateStr + "的汇率数据");
+        }
 
-        throw new Exception("Unsupported currency pair");
+        // 直接匹配
+        String directKey = fromCurrency + "/" + toCurrency;
+        if (rates.containsKey(directKey)) {
+            return rates.get(directKey);
+        }
+
+        // 反向匹配
+        String reverseKey = toCurrency + "/" + fromCurrency;
+        if (rates.containsKey(reverseKey)) {
+            return 1.0 / rates.get(reverseKey);
+        }
+
+        // CNY中转逻辑
+        boolean fromIsCNY = fromCurrency.equals("CNY");
+        boolean toIsCNY = toCurrency.equals("CNY");
+
+        // Case 1: 从CNY到其他货币
+        if (fromIsCNY) {
+            String cnyToTarget = "CNY/" + toCurrency;
+            if (rates.containsKey(cnyToTarget)) {
+                return rates.get(cnyToTarget);
+            }
+            String targetToCNY = toCurrency + "/CNY";
+            if (rates.containsKey(targetToCNY)) {
+                return 1.0 / rates.get(targetToCNY);
+            }
+        }
+
+        // Case 2: 从其他货币到CNY
+        if (toIsCNY) {
+            String sourceToCNY = fromCurrency + "/CNY";
+            if (rates.containsKey(sourceToCNY)) {
+                return rates.get(sourceToCNY);
+            }
+            String cnyToSource = "CNY/" + fromCurrency;
+            if (rates.containsKey(cnyToSource)) {
+                return 1.0 / rates.get(cnyToSource);
+            }
+        }
+
+        // Case 3: 通过CNY中转的交叉汇率
+        String fromToCNY = fromCurrency + "/CNY";
+        String cnyToTarget = "CNY/" + toCurrency;
+        if (rates.containsKey(fromToCNY) && rates.containsKey(cnyToTarget)) {
+            return rates.get(fromToCNY) * rates.get(cnyToTarget);
+        }
+
+        String fromToCNY2 = fromCurrency + "/CNY";
+        String targetToCNY = toCurrency + "/CNY";
+        if (rates.containsKey(fromToCNY2) && rates.containsKey(targetToCNY)) {
+            return rates.get(fromToCNY2) / rates.get(targetToCNY);
+        }
+
+        throw new Exception("无法转换: " + fromCurrency + "→" + toCurrency);
     }
 
+
+    // --- 加载汇率数据 ---
+    private static void loadExchangeRates() {
+        String filename = "人民币汇率中间价历史数据.csv";
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                new FileInputStream(filename), StandardCharsets.UTF_8))) {
+
+            String line;
+            List<String> headers = new ArrayList<>();
+            Map<String, CurrencyPairInfo> columnMap = new HashMap<>();
+            boolean isFirstLine = true;
+
+            while ((line = br.readLine()) != null) {
+                line = line.trim().replaceAll("\uFEFF", ""); // 彻底清除BOM
+                if (line.isEmpty()) continue;
+
+                if (isFirstLine) {
+                    // 智能列头处理
+                    String[] rawHeaders = line.split(",");
+                    for (String header : rawHeaders) {
+                        String processedHeader = header.trim();
+                        if (processedHeader.equals("日期")) {
+                            headers.add(processedHeader);
+                            continue;
+                        }
+
+                        // 特殊列处理（如100JPY/CNY）
+                        if (processedHeader.startsWith("100")) {
+                            String normalized = processedHeader.substring(3);
+                            columnMap.put(processedHeader,
+                                    new CurrencyPairInfo(normalized.toUpperCase(), 100.0));
+                        } else {
+                            columnMap.put(processedHeader,
+                                    new CurrencyPairInfo(processedHeader.toUpperCase(), 1.0));
+                        }
+                        headers.add(processedHeader);
+                    }
+                    isFirstLine = false;
+                    continue;
+                }
+
+                String[] values = line.split(",", -1); // 保留空值
+                if (values.length < 2) continue;
+
+                // 日期解析
+                LocalDate date;
+                try {
+                    date = LocalDate.parse(values[0].trim(), DateTimeFormatter.ISO_LOCAL_DATE);
+                } catch (Exception e) {
+                    System.err.println("日期解析失败: " + values[0]);
+                    continue;
+                }
+
+                // 汇率解析
+                Map<String, Double> rateMap = new HashMap<>();
+                for (int i = 1; i < headers.size(); i++) {
+                    if (i >= values.length) break;
+                    String rawValue = values[i].trim();
+                    if (rawValue.isEmpty()) continue;
+
+                    String columnName = headers.get(i);
+                    if (columnName.equals("日期")) continue;
+
+                    try {
+                        double value = Double.parseDouble(rawValue);
+                        CurrencyPairInfo info = columnMap.get(columnName);
+                        if (info != null) {
+                            double adjustedValue = value / info.divisor;
+                            rateMap.put(info.normalizedPair, adjustedValue);
+                        }
+                    } catch (NumberFormatException e) {
+                        System.err.printf("数值解析错误 [列:%s 值:%s]%n", columnName, rawValue);
+                    }
+                }
+                dateRatesMap.put(date, rateMap);
+            }
+        } catch (IOException e) {
+            System.err.println("致命错误：汇率文件加载失败");
+            throw new RuntimeException("无法加载汇率文件: " + filename, e);
+        }
+    }
+
+    private static LocalDate parseDate(String dateStr) throws DateTimeParseException {
+        String[] patterns = {
+                "yyyy-M-d",
+                "yyyy/MM/dd",
+                "yyyy年M月d日",
+                "yyyyMMdd"
+        };
+
+        for (String pattern : patterns) {
+            try {
+                return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern(pattern));
+            } catch (DateTimeParseException ignored) {}
+        }
+        throw new DateTimeParseException("无法解析日期格式", dateStr, 0);
+    }
     // --- 显示弹窗 ---
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -239,7 +422,7 @@ public class International extends Application {
 
 
 
-    //public static void main(String[] args) {
-    //launch(args);
-    //}
+    public static void main(String[] args) {
+    launch(args);
+    }
 }
