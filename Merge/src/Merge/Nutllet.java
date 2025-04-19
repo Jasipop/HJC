@@ -347,7 +347,16 @@ public class Nutllet extends Application {
                     }
                 });
             }
-            else if (btnText.equals("Logout")) {
+            else if (btnText.equals("Syncing")) {
+                // 设置Syncing按钮的样式和点击事件
+                btn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
+                btn.setOnAction(e -> {
+                    // 刷新数据并更新UI
+                    loadExpensesFromCSV("deals.csv");
+                    processData(expenses);
+                    updateUI();
+                });
+            }else if (btnText.equals("Logout")) {
                 btn.setStyle("-fx-background-color: white; -fx-text-fill: #855FAF; -fx-border-radius: 3;");
                 btn.setOnAction(e -> {
                     try {

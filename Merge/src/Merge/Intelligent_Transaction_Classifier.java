@@ -1,7 +1,5 @@
 package Merge;
 
-//package myapp;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -22,6 +20,8 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Intelligent_Transaction_Classifier extends Application {
 
@@ -72,6 +72,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         TableView<Transaction> table = createTableView();
         VBox tableCard = createTableCard(table);
         setupPieChart();
+        updatePieChart();
         VBox pieCard = createPieCard();
         VBox rightPanel = createRightPanel(pieCard);
         HBox content = createMainContent(tableCard, rightPanel);
@@ -96,7 +97,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙
 
         homeBtn.setOnAction(e -> {
-            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Merge.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverBtn.setOnAction(e -> {
             try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
@@ -105,7 +106,7 @@ public class Intelligent_Transaction_Classifier extends Application {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
+        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
         mainLayout.getChildren().add(navBar);
     }
 
@@ -170,13 +171,17 @@ public class Intelligent_Transaction_Classifier extends Application {
                     comboBox.setValue(item);
                     comboBox.setOnAction(e -> {
                         Transaction transaction = getTableView().getItems().get(getIndex());
-                        transaction.setCategory(comboBox.getValue());
-                        updatePieChart();
+                        String newCategory = comboBox.getValue();
+                        if (!newCategory.equals(transaction.getCategory())) {
+                            transaction.setCategory(newCategory);
+                            updatePieChart(); // ✅ 仅在分类更改时更新饼图
+                        }
                     });
                     setGraphic(comboBox);
                 }
             }
         });
+
 
         table.getColumns().addAll(dateCol, descCol, amountCol, categoryCol);
         return table;
@@ -223,16 +228,11 @@ public class Intelligent_Transaction_Classifier extends Application {
 
     private void setupPieChart() {
         pieChart = new PieChart();
-        updatePieChart();
         pieChart.setStyle("-fx-title-fill: #4a148c; -fx-font-weight: bold;");
         pieChart.setTitle("Spending Breakdown");
         pieChart.setLegendSide(Side.BOTTOM);
         pieChart.setLabelsVisible(true);
         pieChart.setPrefSize(400, 300);
-
-        for (PieChart.Data slice : pieChart.getData()) {
-            setupSliceEffects(slice);
-        }
     }
 
     private void setupSliceEffects(PieChart.Data slice) {
@@ -404,9 +404,18 @@ public class Intelligent_Transaction_Classifier extends Application {
     }
 
     private void updatePieChart() {
-        totalAmount = data.stream().mapToDouble(t -> Double.parseDouble(t.getAmount())).sum();
-        updatePieChartData();
-        for (PieChart.Data slice : pieChart.getData()) {
+        pieChart.getData().clear();
+
+        Map<String, Double> categoryTotals = new HashMap<>();
+        for (Transaction t : data) {
+            String category = t.getCategory();
+            double amount = Double.parseDouble(t.getAmount());
+            categoryTotals.put(category, categoryTotals.getOrDefault(category, 0.0) + amount);
+        }
+
+        for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
+            PieChart.Data slice = new PieChart.Data(entry.getKey(), entry.getValue());
+            pieChart.getData().add(slice);
             setupSliceEffects(slice);
         }
     }

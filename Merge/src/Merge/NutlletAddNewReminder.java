@@ -22,7 +22,7 @@ public class NutlletAddNewReminder extends Application {
 
         root.setTop(createHeader());
         root.setCenter(createFormContent());
-        root.setBottom(createBottomNav());
+        root.setBottom(createBottomNav(primaryStage));
 
         Scene scene = new Scene(root, 1200, 800);
         primaryStage.setTitle("Nutllet - Add New Reminder");
@@ -157,23 +157,74 @@ public class NutlletAddNewReminder extends Application {
         return questionBox;
     }
 
-    private HBox createBottomNav() {
-        HBox bottomNav = new HBox(20);
-        bottomNav.setBackground(new Background(new BackgroundFill(
-                Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
-        bottomNav.setPadding(new Insets(10));
-        bottomNav.setAlignment(Pos.CENTER);
+    private HBox createBottomNav(Stage primaryStage) {
+        HBox navBar = new HBox();
+        navBar.setSpacing(0);
+        navBar.setAlignment(Pos.CENTER);
+        navBar.setPrefHeight(80);
+        navBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
 
-        Button homeButton = new Button("HOME");
-        Button shareAppButton = new Button("SHARE APP");
-        Button settingsButton = new Button("SETTINGS");
+        // 创建底部导航按钮
+        Button homeBtn = createNavButtonWithEmoji("Home", "🏠");
+        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍");
+        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙");
 
-        styleNavButton(homeButton);
-        styleNavButton(shareAppButton);
-        styleNavButton(settingsButton);
+        // 设置按钮事件
+        homeBtn.setOnAction(e -> {
+            try {
+                new Nutllet().start(new Stage());
+                primaryStage.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
 
-        bottomNav.getChildren().addAll(homeButton, shareAppButton, settingsButton);
-        return bottomNav;
+        discoverBtn.setOnAction(e -> {
+            try {
+                new Discover().start(new Stage());
+                primaryStage.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        settingsBtn.setOnAction(e -> {
+            try {
+                new Settings().start(new Stage());
+                primaryStage.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        // 调整按钮顺序（Home -> Discover -> Settings）
+        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
+        return navBar;
+    }
+
+    private Button createNavButtonWithEmoji(String label, String emoji) {
+        VBox btnContainer = new VBox();
+        btnContainer.setAlignment(Pos.CENTER);
+        btnContainer.setSpacing(4);
+
+        Label emojiLabel = new Label(emoji);
+        emojiLabel.setStyle("-fx-font-size: 18px;");
+
+        Label textLabel = new Label(label);
+        textLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #7f8c8d;");
+
+        btnContainer.getChildren().addAll(emojiLabel, textLabel);
+
+        Button button = new Button();
+        button.setPrefWidth(1366 / 3.0);
+        button.setPrefHeight(80);
+        button.setGraphic(btnContainer);
+        button.setStyle("-fx-background-color: white; -fx-border-color: transparent; -fx-cursor: hand;");
+
+        button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: #f5f5f5; -fx-border-color: transparent; -fx-cursor: hand;"));
+        button.setOnMouseExited(e -> button.setStyle("-fx-background-color: white; -fx-border-color: transparent; -fx-cursor: hand;"));
+
+        return button;
     }
 
     private void stylePrimaryButton(Button button) {
@@ -198,27 +249,6 @@ public class NutlletAddNewReminder extends Application {
                 + "-fx-background-radius: 30px;"
                 + "-fx-cursor: pointer;"
                 + "-fx-font-weight: 500;"));
-    }
-
-    private void styleNavButton(Button button) {
-        button.setStyle("-fx-text-fill: " + toHexString(PRIMARY_COLOR) + ";"
-                + "-fx-background-color: white;"
-                + "-fx-padding: 8px 16px;"
-                + "-fx-border-radius: 20px;"
-                + "-fx-border-color: " + toHexString(PRIMARY_COLOR) + ";"
-                + "-fx-cursor: pointer;");
-        button.setOnMouseEntered(e -> button.setStyle("-fx-text-fill: white;"
-                + "-fx-background-color: " + toHexString(PRIMARY_COLOR) + ";"
-                + "-fx-padding: 8px 16px;"
-                + "-fx-border-radius: 20px;"
-                + "-fx-border-color: " + toHexString(PRIMARY_COLOR) + ";"
-                + "-fx-cursor: pointer;"));
-        button.setOnMouseExited(e -> button.setStyle("-fx-text-fill: " + toHexString(PRIMARY_COLOR) + ";"
-                + "-fx-background-color: white;"
-                + "-fx-padding: 8px 16px;"
-                + "-fx-border-radius: 20px;"
-                + "-fx-border-color: " + toHexString(PRIMARY_COLOR) + ";"
-                + "-fx-cursor: pointer;"));
     }
 
     private String toHexString(Color color) {
