@@ -1,4 +1,3 @@
-package Merge;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -23,7 +22,7 @@ public class Settings extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        StackPane root = new StackPane();
+        BorderPane root = new BorderPane();
 
         VBox mainLayout = new VBox();
         mainLayout.setPadding(new Insets(20));
@@ -96,7 +95,7 @@ public class Settings extends Application {
         }
 
         mainLayout.getChildren().addAll(titleBox, searchBox, scrollPane, noResultsLabel);
-        root.getChildren().addAll(mainLayout);
+        root.setCenter(mainLayout);
 
         // Bottom Navigation Bar with highlight
         HBox bottomNavigationBar = new HBox();
@@ -122,7 +121,7 @@ public class Settings extends Application {
         });
 
         bottomNavigationBar.getChildren().addAll(homeButton, discoverButton, settingsButton);
-        mainLayout.getChildren().add(bottomNavigationBar);
+        root.setBottom(bottomNavigationBar);
 
         // 搜索过滤逻辑（含暂无匹配内容提示）
         FilteredList<Button> filteredButtons = new FilteredList<>(

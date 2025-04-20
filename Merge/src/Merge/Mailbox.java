@@ -1,5 +1,3 @@
-package Merge;
-
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
@@ -36,7 +34,7 @@ public class Mailbox extends Application {
         this.titles = new String[]{
                 "System Update v1.1.3", "New Message Received", "Project Deadline Incoming",
                 "Team Meeting Reminder", "Monthly Report Ready", "Account Security Alert",
-                "New Feature Available", "Scheduled Maintenance Notice", "Nutlet is Now Live",
+                "New Feature Available", "Scheduled Maintenance Notice", "Nutllet is Now Live",
                 "v1.1.2 Update Released"
         };
 
@@ -49,16 +47,14 @@ public class Mailbox extends Application {
                 "A critical security update is required. Please update your account credentials if prompted.",
                 "A new productivity tool has been added. Explore it now to enhance your workflow.",
                 "Scheduled system maintenance will occur this Friday at 2:00 AM. Please save your work in advance.",
-                "Nutlet is now officially available! Thank you for joining us on this journey.",
+                "Nutllet is now officially available! Thank you for joining us on this journey.",
                 "A new version (v1.1.2) has been released. Reimbursement functionality is now available. Please update to enjoy the new features."
         };
 
         this.emojis = new String[]{
                 "🔄", "👋", "🔧", "✨", "🔒", "📊", "👥", "⏰", "✉️", "🖥️"
         };
-
-
-        StackPane root = new StackPane();
+        BorderPane root = new BorderPane();
 
         VBox mainLayout = new VBox();
         mainLayout.setPadding(new Insets(20));
@@ -118,8 +114,6 @@ public class Mailbox extends Application {
                 "#C0E4FF", "#B8E0FF", "#B0DCFF", "#A8D8FF"
         };
 
-
-
         // 创建通知按钮（增加到10个展示滚动效果）
         for (int i = 0; i < titles.length; i++) {
             Button btn = createMessageButton(primaryStage, titles[i], descriptions[i], emojis[i], pastelColors[i % pastelColors.length]);
@@ -133,7 +127,6 @@ public class Mailbox extends Application {
         messageCountLabel.setStyle("-fx-text-fill: #FF3B30;");
 
         mainLayout.getChildren().addAll(titleBox, mailboxIcon, messageCountLabel, searchBox, scrollPane);
-        root.getChildren().addAll(mainLayout);
 
         // Bottom Navigation Bar
         HBox navBar = new HBox();
@@ -158,7 +151,10 @@ public class Mailbox extends Application {
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
 
-        mainLayout.getChildren().add(navBar);
+        root.setBottom(navBar);
+        root.setCenter(mainLayout);
+
+
 
 
         // 动态计算滚动面板高度
@@ -311,7 +307,7 @@ public class Mailbox extends Application {
     private String generateTimestampForMessage(String title) {
         return switch (title) {
             case "Update" -> "2025/4/3 12:00:09";
-            case "Welcome to Nutlet!" -> "2025/4/2 09:30:45";
+            case "Welcome to Nutllet!" -> "2025/4/2 09:30:45";
             case "System Maintenance" -> "2025/4/1 15:20:33";
             case "New Feature Alert" -> "2025/3/31 11:15:22";
             case "Account Security" -> "2025/3/30 14:05:18";

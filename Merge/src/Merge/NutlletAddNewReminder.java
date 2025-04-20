@@ -1,4 +1,4 @@
-package Merge;
+//package Merge;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -24,7 +24,7 @@ public class NutlletAddNewReminder extends Application {
         root.setCenter(createFormContent());
         root.setBottom(createBottomNav(primaryStage));
 
-        Scene scene = new Scene(root, 1200, 800);
+        Scene scene = new Scene(root, 1366, 768);
         primaryStage.setTitle("Nutllet - Add New Reminder");
         primaryStage.setScene(scene);
         primaryStage.show();

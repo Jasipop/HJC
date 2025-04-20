@@ -1,6 +1,3 @@
-package Merge;
-
-//package myapp;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -53,6 +50,9 @@ public class Transaction_Management_System extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        BorderPane root = new BorderPane();
+
+
         initializeData();
         setupTypeChart();
 
@@ -64,7 +64,7 @@ public class Transaction_Management_System extends Application {
         // Set background color for the entire scene
         mainLayout.setStyle("-fx-background-color: #f8f0ff;");
 
-        Scene scene = new Scene(mainLayout, 1366, 768);
+        Scene scene = new Scene(root, 1366, 768);
         primaryStage.setTitle("Transaction Management");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -91,7 +91,8 @@ public class Transaction_Management_System extends Application {
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
 
-        mainLayout.getChildren().add(navBar);
+        root.setCenter(mainLayout);
+        root.setBottom(navBar);
     }
 
     private void initializeData() {

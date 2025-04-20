@@ -1,5 +1,3 @@
-package Merge;
-
 //package Nutllet;
 
 import javafx.application.Application;

@@ -1,5 +1,3 @@
-package Merge;
-
 //package myapp;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
@@ -91,6 +89,7 @@ public class Bank_Data_Management extends Application {
 
     @Override
     public void start(Stage stage) {
+        BorderPane root = new BorderPane();
         this.primaryStage = stage;
         // 主标题样式
         Label pageTitle = new Label("Bank Data Management");
@@ -157,12 +156,20 @@ public class Bank_Data_Management extends Application {
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
 
-        VBox mainLayout = new VBox(0, titleBox, contentWrapper, navBar);
+        VBox mainLayout = new VBox(0, titleBox, contentWrapper);
 
         mainLayout.setStyle("-fx-background-color: white; -fx-spacing: 0;");
         mainLayout.setAlignment(Pos.TOP_CENTER);
 
-        Scene scene = new Scene(mainLayout, 1366, 768);
+        ScrollPane scrollPaneplus = new ScrollPane(mainLayout);
+        scrollPaneplus.setFitToWidth(true);
+        scrollPaneplus.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        scrollPaneplus.setPrefHeight(600);
+
+        root.setCenter(mainLayout);
+        root.setBottom(navBar);
+
+        Scene scene = new Scene(root, 1366, 768);
         stage.setTitle("Bank Data Viewer");
         stage.setScene(scene);
         stage.show();

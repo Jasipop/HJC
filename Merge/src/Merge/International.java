@@ -1,4 +1,4 @@
-package Merge;
+//package Merge;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -12,14 +12,12 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.util.StringConverter;
-import java.util.Arrays;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.nio.charset.StandardCharsets;
 
 import java.io.*;
-import java.util.Locale;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -27,14 +25,14 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class International extends Application {
-	
-	private static final Map<LocalDate, Map<String, Double>> dateRatesMap = new HashMap<>();
-	
-	static {
+
+    private static final Map<LocalDate, Map<String, Double>> dateRatesMap = new HashMap<>();
+
+    static {
         loadExchangeRates();
     }
-	
-	private static class CurrencyPairInfo {
+
+    private static class CurrencyPairInfo {
         String normalizedPair;
         double divisor;
 
@@ -43,8 +41,8 @@ public class International extends Application {
             this.divisor = divisor;
         }
     }
-	
-	@Override
+
+    @Override
     public void start(Stage primaryStage) {
         // 主布局
         VBox mainLayout = new VBox(15);
@@ -208,14 +206,6 @@ public class International extends Application {
                 // 4. 计算本币金额
                 double localAmount = foreignAmount * exchangeRate;
 
-                // 5. 显示结果
-//                showAlert("Result",
-//                        String.format("%.2f %s = %.2f %s (Rate: 1 %s = %.4f %s)",
-//                                foreignAmount, foreignCurrency,
-//                                localAmount, localCurrency,
-//                                foreignCurrency, exchangeRate, localCurrency)
-//                );
-
                 try (PrintWriter writer = new PrintWriter(new FileWriter("international.csv", true))) {
                     writer.printf("\n%s,%.2f,%.2f,%s,",foreignCurrency, foreignAmount, localAmount, date);
                 } catch (IOException ex) {
@@ -238,7 +228,7 @@ public class International extends Application {
     }
 
     // --- 汇率查询方法 ---
-	private double getExchangeRate(String fromCurrency, String toCurrency, String dateStr) throws Exception {
+    private double getExchangeRate(String fromCurrency, String toCurrency, String dateStr) throws Exception {
         // 参数标准化
         fromCurrency = fromCurrency.toUpperCase().trim();
         toCurrency = toCurrency.toUpperCase().trim();
@@ -273,7 +263,7 @@ public class International extends Application {
         // CNY中转逻辑
         boolean fromIsCNY = fromCurrency.equals("CNY");
         boolean toIsCNY = toCurrency.equals("CNY");
-        
+
         // Case 1: 从CNY到其他货币
         if (fromIsCNY) {
             String cnyToTarget = "CNY/" + toCurrency;
@@ -315,12 +305,12 @@ public class International extends Application {
     }
 
 
-	// --- 加载汇率数据 ---
-	private static void loadExchangeRates() {
+    // --- 加载汇率数据 ---
+    private static void loadExchangeRates() {
         String filename = "人民币汇率中间价历史数据.csv";
         try (BufferedReader br = new BufferedReader(new InputStreamReader(
                 new FileInputStream(filename), StandardCharsets.UTF_8))) {
-            
+
             String line;
             List<String> headers = new ArrayList<>();
             Map<String, CurrencyPairInfo> columnMap = new HashMap<>();
@@ -339,15 +329,15 @@ public class International extends Application {
                             headers.add(processedHeader);
                             continue;
                         }
-                        
+
                         // 特殊列处理（如100JPY/CNY）
                         if (processedHeader.startsWith("100")) {
                             String normalized = processedHeader.substring(3);
-                            columnMap.put(processedHeader, 
-                                new CurrencyPairInfo(normalized.toUpperCase(), 100.0));
+                            columnMap.put(processedHeader,
+                                    new CurrencyPairInfo(normalized.toUpperCase(), 100.0));
                         } else {
-                            columnMap.put(processedHeader, 
-                                new CurrencyPairInfo(processedHeader.toUpperCase(), 1.0));
+                            columnMap.put(processedHeader,
+                                    new CurrencyPairInfo(processedHeader.toUpperCase(), 1.0));
                         }
                         headers.add(processedHeader);
                     }
@@ -395,15 +385,15 @@ public class International extends Application {
             throw new RuntimeException("无法加载汇率文件: " + filename, e);
         }
     }
-    
+
     private static LocalDate parseDate(String dateStr) throws DateTimeParseException {
         String[] patterns = {
-            "yyyy-M-d", 
-            "yyyy/MM/dd", 
-            "yyyy年M月d日",
-            "yyyyMMdd"
+                "yyyy-M-d",
+                "yyyy/MM/dd",
+                "yyyy年M月d日",
+                "yyyyMMdd"
         };
-        
+
         for (String pattern : patterns) {
             try {
                 return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern(pattern));
@@ -422,7 +412,7 @@ public class International extends Application {
 
 
 
-    //public static void main(String[] args) {
-    //launch(args);
-    //}
+    public static void main(String[] args) {
+    launch(args);
+    }
 }

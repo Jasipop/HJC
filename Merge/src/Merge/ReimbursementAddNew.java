@@ -1,4 +1,3 @@
-package Merge;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;

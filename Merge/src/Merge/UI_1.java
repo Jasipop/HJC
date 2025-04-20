@@ -1,8 +1,9 @@
-package Merge;
-
 //package myapp;
 
 import javafx.application.Application;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -12,21 +13,25 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import javafx.scene.paint.Color;
-
 import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class UI_1 extends Application {
 
+    private TableView<BudgetData> tableView;
+    private BarChart<String, Number> barChart1;
+    private BarChart<String, Number> barChart2;
+    private final List<BudgetData> dataList = new ArrayList<>();
+
     @Override
     public void start(Stage primaryStage) {
-
         BorderPane mainLayout = new BorderPane();
 
-        // 创建主布局
         GridPane root = new GridPane();
         root.setHgap(10);
         root.setVgap(10);
@@ -39,212 +44,21 @@ public class UI_1 extends Application {
         titleLabel.setAlignment(Pos.CENTER);
         root.add(titleLabel, 0, 0, 2, 1);
 
-        // 左上角部分框
-        VBox leftTopBox = new VBox(10);
-        leftTopBox.setPadding(new Insets(10));
-        leftTopBox.setStyle("-fx-background-color: #FFF0F5; -fx-border-color: #FFC0CB; -fx-border-width: 2px;");
+        // 左上角输入区域
+        VBox leftTopBox = createLeftTopBox();
+        root.add(leftTopBox, 0, 1);
 
-        // 节日选择部分
-        Label festivalLabel = new Label("Festival Selection *");
-        festivalLabel.setTextFill(Color.PURPLE);
+        // 右上角数据表格
+        VBox dataDisplayBox = createDataDisplayBox();
+        root.add(dataDisplayBox, 1, 1);
 
-        ComboBox<String> festivalComboBox = new ComboBox<>();
-        festivalComboBox.getItems().addAll("Spring Festival", "Dragon Boat Festival",
-                "Mid-Autumn Festival", "Christmas",
-                "Harvest Day", "Others");
-        festivalComboBox.setPrefWidth(200);
-        festivalComboBox.setEditable(true); // 设置为可编辑
+        // 底部图表区域
+        HBox chartsBox = createChartsBox();
+        root.add(chartsBox, 0, 2, 2, 1);
 
-        // 当选择"Others"时，允许用户输入
-        festivalComboBox.setOnAction(event -> {
-            if (festivalComboBox.getValue().equals("Others")) {
-                festivalComboBox.setEditable(true);
-                festivalComboBox.requestFocus();
-            } else {
-                festivalComboBox.setEditable(false);
-            }
-        });
+        root.setStyle("-fx-background-color: #FFF0F5;");
 
-        Label festivalNote = new Label("Choose the festival and set your preferred budget");
-        festivalNote.setFont(Font.font("Arial", 12));
-        festivalNote.setTextFill(Color.GRAY);
-
-        leftTopBox.getChildren().addAll(festivalLabel, festivalComboBox, festivalNote);
-
-        // 节日日期区间部分
-        Label dateRangeLabel = new Label("Festival Date Range *");
-        dateRangeLabel.setTextFill(Color.PURPLE);
-
-        HBox dateRangeBox = new HBox(10);
-
-        Label startDateLabel = new Label("Start Date:");
-        DatePicker startDatePicker = new DatePicker(LocalDate.now());
-        startDatePicker.setPrefWidth(150);
-
-        Label endDateLabel = new Label("End Date:");
-        DatePicker endDatePicker = new DatePicker(LocalDate.now());
-        endDatePicker.setPrefWidth(150);
-
-        dateRangeBox.getChildren().addAll(startDateLabel, startDatePicker, endDateLabel, endDatePicker);
-
-        Label dateRangeNote = new Label("Choose the time range you will receive the budget");
-        dateRangeNote.setFont(Font.font("Arial", 12));
-        dateRangeNote.setTextFill(Color.GRAY);
-
-        leftTopBox.getChildren().addAll(dateRangeLabel, dateRangeBox, dateRangeNote);
-
-        // 收入和支出部分
-        HBox amountBox = new HBox(10);
-
-        // 收入部分
-        Label incomeLabel = new Label("Income");
-        incomeLabel.setTextFill(Color.PURPLE);
-
-        TextField incomeField = new TextField("0");
-        incomeField.setPrefWidth(150);
-
-        // 支出部分
-        Label expensesLabel = new Label("Expenses");
-        expensesLabel.setTextFill(Color.PURPLE);
-
-        TextField expensesField = new TextField("0");
-        expensesField.setPrefWidth(150);
-
-        amountBox.getChildren().addAll(incomeLabel, incomeField, expensesLabel, expensesField);
-
-        Label amountNote = new Label("Enter the amount value");
-        amountNote.setFont(Font.font("Arial", 12));
-        amountNote.setTextFill(Color.GRAY);
-
-        leftTopBox.getChildren().addAll(amountBox, amountNote);
-
-        // 备注部分
-        Label notesLabel = new Label("Notes");
-        notesLabel.setTextFill(Color.PURPLE);
-
-        TextArea notesArea = new TextArea();
-        notesArea.setPrefRowCount(5);
-        notesArea.setPrefColumnCount(30);
-
-        leftTopBox.getChildren().addAll(notesLabel, notesArea);
-
-        // 富文本编辑器工具栏
-        HBox toolbar = new HBox(5);
-        toolbar.setAlignment(Pos.CENTER);
-
-        // 添加一些工具按钮
-        Button boldBtn = new Button("B");
-        Button italicBtn = new Button("I");
-        Button underlineBtn = new Button("U");
-        Button alignLeftBtn = new Button("Left");
-        Button alignCenterBtn = new Button("Center");
-        Button alignRightBtn = new Button("Right");
-        Button listBtn = new Button("List");
-
-        toolbar.getChildren().addAll(boldBtn, italicBtn, underlineBtn,
-                alignLeftBtn, alignCenterBtn, alignRightBtn, listBtn);
-
-        leftTopBox.getChildren().add(toolbar);
-
-        // 右上角数据展示部分
-        VBox dataDisplayBox = new VBox(10);
-        dataDisplayBox.setPadding(new Insets(10));
-
-        // 添加数据展示
-        Label dataTitle = new Label("Budget Data");
-        dataTitle.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-        dataTitle.setTextFill(Color.PURPLE);
-
-        TableView<BudgetData> tableView = new TableView<>();
-        TableColumn<BudgetData, String> festivalColumn = new TableColumn<>("Festival");
-        festivalColumn.setCellValueFactory(cellData -> cellData.getValue().festivalProperty());
-
-        TableColumn<BudgetData, Number> amountColumn = new TableColumn<>("Amount");
-        amountColumn.setCellValueFactory(cellData -> cellData.getValue().amountProperty());
-
-        TableColumn<BudgetData, Number> ratioColumn = new TableColumn<>("Ratio");
-        ratioColumn.setCellValueFactory(cellData -> cellData.getValue().ratioProperty());
-
-        tableView.getColumns().addAll(festivalColumn, amountColumn, ratioColumn);
-
-        // 添加数据
-        tableView.getItems().addAll(
-                new BudgetData("Spring Festival", 3000, 1900),
-                new BudgetData("Dragon Boat Festival", 500, 800),
-                new BudgetData("Mid-Autumn Festival", 700, 750),
-                new BudgetData("Christmas", 1000, 700),
-                new BudgetData("Harvest Day", 500, 800)
-        );
-
-        dataDisplayBox.getChildren().addAll(dataTitle, tableView);
-
-        // 图表部分
-        HBox chartsBox = new HBox(10);
-        chartsBox.setAlignment(Pos.CENTER);
-        chartsBox.setPadding(new Insets(20));
-
-        // 柱状图 - 所有节日的金额
-        CategoryAxis xAxis1 = new CategoryAxis();
-        NumberAxis yAxis1 = new NumberAxis();
-        xAxis1.setLabel("Festivals");
-        yAxis1.setLabel("Amount");
-
-        BarChart<String, Number> barChart1 = new BarChart<>(xAxis1, yAxis1);
-        barChart1.setTitle("The amount of all the festivals");
-
-        XYChart.Series series1 = new XYChart.Series();
-        series1.setName("Budget");
-        series1.getData().add(new XYChart.Data("Spring Festival", 3000));
-        series1.getData().add(new XYChart.Data("Dragon Boat Festival", 500));
-        series1.getData().add(new XYChart.Data("Mid-Autumn Festival", 700));
-        series1.getData().add(new XYChart.Data("Christmas", 1000));
-        series1.getData().add(new XYChart.Data("Harvest Day", 500));
-
-        barChart1.getData().add(series1);
-
-        // 横向柱状图 - 每个节日的比例
-        CategoryAxis xAxis2 = new CategoryAxis();
-        NumberAxis yAxis2 = new NumberAxis();
-        xAxis2.setLabel("Amount");
-        yAxis2.setLabel("Festivals");
-
-        BarChart<String, Number> barChart2 = new BarChart<>(xAxis2, yAxis2);
-        barChart2.setTitle("The ratio of every festival");
-        barChart2.setCategoryGap(10);
-
-        XYChart.Series series2_1 = new XYChart.Series();
-        series2_1.setName("Budget");
-        series2_1.getData().add(new XYChart.Data("Spring Festival", 3000));
-        series2_1.getData().add(new XYChart.Data("Dragon Boat Festival", 500));
-        series2_1.getData().add(new XYChart.Data("Mid-Autumn Festival", 700));
-        series2_1.getData().add(new XYChart.Data("Christmas", 1000));
-        series2_1.getData().add(new XYChart.Data("Harvest Day", 500));
-
-        XYChart.Series series2_2 = new XYChart.Series();
-        series2_2.setName("Ratio");
-        series2_2.getData().add(new XYChart.Data("Spring Festival", 1900));
-        series2_2.getData().add(new XYChart.Data("Dragon Boat Festival", 800));
-        series2_2.getData().add(new XYChart.Data("Mid-Autumn Festival", 750));
-        series2_2.getData().add(new XYChart.Data("Christmas", 700));
-        series2_2.getData().add(new XYChart.Data("Harvest Day", 800));
-
-        barChart2.getData().addAll(series2_1, series2_2);
-
-        chartsBox.getChildren().addAll(barChart1, barChart2);
-
-        // 按钮部分
-        HBox buttonBox = new HBox(10);
-        buttonBox.setAlignment(Pos.CENTER_RIGHT);
-        buttonBox.setPadding(new Insets(10));
-
-        Button clearAllBtn = new Button("Clear all");
-        clearAllBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
-
-        Button confirmBtn = new Button("Confirm");
-        confirmBtn.setStyle("-fx-background-color: #9C27B0; -fx-text-fill: white;");
-
-        buttonBox.getChildren().addAll(clearAllBtn, confirmBtn);
-
+        initializeSampleData();
         // Bottom Navigation Bar
         HBox navBar = new HBox();
         navBar.setSpacing(0);
@@ -267,40 +81,13 @@ public class UI_1 extends Application {
         });
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
-
-        // 组合所有部分
-        root.add(leftTopBox, 0, 1);
-        root.add(dataDisplayBox, 1, 1);
-        root.add(chartsBox, 0, 2, 2, 1);
-
-        // 设置组件高度
-        leftTopBox.setPrefHeight(400);
-        dataDisplayBox.setPrefHeight(400);
-        chartsBox.setPrefHeight(350);
-
-        // ScrollPane 包裹 GridPane
-        ScrollPane scrollPane = new ScrollPane(root);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background-color:transparent;");
-        mainLayout.setCenter(scrollPane);
-
-        // 设置底部导航栏
         mainLayout.setBottom(navBar);
+        mainLayout.setCenter(root);
 
-        // 设置背景颜色
-        root.setStyle("-fx-background-color: #FFF0F5;");
-
-        // 设置场景
         Scene scene = new Scene(mainLayout, 1366, 768);
-
-        // 设置舞台
         primaryStage.setTitle("Localized Budgeting");
         primaryStage.setScene(scene);
         primaryStage.show();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 
     // Helper method with emoji
@@ -338,28 +125,325 @@ public class UI_1 extends Application {
         return button;
     }
 
-    // 数据模型类
+    private VBox createLeftTopBox() {
+        VBox box = new VBox(10);
+        box.setPadding(new Insets(10));
+        box.setStyle("-fx-background-color: #FFF0F5; -fx-border-color: #FFC0CB; -fx-border-width: 2px;");
+
+        ComboBox<String> festivalComboBox = new ComboBox<>();
+        festivalComboBox.getItems().addAll(
+                "Spring Festival",
+                "Dragon Boat Festival",
+                "Mid-Autumn Festival",
+                "Christmas",
+                "Harvest Day",
+                "Others"
+        );
+        festivalComboBox.setPrefWidth(200);
+        festivalComboBox.setEditable(true);
+
+        DatePicker startDatePicker = new DatePicker(LocalDate.now());
+        DatePicker endDatePicker = new DatePicker(LocalDate.now());
+        TextField incomeField = new TextField("0");
+        TextField expensesField = new TextField("0");
+        TextArea notesArea = new TextArea();
+
+        box.getChildren().addAll(
+                createLabel("Festival Selection *", Color.PURPLE),
+                festivalComboBox,
+                createNoteLabel("Choose the festival and set your preferred budget"),
+                createLabel("Festival Date Range *", Color.PURPLE),
+                createDateRangeBox(startDatePicker, endDatePicker),
+                createNoteLabel("Choose the time range you will receive the budget"),
+                createAmountBox(incomeField, expensesField),
+                createNoteLabel("Enter the amount value"),
+                createLabel("Notes", Color.PURPLE),
+                notesArea,
+                createToolbar(festivalComboBox, startDatePicker, endDatePicker, incomeField, expensesField, notesArea)
+        );
+        return box;
+    }
+
+    private HBox createToolbar(ComboBox<String> comboBox, DatePicker startDate, DatePicker endDate,
+                               TextField income, TextField expenses, TextArea notes) {
+        HBox toolbar = new HBox(10);
+        toolbar.setAlignment(Pos.CENTER);
+
+        Button saveBtn = new Button("Save");
+        saveBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+        saveBtn.setOnAction(e -> handleSave(comboBox, startDate, endDate, income, expenses, notes));
+
+        Button boldBtn = new Button("B");
+        Button italicBtn = new Button("I");
+        Button underlineBtn = new Button("U");
+        Button alignLeftBtn = new Button("Left");
+        Button alignCenterBtn = new Button("Center");
+        Button alignRightBtn = new Button("Right");
+        Button listBtn = new Button("List");
+
+        toolbar.getChildren().addAll(
+                saveBtn, boldBtn, italicBtn, underlineBtn,
+                alignLeftBtn, alignCenterBtn, alignRightBtn, listBtn
+        );
+        return toolbar;
+    }
+
+    private VBox createDataDisplayBox() {
+        VBox box = new VBox(10);
+        box.setPadding(new Insets(10));
+
+        tableView = new TableView<>();
+
+        // 表格列定义
+        TableColumn<BudgetData, String> festivalCol = new TableColumn<>("Festival");
+        festivalCol.setCellValueFactory(c -> c.getValue().festivalProperty());
+
+        TableColumn<BudgetData, String> dateCol = new TableColumn<>("Date Range");
+        dateCol.setCellValueFactory(c -> c.getValue().dateRangeProperty());
+
+        TableColumn<BudgetData, Number> incomeCol = new TableColumn<>("Income");
+        incomeCol.setCellValueFactory(c -> c.getValue().incomeProperty());
+
+        TableColumn<BudgetData, Number> expensesCol = new TableColumn<>("Expenses");
+        expensesCol.setCellValueFactory(c -> c.getValue().expensesProperty());
+
+        TableColumn<BudgetData, String> notesCol = new TableColumn<>("Notes");
+        notesCol.setCellValueFactory(c -> c.getValue().notesProperty());
+        notesCol.setPrefWidth(200);
+
+        tableView.getColumns().addAll(festivalCol, dateCol, incomeCol, expensesCol, notesCol);
+
+        box.getChildren().addAll(
+                createLabel("Budget Data", Color.PURPLE, 16),
+                tableView
+        );
+        return box;
+    }
+
+    private HBox createChartsBox() {
+        HBox chartsBox = new HBox(20);
+        chartsBox.setAlignment(Pos.CENTER);
+        chartsBox.setPadding(new Insets(20));
+
+        // 收入支出对比图
+        CategoryAxis xAxis1 = new CategoryAxis();
+        NumberAxis yAxis1 = new NumberAxis();
+        barChart1 = new BarChart<>(xAxis1, yAxis1);
+        barChart1.setTitle("Income vs Expenses Comparison");
+        barChart1.setCategoryGap(20);
+        barChart1.setPrefSize(600, 400);
+
+        // 收支比例图
+        CategoryAxis xAxis2 = new CategoryAxis();
+        NumberAxis yAxis2 = new NumberAxis();
+        barChart2 = new BarChart<>(xAxis2, yAxis2);
+        barChart2.setTitle("Income/Expenses Ratio");
+        barChart2.setCategoryGap(20);
+        barChart2.setPrefSize(600, 400);
+
+        chartsBox.getChildren().addAll(barChart1, barChart2);
+        return chartsBox;
+    }
+
+    private void initializeSampleData() {
+        dataList.addAll(Arrays.asList(
+                new BudgetData("Spring Festival", 3000, 1900, "2024-02-10", "2024-02-17", ""),
+                new BudgetData("Dragon Boat Festival", 500, 800, "2024-06-10", "2024-06-12", ""),
+                new BudgetData("Mid-Autumn Festival", 700, 750, "2024-09-15", "2024-09-17", ""),
+                new BudgetData("Christmas", 1000, 700, "2024-12-25", "2024-12-26", ""),
+                new BudgetData("Harvest Day", 500, 800, "2024-10-01", "2024-10-07", "")
+        ));
+        refreshDataDisplay();
+    }
+
+    private void handleSave(ComboBox<String> festivalComboBox,
+                            DatePicker startDatePicker,
+                            DatePicker endDatePicker,
+                            TextField incomeField,
+                            TextField expensesField,
+                            TextArea notesArea) {
+        try {
+            String festival = festivalComboBox.getValue();
+            if (festival == null || festival.trim().isEmpty()) {
+                showAlert("Festival cannot be empty!");
+                return;
+            }
+
+            LocalDate startDate = startDatePicker.getValue();
+            LocalDate endDate = endDatePicker.getValue();
+            if (startDate == null || endDate == null || startDate.isAfter(endDate)) {
+                showAlert("Invalid date range!");
+                return;
+            }
+
+            int income = Integer.parseInt(incomeField.getText());
+            int expenses = Integer.parseInt(expensesField.getText());
+            String notes = notesArea.getText().isEmpty() ? "None." : notesArea.getText();
+
+            BudgetData newData = new BudgetData(
+                    festival,
+                    income,
+                    expenses,
+                    startDate.toString(),
+                    endDate.toString(),
+                    notes
+            );
+
+            // 更新或添加数据
+            boolean exists = dataList.stream()
+                    .anyMatch(d -> d.getFestival().equalsIgnoreCase(festival));
+
+            if (exists) {
+                dataList.replaceAll(d ->
+                        d.getFestival().equalsIgnoreCase(festival) ? newData : d);
+            } else {
+                dataList.add(newData);
+            }
+
+            refreshDataDisplay();
+
+            // 重置输入字段
+            festivalComboBox.setValue(null);
+            startDatePicker.setValue(LocalDate.now());
+            endDatePicker.setValue(LocalDate.now());
+            incomeField.setText("0");
+            expensesField.setText("0");
+            notesArea.clear();
+
+        } catch (NumberFormatException e) {
+            showAlert("Invalid number format in income/expenses!");
+        } catch (Exception e) {
+            showAlert("Error saving data: " + e.getMessage());
+        }
+    }
+
+    private void refreshDataDisplay() {
+        // 更新表格
+        tableView.getItems().setAll(FXCollections.observableArrayList(dataList));
+
+        // 获取所有节日名称（去重）
+        List<String> festivals = dataList.stream()
+                .map(BudgetData::getFestival)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 更新图表轴类别
+        updateChartCategories(festivals);
+
+        // 重建图表数据
+        XYChart.Series<String, Number> incomeSeries = new XYChart.Series<>();
+        incomeSeries.setName("Income");
+        XYChart.Series<String, Number> expensesSeries = new XYChart.Series<>();
+        expensesSeries.setName("Expenses");
+        XYChart.Series<String, Number> ratioSeries = new XYChart.Series<>();
+        ratioSeries.setName("Ratio");
+
+        dataList.forEach(data -> {
+            String festival = data.getFestival();
+            incomeSeries.getData().add(new XYChart.Data<>(festival, data.getIncome()));
+            expensesSeries.getData().add(new XYChart.Data<>(festival, data.getExpenses()));
+            ratioSeries.getData().add(new XYChart.Data<>(festival,
+                    data.getIncome() / (double) data.getExpenses()));
+        });
+
+        barChart1.getData().clear();
+        barChart1.getData().addAll(incomeSeries, expensesSeries);
+
+        barChart2.getData().clear();
+        barChart2.getData().add(ratioSeries);
+    }
+
+    private void updateChartCategories(List<String> festivals) {
+        // 更新第一个图表的X轴
+        CategoryAxis xAxis1 = (CategoryAxis) barChart1.getXAxis();
+        xAxis1.setCategories(FXCollections.observableArrayList(festivals));
+
+        // 更新第二个图表的Y轴（因为第二个是横向柱状图）
+        CategoryAxis xAxis2 = (CategoryAxis) barChart2.getXAxis();
+        xAxis2.setCategories(FXCollections.observableArrayList(festivals));
+    }
+
+    private void showAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    // Helper方法
+    private Label createLabel(String text, Color color) {
+        return createLabel(text, color, 14);
+    }
+
+    private Label createLabel(String text, Color color, int size) {
+        Label label = new Label(text);
+        label.setTextFill(color);
+        label.setFont(Font.font("Arial", FontWeight.BOLD, size));
+        return label;
+    }
+
+    private Label createNoteLabel(String text) {
+        Label label = new Label(text);
+        label.setFont(Font.font("Arial", 12));
+        label.setTextFill(Color.GRAY);
+        return label;
+    }
+
+    private HBox createDateRangeBox(DatePicker start, DatePicker end) {
+        HBox box = new HBox(10);
+        start.setPrefWidth(150);
+        end.setPrefWidth(150);
+        box.getChildren().addAll(
+                new Label("Start Date:"), start,
+                new Label("End Date:"), end
+        );
+        return box;
+    }
+
+    private HBox createAmountBox(TextField income, TextField expenses) {
+        HBox box = new HBox(10);
+        income.setPrefWidth(150);
+        expenses.setPrefWidth(150);
+        box.getChildren().addAll(
+                createLabel("Income", Color.PURPLE), income,
+                createLabel("Expenses", Color.PURPLE), expenses
+        );
+        return box;
+    }
+
     public static class BudgetData {
-        private final javafx.beans.property.SimpleStringProperty festival;
-        private final javafx.beans.property.SimpleIntegerProperty amount;
-        private final javafx.beans.property.SimpleIntegerProperty ratio;
+        private final SimpleStringProperty festival;
+        private final SimpleIntegerProperty income;
+        private final SimpleIntegerProperty expenses;
+        private final SimpleStringProperty dateRange;
+        private final SimpleStringProperty notes;
 
-        public BudgetData(String festival, int amount, int ratio) {
-            this.festival = new javafx.beans.property.SimpleStringProperty(festival);
-            this.amount = new javafx.beans.property.SimpleIntegerProperty(amount);
-            this.ratio = new javafx.beans.property.SimpleIntegerProperty(ratio);
+        public BudgetData(String festival, int income, int expenses,
+                          String startDate, String endDate, String notes) {
+            this.festival = new SimpleStringProperty(festival);
+            this.income = new SimpleIntegerProperty(income);
+            this.expenses = new SimpleIntegerProperty(expenses);
+            this.dateRange = new SimpleStringProperty(startDate + " - " + endDate);
+            this.notes = new SimpleStringProperty(notes.isEmpty() ? "None." : notes);
         }
 
-        public javafx.beans.property.StringProperty festivalProperty() {
-            return festival;
-        }
+        // Property getters
+        public SimpleStringProperty festivalProperty() { return festival; }
+        public SimpleIntegerProperty incomeProperty() { return income; }
+        public SimpleIntegerProperty expensesProperty() { return expenses; }
+        public SimpleStringProperty dateRangeProperty() { return dateRange; }
+        public SimpleStringProperty notesProperty() { return notes; }
 
-        public javafx.beans.property.IntegerProperty amountProperty() {
-            return amount;
-        }
+        // Value getters
+        public String getFestival() { return festival.get(); }
+        public int getIncome() { return income.get(); }
+        public int getExpenses() { return expenses.get(); }
+        public String getDateRange() { return dateRange.get(); }
+        public String getNotes() { return notes.get(); }
+    }
 
-        public javafx.beans.property.IntegerProperty ratioProperty() {
-            return ratio;
-        }
+    public static void main(String[] args) {
+        launch(args);
     }
 }

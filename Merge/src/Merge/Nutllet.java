@@ -1,4 +1,4 @@
-package Merge;
+//package Merge;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -50,7 +50,7 @@ public class Nutllet extends Application {
     private List<Expense> sortedExpenses = new ArrayList<>();
     private PieChart pieChart;
     private Label balanceValue;
-    
+
     @Override
     public void start(Stage primaryStage) {
         String csvFileName = "deals.csv";
@@ -191,7 +191,7 @@ public class Nutllet extends Application {
                     "Currently 35% of the budget remains, and you may consider transferring part of the funds " +
                     "to a financial management account to earn returns."
     );
-//    private Circle dot1, dot2;
+    //    private Circle dot1, dot2;
     private StackPane dot1, dot2;
 
     private TextArea aiContent;
@@ -443,7 +443,7 @@ public class Nutllet extends Application {
         ButtonType confirmButtonType = new ButtonType("Confirm", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButtonType = new ButtonType("Cancel",ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, cancelButtonType);
-        
+
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -473,8 +473,8 @@ public class Nutllet extends Application {
         // 输入验证
         ChangeListener<String> inputValidator = new ChangeListener<String>() {
             @Override
-            public void changed(ObservableValue<? extends String> observable, 
-                               String oldValue, String newValue) {
+            public void changed(ObservableValue<? extends String> observable,
+                                String oldValue, String newValue) {
                 boolean isValid = !timeField.getText().isEmpty()
                         && !counterpartField.getText().isEmpty()
                         && !productField.getText().isEmpty()
@@ -491,11 +491,11 @@ public class Nutllet extends Application {
         dialog.setResultConverter(buttonType -> {
             if (buttonType == confirmButtonType) {
                 try {
-                    LocalDateTime time = LocalDateTime.parse(timeField.getText(), 
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    LocalDateTime time = LocalDateTime.parse(timeField.getText(),
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                     double amount = Double.parseDouble(amountField.getText());
-                    return new Expense(time, amount, counterpartField.getText(), 
-                        productField.getText(), "支出", "支付成功");
+                    return new Expense(time, amount, counterpartField.getText(),
+                            productField.getText(), "支出", "支付成功");
                 } catch (Exception e) {
                     new Alert(Alert.AlertType.ERROR, "Invalid input format").show();
                 }
@@ -543,22 +543,22 @@ public class Nutllet extends Application {
             new Alert(Alert.AlertType.ERROR, "保存失败: " + e.getMessage()).show();
         }
     }
-    
+
     // 更新UI的方法
     private void updateUI() {
         // 安全检测
         if (pieChart != null) {
             pieChart.getData().clear();
             pieChart.getData().addAll(categoryTotals.entrySet().stream()
-                .map(entry -> new PieChart.Data(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList()));
+                    .map(entry -> new PieChart.Data(entry.getKey(), entry.getValue()))
+                    .collect(Collectors.toList()));
         }
-        
+
         if (balanceValue != null) {
             balanceValue.setText(String.format("¥ %.2f", totalExpenditure));
         }
     }
-    
+
     // 修改后的底部导航栏方法
     private HBox createBottomNavigation() {
         HBox navBar = new HBox();
@@ -859,18 +859,18 @@ public class Nutllet extends Application {
 
                 if (isDataSection && !line.trim().isEmpty()) {
                     Map<String, String> record = parseCSVLine(line, headers);
-                    
+
                     // 确保字段正确性
-                    if ("支出".equals(record.get("收/支")) && 
-                        "支付成功".equals(record.get("当前状态"))) {
-                        
+                    if ("支出".equals(record.get("收/支")) &&
+                            "支付成功".equals(record.get("当前状态"))) {
+
                         // 明确解析所有必要字段
                         LocalDateTime time = LocalDateTime.parse(
-                            record.get("交易时间"),
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                                record.get("交易时间"),
+                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                         );
                         double amount = Double.parseDouble(
-                            record.get("金额(元)").replace("¥", "").trim()
+                                record.get("金额(元)").replace("¥", "").trim()
                         );
                         String counterpart = record.get("交易对方");
                         String product = record.get("商品");
@@ -879,7 +879,7 @@ public class Nutllet extends Application {
 
                         // 正确创建Expense对象并添加到列表
                         Expense expense = new Expense(
-                            time, amount, counterpart, product, type, status
+                                time, amount, counterpart, product, type, status
                         );
                         expenses.add(expense);
                     }
@@ -914,11 +914,11 @@ public class Nutllet extends Application {
         // 格式化交易记录
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("h:mm a");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMM d yyyy");
-        
+
         sortedExpenses = expenses.stream()
                 .sorted(Comparator.comparing(Expense::getTransactionTime).reversed())
                 .collect(Collectors.toList());
-        
+
         transactionItems.setAll(sortedExpenses.stream()
                 .sorted(Comparator.comparing(Expense::getTransactionTime).reversed())
                 .map(e -> String.format("%s • %s - ¥%.2f - %s",
@@ -951,7 +951,7 @@ public class Nutllet extends Application {
             return "Other";
         }
     }
-    
+
     class Expense {
         private LocalDateTime transactionTime;
         private double amount;
@@ -959,9 +959,9 @@ public class Nutllet extends Application {
         private String product;
         private String type;
         private String status;
-        
-        public Expense(LocalDateTime transactionTime, double amount, String counterpart, 
-                      String product, String type, String status) {
+
+        public Expense(LocalDateTime transactionTime, double amount, String counterpart,
+                       String product, String type, String status) {
             this.transactionTime = transactionTime;
             this.amount = amount;
             this.counterpart = counterpart;

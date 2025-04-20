@@ -1,4 +1,4 @@
-package Merge;
+//package Merge;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -79,7 +79,8 @@ public class Intelligent_Transaction_Classifier extends Application {
         ScrollPane scrollPane = createScrollPane(content);
         VBox mainLayout = createMainLayout(scrollPane);
 
-        Scene scene = new Scene(mainLayout,1366, 768);
+        BorderPane root = new BorderPane();
+        Scene scene = new Scene(root,1366, 768);
         primaryStage.setTitle("AI Transaction Classifier");
         primaryStage.setScene(scene);
 
@@ -97,7 +98,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙
 
         homeBtn.setOnAction(e -> {
-            try { new Merge.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverBtn.setOnAction(e -> {
             try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
@@ -106,8 +107,10 @@ public class Intelligent_Transaction_Classifier extends Application {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
-        mainLayout.getChildren().add(navBar);
+        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
+
+        root.setCenter(mainLayout);
+        root.setBottom(navBar);
     }
 
     private void initializeData() {
