@@ -1,4 +1,3 @@
-package Merge;
 
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
@@ -18,6 +17,7 @@ import javafx.util.Duration;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +25,13 @@ import java.util.List;
 public class ReimbursementList extends Application {
 
     private final List<HBox> allItems = new ArrayList<>();
+    private VBox itemsContainer;
+    private List<String[]> csvData = new ArrayList<>();
 
     @Override
     public void start(Stage primaryStage) {
         StackPane root = new StackPane();
+        BorderPane rootplus = new BorderPane();
 
         VBox mainLayout = new VBox();
         mainLayout.setPadding(new Insets(20));
@@ -54,7 +57,7 @@ public class ReimbursementList extends Application {
         searchBox.setPrefWidth(800);
         searchBox.setAlignment(Pos.CENTER);
 
-        VBox itemsContainer = new VBox();
+        itemsContainer = new VBox();
         itemsContainer.setSpacing(10);
         itemsContainer.setPadding(new Insets(10));
         itemsContainer.setAlignment(Pos.CENTER);
@@ -64,11 +67,12 @@ public class ReimbursementList extends Application {
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",", -1);
                 if (parts.length >= 4) {
+                    csvData.add(parts); // Store the CSV data
                     String category = parts[0];
                     String detail = parts[4];
                     String amount = parts[3];
                     String date = parts[2];
-                    HBox item = createItem(category, detail, amount, date);
+                    HBox item = createItem(category, detail, amount, date, csvData.size() - 1);
                     allItems.add(item);
                     itemsContainer.getChildren().add(item);
                 }
@@ -101,7 +105,6 @@ public class ReimbursementList extends Application {
                 }
             }
         });
-
 
         mainLayout.getChildren().addAll(titleBox, searchBox, scrollPane);
 
@@ -137,6 +140,7 @@ public class ReimbursementList extends Application {
         });
 
         root.getChildren().addAll(mainLayout, addButton);
+        rootplus.setCenter(root);
 
         // Bottom Navigation Bar
         HBox navBar = new HBox();
@@ -145,9 +149,9 @@ public class ReimbursementList extends Application {
         navBar.setPrefHeight(80);
         navBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
 
-        Button homeBtn = createNavButtonWithEmoji("Home", "🏠"); // 🏠
-        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍"); // 🔍
-        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙️
+        Button homeBtn = createNavButtonWithEmoji("Home", "🏠");
+        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍");
+        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙");
 
         homeBtn.setOnAction(e -> {
             try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
@@ -159,15 +163,76 @@ public class ReimbursementList extends Application {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
-        mainLayout.getChildren().add(navBar);
+        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
+        rootplus.setBottom(navBar);
 
-        Scene scene = new Scene(root, 1366, 768);
+        Scene scene = new Scene(rootplus, 1366, 768);
         primaryStage.setTitle("Reimbursements");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
+    private void deleteItem(int index) {
+        // 创建确认对话框
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Delete");
+        alert.setHeaderText("Sure you want to delete this reimbursement?");
+        alert.setContentText("Deletion will not be recovered");
+
+        // 自定义对话框按钮（中文）
+        ButtonType buttonTypeYes = new ButtonType("Confirm");
+        ButtonType buttonTypeNo = new ButtonType("Cancel");
+        alert.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
+
+        // 显示对话框并等待用户选择
+        alert.showAndWait().ifPresent(response -> {
+            if (response == buttonTypeYes) {
+                // 从内存数据中移除
+                csvData.remove(index);
+
+                // 更新CSV文件
+                try (FileWriter writer = new FileWriter("reimbursements.csv")) {
+                    for (String[] parts : csvData) {
+                        writer.write(String.join(",", parts) + "\n");
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+                // 刷新界面
+                refreshUI();
+
+                // 添加删除成功提示
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Successful Operation");
+                successAlert.setHeaderText(null);
+                successAlert.setContentText("Claims Records Deleted");
+                successAlert.showAndWait();
+            }
+        });
+    }
+
+    private void refreshUI() {
+        allItems.clear();
+        itemsContainer.getChildren().clear();
+
+        // 重新从CSV文件加载数据
+        try (BufferedReader reader = new BufferedReader(new FileReader("reimbursements.csv"))) {
+            String line;
+            csvData.clear();
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",", -1);
+                if (parts.length >= 4) {
+                    csvData.add(parts);
+                    HBox item = createItem(parts[0], parts[4], parts[3], parts[2], csvData.size() - 1);
+                    allItems.add(item);
+                    itemsContainer.getChildren().add(item);
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
     // Helper method with emoji
     private Button createNavButtonWithEmoji(String label, String emoji) {
         VBox btnContainer = new VBox();
@@ -203,7 +268,7 @@ public class ReimbursementList extends Application {
         return button;
     }
 
-    private HBox createItem(String category, String detail, String amount, String date) {
+    private HBox createItem(String category, String detail, String amount, String date, int index) {
         HBox itemBox = new HBox();
         itemBox.setSpacing(15);
         itemBox.setPadding(new Insets(15));
@@ -240,12 +305,19 @@ public class ReimbursementList extends Application {
 
         ToggleButton starButton = createStarToggleButton();
 
-        itemBox.getChildren().addAll(amountLabel, detailsBox, starButton);
+        // Create delete button
+        Button deleteButton = new Button("×");
+        deleteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-font-size: 20px; -fx-font-weight: bold;");
+        deleteButton.setOnAction(e -> deleteItem(index));
+
+        HBox buttonsBox = new HBox(10, starButton, deleteButton);
+        buttonsBox.setAlignment(Pos.CENTER_RIGHT);
+
+        itemBox.getChildren().addAll(amountLabel, detailsBox, buttonsBox);
         HBox.setHgrow(detailsBox, Priority.ALWAYS);
 
         return itemBox;
     }
-
     private ToggleButton createStarToggleButton() {
         ToggleButton toggleButton = new ToggleButton();
         toggleButton.setStyle("-fx-background-color: transparent; -fx-padding: 5;");
