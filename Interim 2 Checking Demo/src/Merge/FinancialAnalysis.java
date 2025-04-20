@@ -1,5 +1,8 @@
-package Merge;
-
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,6 +21,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import java.awt.*;
 import java.net.URI;
 
@@ -44,6 +48,17 @@ public class FinancialAnalysis extends Application {
         Text title = new Text("Financial Analysis Dashboard");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
         title.setFill(Color.web("#855FAF"));
+        title.setOpacity(0);
+        title.setScaleX(0.5);
+        title.setScaleY(0.5);
+
+        ParallelTransition titleAnimation = new ParallelTransition(
+                new FadeTransition(Duration.seconds(1), title),
+                new ScaleTransition(Duration.seconds(1), title)
+        );
+        ((FadeTransition)titleAnimation.getChildren().get(0)).setToValue(1);
+        ((ScaleTransition)titleAnimation.getChildren().get(1)).setToX(1);
+        ((ScaleTransition)titleAnimation.getChildren().get(1)).setToY(1);
 
         LineChart<Number, Number> lineChart = buildLineChart();
         BarChart<String, Number> barChart = buildBarChart();
@@ -80,14 +95,59 @@ public class FinancialAnalysis extends Application {
             }
         });
 
+        // 为AI按钮添加悬停动画
+        ScaleTransition scaleBtn = new ScaleTransition(Duration.millis(200), aiButton);
+        aiButton.setOnMouseEntered(e -> {
+            scaleBtn.setToX(1.05);
+            scaleBtn.setToY(1.05);
+            scaleBtn.play();
+        });
+        aiButton.setOnMouseExited(e -> {
+            scaleBtn.setToX(1.0);
+            scaleBtn.setToY(1.0);
+            scaleBtn.play();
+        });
+
         VBox contentContainer = new VBox(30);
         contentContainer.setPadding(new Insets(20));
         contentContainer.setAlignment(Pos.TOP_CENTER);
         contentContainer.setStyle("-fx-background-color: " + backgroundColor + ";");
+        contentContainer.setOpacity(0);
+
         contentContainer.getChildren().addAll(title, lineChart, barChart, pieTitle, pieChart, textTitle, analysis, aiButton);
+
+        // 页面淡入动画
+        FadeTransition fadeIn = new FadeTransition(Duration.seconds(0.8), contentContainer);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+
+        // 图表逐个出现的动画
+        SequentialTransition sequentialTransition = new SequentialTransition();
+        for (Node node : contentContainer.getChildren()) {
+            if (node instanceof Chart || node instanceof Label || node instanceof Text) {
+                node.setOpacity(0);
+                node.setTranslateY(20);
+
+                ParallelTransition pt = new ParallelTransition(
+                        new FadeTransition(Duration.seconds(0.5), node),
+                        new TranslateTransition(Duration.seconds(0.5), node)
+                );
+                ((FadeTransition)pt.getChildren().get(0)).setFromValue(0);
+                ((FadeTransition)pt.getChildren().get(0)).setToValue(1);
+                ((TranslateTransition)pt.getChildren().get(1)).setFromY(20);
+                ((TranslateTransition)pt.getChildren().get(1)).setToY(0);
+
+                sequentialTransition.getChildren().add(pt);
+            }
+        }
+
+        // 组合动画
+        ParallelTransition allAnimations = new ParallelTransition(fadeIn, sequentialTransition, titleAnimation);
+        allAnimations.play();
 
         ScrollPane scrollPane = new ScrollPane(contentContainer);
         scrollPane.setFitToWidth(true);
+        scrollPane.setVvalue(0);
 
         mainContainer.getChildren().add(scrollPane);
         root.setCenter(mainContainer);
@@ -113,8 +173,7 @@ public class FinancialAnalysis extends Application {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        bottomNavigationBar.getChildren().addAll(homeButton , discoverButton,settingsButton );
-
+        bottomNavigationBar.getChildren().addAll(homeButton, discoverButton, settingsButton);
         root.setBottom(bottomNavigationBar);
 
         Scene scene = new Scene(root, 1366, 768);
@@ -139,6 +198,19 @@ public class FinancialAnalysis extends Application {
         chart.setPrefWidth(1000);
         chart.setAlternativeRowFillVisible(false);
         chart.setAlternativeColumnFillVisible(false);
+
+        // 添加图表悬停动画
+        ScaleTransition scaleChart = new ScaleTransition(Duration.millis(200), chart);
+        chart.setOnMouseEntered(e -> {
+            scaleChart.setToX(1.01);
+            scaleChart.setToY(1.01);
+            scaleChart.play();
+        });
+        chart.setOnMouseExited(e -> {
+            scaleChart.setToX(1.0);
+            scaleChart.setToY(1.0);
+            scaleChart.play();
+        });
 
         XYChart.Series<Number, Number> dataSeries = new XYChart.Series<>();
         for (int i = 0; i < years.length; i++) {
@@ -186,6 +258,19 @@ public class FinancialAnalysis extends Application {
         chart.setAlternativeRowFillVisible(false);
         chart.setAlternativeColumnFillVisible(false);
 
+        // 添加图表悬停动画
+        ScaleTransition scaleChart = new ScaleTransition(Duration.millis(200), chart);
+        chart.setOnMouseEntered(e -> {
+            scaleChart.setToX(1.01);
+            scaleChart.setToY(1.01);
+            scaleChart.play();
+        });
+        chart.setOnMouseExited(e -> {
+            scaleChart.setToX(1.0);
+            scaleChart.setToY(1.0);
+            scaleChart.play();
+        });
+
         XYChart.Series<String, Number> dataSeries = new XYChart.Series<>();
         for (int i = 0; i < years.length; i++) {
             XYChart.Data<String, Number> data = new XYChart.Data<>(String.valueOf(years[i]), totalAmounts[i]);
@@ -217,6 +302,19 @@ public class FinancialAnalysis extends Application {
         chart.setClockwise(true);
         chart.setStartAngle(90);
         chart.setPrefWidth(600);
+
+        // 添加图表悬停动画
+        ScaleTransition scaleChart = new ScaleTransition(Duration.millis(200), chart);
+        chart.setOnMouseEntered(e -> {
+            scaleChart.setToX(1.01);
+            scaleChart.setToY(1.01);
+            scaleChart.play();
+        });
+        chart.setOnMouseExited(e -> {
+            scaleChart.setToX(1.0);
+            scaleChart.setToY(1.0);
+            scaleChart.play();
+        });
 
         for (int i = 0; i < years.length; i++) {
             double value = singleAmounts[i];
@@ -258,6 +356,26 @@ public class FinancialAnalysis extends Application {
         navigationButton.setPrefHeight(80);
         navigationButton.setGraphic(buttonContent);
         navigationButton.setStyle("-fx-background-color: white; -fx-border-color: transparent;");
+
+        // 添加按钮悬停动画
+        ScaleTransition scaleNavBtn = new ScaleTransition(Duration.millis(150), navigationButton);
+        navigationButton.setOnMouseEntered(e -> {
+            scaleNavBtn.setToX(1.03);
+            scaleNavBtn.setToY(1.03);
+            scaleNavBtn.play();
+
+            emojiLabel.setStyle("-fx-font-size: 18px;"); // 放大emoji
+            textLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #855FAF;"); // 改变颜色
+        });
+
+        navigationButton.setOnMouseExited(e -> {
+            scaleNavBtn.setToX(1.0);
+            scaleNavBtn.setToY(1.0);
+            scaleNavBtn.play();
+
+            emojiLabel.setStyle("-fx-font-size: 16px;");
+            textLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #7f8c8d;");
+        });
 
         return navigationButton;
     }
