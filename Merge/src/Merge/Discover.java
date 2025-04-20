@@ -1,5 +1,3 @@
-package Merge;
-
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
@@ -23,7 +21,7 @@ public class Discover extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        StackPane root = new StackPane();
+        BorderPane root = new BorderPane();
 
         VBox mainLayout = new VBox();
         mainLayout.setPadding(new Insets(20));
@@ -102,7 +100,7 @@ public class Discover extends Application {
 
         mainLayout.getChildren().addAll(titleBox, searchBox, scrollPane, noResultsLabel);
 
-        root.getChildren().addAll(mainLayout);
+        root.setCenter(mainLayout);
 
         // Bottom Navigation Bar with highlight
         HBox bottomNavigationBar = new HBox();
@@ -128,7 +126,7 @@ public class Discover extends Application {
         });
 
         bottomNavigationBar.getChildren().addAll(homeButton, discoverButton, settingsButton);
-        mainLayout.getChildren().add(bottomNavigationBar);
+        root.setBottom(bottomNavigationBar);
 
         // 搜索逻辑：根据标题动态过滤按钮
         FilteredList<Button> filteredButtons = new FilteredList<>(

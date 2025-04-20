@@ -1,5 +1,3 @@
-package Merge;
-
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -10,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -34,6 +33,7 @@ public class FinancialAnalysis extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        BorderPane root = new BorderPane();
         VBox mainContainer = new VBox();
         mainContainer.setPadding(new Insets(20));
         mainContainer.setSpacing(20);
@@ -88,6 +88,7 @@ public class FinancialAnalysis extends Application {
         scrollPane.setFitToWidth(true);
 
         mainContainer.getChildren().add(scrollPane);
+        root.setCenter(mainContainer);
 
         // Bottom Navigation Bar
         HBox bottomNavigationBar = new HBox();
@@ -112,9 +113,9 @@ public class FinancialAnalysis extends Application {
 
         bottomNavigationBar.getChildren().addAll(homeButton , discoverButton,settingsButton );
 
-        mainContainer.getChildren().add(bottomNavigationBar);
+        root.setBottom(bottomNavigationBar);
 
-        Scene scene = new Scene(mainContainer, 1366, 768);
+        Scene scene = new Scene(root, 1366, 768);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Financial Analysis");
         primaryStage.show();

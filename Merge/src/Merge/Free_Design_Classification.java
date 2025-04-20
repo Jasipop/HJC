@@ -1,7 +1,3 @@
-package Merge;
-
-//package myapp;
-
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -35,8 +31,9 @@ public class Free_Design_Classification extends Application {
     public void start(Stage primaryStage) {
         initializeDataStructures();
         VBox mainLayout = createMainLayout(createMainContent());
+        BorderPane root = new BorderPane();
+        Scene scene = new Scene(root, 1366, 768);
 
-        Scene scene = new Scene(mainLayout, 1366, 768);
         primaryStage.setTitle("Free Definition");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -65,7 +62,8 @@ public class Free_Design_Classification extends Application {
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
 
-        mainLayout.getChildren().add(navBar);
+        root.setCenter(mainLayout);
+        root.setBottom(navBar);
     }
 
     private void initializeDataStructures() {

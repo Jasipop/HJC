@@ -1,4 +1,4 @@
-package Merge;
+//package Merge;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -213,7 +213,7 @@ public class NutlletEnterprise extends Application {
         sidebar.getChildren().addAll(card1, card2, card3);
         return sidebar;
     }
-    
+
     private void stylePrimaryButton(Button button) {
         button.setStyle("-fx-text-fill: " + toHexString(PRIMARY_COLOR) + "; -fx-background-color: rgba(255, 255, 255, 0.1);"
                 + "-fx-padding: 8px 16px; -fx-border-radius: 20px; -fx-border-color: " + toHexString(PRIMARY_COLOR) + ";"
