@@ -34,6 +34,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Alert;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+
 public class Nutllet extends Application {
     private static final Color PRIMARY_PURPLE = Color.rgb(133, 95, 175);
     private static final Color LIGHT_PURPLE_BG = Color.rgb(245, 241, 255);
@@ -46,6 +47,7 @@ public class Nutllet extends Application {
     private double totalExpenditure;
     private HostServices hostServices;
     private List<Expense> expenses = new ArrayList<>();
+    private List<Expense> sortedExpenses = new ArrayList<>();
     private PieChart pieChart;
     private Label balanceValue;
     
@@ -672,41 +674,91 @@ public class Nutllet extends Application {
     }
 
     class TransactionCell extends ListCell<String> {
+        private final HBox container;
+        private final Label timeLabel;
+        private final Label categoryLabel;
+        private final Label amountLabel;
+        private final Label dateLabel;
+        private final Button deleteButton;
+
+        public TransactionCell() {
+            super();
+
+            // 初始化UI组件
+            timeLabel = new Label();
+            timeLabel.setStyle("-fx-text-fill: #999999; -fx-font-size: 12px;");
+
+            categoryLabel = new Label();
+            categoryLabel.setStyle("-fx-font-weight: bold;");
+
+            VBox timeBox = new VBox(2, timeLabel, categoryLabel);
+
+            amountLabel = new Label();
+            amountLabel.setStyle("-fx-text-fill: #333333; -fx-font-weight: bold;");
+
+            dateLabel = new Label();
+            dateLabel.setStyle("-fx-text-fill: #999999; -fx-font-size: 12px;");
+
+            deleteButton = new Button("×");
+            deleteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff4444; -fx-font-weight: bold;");
+            deleteButton.setVisible(false);
+            deleteButton.setOnAction(e -> handleDelete());
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            container = new HBox(20, timeBox, spacer, amountLabel, dateLabel, deleteButton);
+            container.setPadding(new Insets(8, 15, 8, 15));
+            container.setBackground(new Background(new BackgroundFill(Color.rgb(250, 250, 250), CornerRadii.EMPTY, Insets.EMPTY)));
+
+            // 鼠标悬停显示删除按钮
+            setOnMouseEntered(e -> deleteButton.setVisible(true));
+            setOnMouseExited(e -> deleteButton.setVisible(false));
+        }
+
+        private void handleDelete() {
+            int index = getIndex();
+            if (index < 0 || index >= sortedExpenses.size()) return;
+
+            // 确认对话框
+            Expense toRemove = sortedExpenses.get(index);
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Delete Entry");
+            alert.setHeaderText("Are you sure you want to delete this record?");
+            alert.setContentText(String.format("%s - ¥%.2f", toRemove.getProduct(), toRemove.getAmount()));
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                // 从原始数据中移除并更新
+                expenses.remove(toRemove);
+                processData(expenses);
+                saveExpensesToCSV("deals.csv");
+                updateUI();
+            }
+        }
+
         @Override
         protected void updateItem(String item, boolean empty) {
             super.updateItem(item, empty);
             if (empty || item == null) {
-                setText(null);
                 setGraphic(null);
             } else {
+                // 解析数据显示
                 String[] parts = item.split(" - ");
                 String[] timeCat = parts[0].split(" • ");
 
-                Label timeLabel = new Label(timeCat[0]);
-                timeLabel.setStyle("-fx-text-fill: #999999; -fx-font-size: 12px;");
+                timeLabel.setText(timeCat[0]);
+                categoryLabel.setText(timeCat[1]);
+                categoryLabel.setStyle("-fx-text-fill: " + (getIndex() % 2 == 0 ? "#855FAF" : "#333333"));
+                amountLabel.setText(parts[1]);
+                dateLabel.setText(parts[2]);
 
-                Label category = new Label(timeCat[1]);
-                category.setStyle("-fx-text-fill: " +
-                        (getIndex() % 2 == 0 ? "#855FAF" : "#333333") +
-                        "; -fx-font-weight: bold;");
-
-                VBox timeBox = new VBox(2, timeLabel, category);
-                Label amount = new Label(parts[1]);
-                amount.setStyle("-fx-text-fill: #333333; -fx-font-weight: bold;");
-
-                Label date = new Label(parts[2]);
-                date.setStyle("-fx-text-fill: #999999; -fx-font-size: 12px;");
-
-                Region spacer = new Region();
-                HBox content = new HBox(20, timeBox, spacer, amount, date);
-                HBox.setHgrow(spacer, Priority.ALWAYS);
-
-                VBox container = new VBox(content);
-                container.setBackground(new Background(new BackgroundFill(
+                // 设置交替背景色
+                BackgroundFill bgFill = new BackgroundFill(
                         getIndex() % 2 == 0 ? Color.rgb(250, 250, 250) : Color.WHITE,
-                        CornerRadii.EMPTY, Insets.EMPTY)));
-                container.setPadding(new Insets(8, 15, 8, 15));
-                container.setStyle("-fx-border-color: #f0f0f0; -fx-border-width: 0 0 1 0;");
+                        CornerRadii.EMPTY, Insets.EMPTY
+                );
+                container.setBackground(new Background(bgFill));
 
                 setGraphic(container);
             }
@@ -862,7 +914,12 @@ public class Nutllet extends Application {
         // 格式化交易记录
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("h:mm a");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMM d yyyy");
-        transactionItems.setAll(expenses.stream()
+        
+        sortedExpenses = expenses.stream()
+                .sorted(Comparator.comparing(Expense::getTransactionTime).reversed())
+                .collect(Collectors.toList());
+        
+        transactionItems.setAll(sortedExpenses.stream()
                 .sorted(Comparator.comparing(Expense::getTransactionTime).reversed())
                 .map(e -> String.format("%s • %s - ¥%.2f - %s",
                         e.getTransactionTime().format(timeFormatter),
