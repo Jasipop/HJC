@@ -1,5 +1,3 @@
-//package Merge;
-
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -21,10 +19,16 @@ public class NutlletAddNewReminder extends Application {
         BorderPane root = new BorderPane();
 
         root.setTop(createHeader());
-        root.setCenter(createFormContent());
+        root.setCenter(createFormContent(primaryStage));
         root.setBottom(createBottomNav(primaryStage));
 
-        Scene scene = new Scene(root, 1366, 768);
+        // 使用 ScrollPane 包装 root
+        ScrollPane scrollPane = new ScrollPane(root);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+
+        // 修改 Scene 初始化
+        Scene scene = new Scene(scrollPane, 1366, 768);
         primaryStage.setTitle("Nutllet - Add New Reminder");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -45,7 +49,7 @@ public class NutlletAddNewReminder extends Application {
         return header;
     }
 
-    private VBox createFormContent() {
+    private VBox createFormContent(Stage primaryStage) {
         VBox formContent = new VBox(20);
         formContent.setPadding(new Insets(20));
         formContent.setBackground(new Background(new BackgroundFill(
@@ -67,7 +71,7 @@ public class NutlletAddNewReminder extends Application {
         );
 
         // Question 4: Remark with "Delete" and "Done" Buttons
-        VBox question4 = createQuestionWithTextAreaAndButtons("4. Remark");
+        VBox question4 = createQuestionWithTextAreaAndButtons("4. Remark", primaryStage);
 
         formContent.getChildren().addAll(question1, question2, question3, question4);
         return formContent;
@@ -128,7 +132,7 @@ public class NutlletAddNewReminder extends Application {
         return questionBox;
     }
 
-    private VBox createQuestionWithTextAreaAndButtons(String questionText) {
+    private VBox createQuestionWithTextAreaAndButtons(String questionText, Stage primaryStage) {
         VBox questionBox = new VBox(20);
         questionBox.setAlignment(Pos.TOP_LEFT);
 
@@ -151,6 +155,16 @@ public class NutlletAddNewReminder extends Application {
 
         Button doneButton = new Button("Done");
         stylePrimaryButton(doneButton);
+
+        // 设置 "Done" 按钮事件
+        doneButton.setOnAction(e -> {
+            try {
+                new NutlletReminder().start(new Stage()); // 跳转到 NutlletReminder 页面
+                primaryStage.close(); // 关闭当前页面
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
 
         buttonsContainer.getChildren().addAll(deleteButton, doneButton);
         questionBox.getChildren().addAll(questionLabel, textArea, buttonsContainer);
