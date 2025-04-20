@@ -1,4 +1,4 @@
-package Nutllet;
+//package Nutllet;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -214,7 +214,7 @@ public class Login extends Application {
         Label regUserLabel = new Label("Choose a username");
         regUserLabel.setFont(Font.font("Arial", 14));
         regUserLabel.setTextFill(Color.web("#333333"));
-        
+
         TextField regUsernameField = new TextField();
         regUsernameField.setPromptText("Username (4-20 characters)");
         regUsernameField.setStyle("-fx-pref-height: 40; -fx-font-size: 14;");
@@ -223,7 +223,7 @@ public class Login extends Application {
         Label regPassLabel = new Label("Create password");
         regPassLabel.setFont(Font.font("Arial", 14));
         regPassLabel.setTextFill(Color.web("#333333"));
-        
+
         PasswordField regPasswordField = new PasswordField();
         regPasswordField.setPromptText("Password (min 8 characters)");
         regPasswordField.setStyle("-fx-pref-height: 40; -fx-font-size: 14;");
@@ -232,7 +232,7 @@ public class Login extends Application {
         Label confirmPassLabel = new Label("Confirm password");
         confirmPassLabel.setFont(Font.font("Arial", 14));
         confirmPassLabel.setTextFill(Color.web("#333333"));
-        
+
         PasswordField confirmPasswordField = new PasswordField();
         confirmPasswordField.setPromptText("Re-enter your password");
         confirmPasswordField.setStyle("-fx-pref-height: 40; -fx-font-size: 14;");
@@ -240,17 +240,17 @@ public class Login extends Application {
         // 注册按钮
         Button registerButton = new Button("Create Account");
         registerButton.setStyle("-fx-background-color: #71b6c5; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 200px; -fx-pref-height: 40px;");
-        
+
         // 返回登录链接
         Hyperlink backToLoginLink = new Hyperlink("Back to Login");
         backToLoginLink.setStyle("-fx-text-fill: #666666; -fx-font-size: 12;");
 
         // 组装注册表单
         regFormContainer.getChildren().addAll(
-            regUserLabel, regUsernameField,
-            regPassLabel, regPasswordField,
-            confirmPassLabel, confirmPasswordField,
-            registerButton, backToLoginLink
+                regUserLabel, regUsernameField,
+                regPassLabel, regPasswordField,
+                confirmPassLabel, confirmPasswordField,
+                registerButton, backToLoginLink
         );
 
         // 组装主容器
@@ -258,25 +258,25 @@ public class Login extends Application {
 
         // 创建新场景
         Scene regScene = new Scene(regMainContainer, 1366, 768);
-        
+
         // 注册按钮事件处理
         registerButton.setOnAction(e -> {
             String username = regUsernameField.getText().trim();
             String password = regPasswordField.getText().trim();
             String confirmPass = confirmPasswordField.getText().trim();
-            
+
             if (!password.equals(confirmPass)) {
                 showAlert("Error", "Passwords do not match!");
                 return;
             }
-            
+
             handleSignup(username, password); // 复用原有的注册逻辑
             loginStage.setScene(loginScene); // 返回登录页
         });
 
         // 返回登录链接事件
-        backToLoginLink.setOnAction(e -> 
-              loginStage.setScene(loginScene)  // 使用保存的登录场景
+        backToLoginLink.setOnAction(e ->
+                loginStage.setScene(loginScene)  // 使用保存的登录场景
         );
 
         // 切换场景
