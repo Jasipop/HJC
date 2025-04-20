@@ -17,6 +17,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,50 +26,72 @@ public class UI_1 extends Application {
 
     private TableView<BudgetData> tableView;
     private BarChart<String, Number> barChart1;
-    private BarChart<String, Number> barChart2;
+    private BarChart<Number, String> barChart2;
     private final List<BudgetData> dataList = new ArrayList<>();
+    private static final String CSV_FILE = "budget_data.csv";
 
     @Override
     public void start(Stage primaryStage) {
         BorderPane mainLayout = new BorderPane();
 
-        GridPane root = new GridPane();
-        root.setHgap(10);
-        root.setVgap(10);
-        root.setPadding(new Insets(20));
+        // 创建主内容容器
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle("-fx-background: #FFF0F5;");
+
+        GridPane contentGrid = new GridPane();
+        contentGrid.setHgap(10);
+        contentGrid.setVgap(10);
+        contentGrid.setPadding(new Insets(20));
+        contentGrid.setStyle("-fx-background-color: #FFF0F5;");
 
         // 标题
         Label titleLabel = new Label("Localized Budgeting");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         titleLabel.setTextFill(Color.PURPLE);
         titleLabel.setAlignment(Pos.CENTER);
-        root.add(titleLabel, 0, 0, 2, 1);
+        contentGrid.add(titleLabel, 0, 0, 2, 1);
 
         // 左上角输入区域
         VBox leftTopBox = createLeftTopBox();
-        root.add(leftTopBox, 0, 1);
+        contentGrid.add(leftTopBox, 0, 1);
 
         // 右上角数据表格
         VBox dataDisplayBox = createDataDisplayBox();
-        root.add(dataDisplayBox, 1, 1);
+        contentGrid.add(dataDisplayBox, 1, 1);
 
         // 底部图表区域
         HBox chartsBox = createChartsBox();
-        root.add(chartsBox, 0, 2, 2, 1);
+        contentGrid.add(chartsBox, 0, 2, 2, 1);
 
-        root.setStyle("-fx-background-color: #FFF0F5;");
+        // 将内容网格放入滚动面板
+        scrollPane.setContent(contentGrid);
 
-        initializeSampleData();
-        // Bottom Navigation Bar
+        // 底部导航栏
+        HBox navBar = createNavigationBar();
+        mainLayout.setBottom(navBar);
+        mainLayout.setCenter(scrollPane);
+
+        initializeData();
+
+        Scene scene = new Scene(mainLayout, 1366, 768);
+        primaryStage.setTitle("Localized Budgeting");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private HBox createNavigationBar() {
         HBox navBar = new HBox();
         navBar.setSpacing(0);
         navBar.setAlignment(Pos.CENTER);
         navBar.setPrefHeight(80);
         navBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
 
-        Button homeBtn = createNavButtonWithEmoji("Home", "🏠"); // 🏠
-        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍"); // 🔍
-        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙️
+        Button homeBtn = createNavButtonWithEmoji("Home", "🏠");
+        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍");
+        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙");
 
         homeBtn.setOnAction(e -> {
             try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
@@ -80,17 +103,10 @@ public class UI_1 extends Application {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
-        mainLayout.setBottom(navBar);
-        mainLayout.setCenter(root);
-
-        Scene scene = new Scene(mainLayout, 1366, 768);
-        primaryStage.setTitle("Localized Budgeting");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
+        return navBar;
     }
 
-    // Helper method with emoji
     private Button createNavButtonWithEmoji(String label, String emoji) {
         VBox btnContainer = new VBox();
         btnContainer.setAlignment(Pos.CENTER);
@@ -110,18 +126,6 @@ public class UI_1 extends Application {
         button.setGraphic(btnContainer);
         button.setStyle("-fx-background-color: white; -fx-border-color: transparent;");
 
-        return button;
-    }
-    private Button createNavButton(String label) {
-        Button button = new Button(label);
-        button.setPrefWidth(456); // 1366 / 3
-        button.setPrefHeight(60);
-        button.setStyle(
-                "-fx-background-color: white;" +
-                        "-fx-font-size: 16px;" +
-                        "-fx-text-fill: #7f8c8d;" +
-                        "-fx-border-color: transparent;"
-        );
         return button;
     }
 
@@ -173,18 +177,7 @@ public class UI_1 extends Application {
         saveBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
         saveBtn.setOnAction(e -> handleSave(comboBox, startDate, endDate, income, expenses, notes));
 
-        Button boldBtn = new Button("B");
-        Button italicBtn = new Button("I");
-        Button underlineBtn = new Button("U");
-        Button alignLeftBtn = new Button("Left");
-        Button alignCenterBtn = new Button("Center");
-        Button alignRightBtn = new Button("Right");
-        Button listBtn = new Button("List");
-
-        toolbar.getChildren().addAll(
-                saveBtn, boldBtn, italicBtn, underlineBtn,
-                alignLeftBtn, alignCenterBtn, alignRightBtn, listBtn
-        );
+        toolbar.getChildren().add(saveBtn);
         return toolbar;
     }
 
@@ -213,11 +206,28 @@ public class UI_1 extends Application {
 
         tableView.getColumns().addAll(festivalCol, dateCol, incomeCol, expensesCol, notesCol);
 
-        box.getChildren().addAll(
+        // 添加删除按钮
+        Button deleteBtn = new Button("Delete");
+        deleteBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
+        deleteBtn.setOnAction(e -> {
+            BudgetData selected = tableView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                dataList.remove(selected);
+                refreshDataDisplay();
+                saveDataToCSV();
+            } else {
+                showAlert("Please select a row to delete!");
+            }
+        });
+
+        VBox container = new VBox(10);
+        container.getChildren().addAll(
                 createLabel("Budget Data", Color.PURPLE, 16),
-                tableView
+                tableView,
+                deleteBtn
         );
-        return box;
+
+        return container;
     }
 
     private HBox createChartsBox() {
@@ -225,19 +235,23 @@ public class UI_1 extends Application {
         chartsBox.setAlignment(Pos.CENTER);
         chartsBox.setPadding(new Insets(20));
 
-        // 收入支出对比图
+        // 收入支出对比图（垂直）
         CategoryAxis xAxis1 = new CategoryAxis();
         NumberAxis yAxis1 = new NumberAxis();
         barChart1 = new BarChart<>(xAxis1, yAxis1);
         barChart1.setTitle("Income vs Expenses Comparison");
+        xAxis1.setLabel("Festival");
+        yAxis1.setLabel("Amount");
         barChart1.setCategoryGap(20);
         barChart1.setPrefSize(600, 400);
 
-        // 收支比例图
-        CategoryAxis xAxis2 = new CategoryAxis();
-        NumberAxis yAxis2 = new NumberAxis();
+        // 收支比例图（横向）
+        NumberAxis xAxis2 = new NumberAxis();
+        CategoryAxis yAxis2 = new CategoryAxis();
         barChart2 = new BarChart<>(xAxis2, yAxis2);
         barChart2.setTitle("Income/Expenses Ratio");
+        xAxis2.setLabel("Ratio");
+        yAxis2.setLabel("Festival");
         barChart2.setCategoryGap(20);
         barChart2.setPrefSize(600, 400);
 
@@ -245,14 +259,90 @@ public class UI_1 extends Application {
         return chartsBox;
     }
 
-    private void initializeSampleData() {
-        dataList.addAll(Arrays.asList(
+    // CSV操作相关方法
+    private void saveDataToCSV() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(CSV_FILE))) {
+            writer.write("Festival,Income,Expenses,StartDate,EndDate,Notes\n");
+            for (BudgetData data : dataList) {
+                String notes = data.getNotes().replace("\"", "\"\"");
+                if (notes.contains(",") || notes.contains("\"")) {
+                    notes = "\"" + notes + "\"";
+                }
+                String line = String.format("%s,%d,%d,%s,%s,%s",
+                        data.getFestival(),
+                        data.getIncome(),
+                        data.getExpenses(),
+                        data.getStartDate(),
+                        data.getEndDate(),
+                        notes);
+                writer.write(line + "\n");
+            }
+        } catch (IOException e) {
+            showAlert("Failed to save data to CSV file!");
+        }
+    }
+
+    private void loadDataFromCSV() {
+        File file = new File(CSV_FILE);
+        if (!file.exists()) return;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            dataList.clear();
+            String line;
+            boolean isHeader = true;
+            while ((line = reader.readLine()) != null) {
+                if (isHeader) {
+                    isHeader = false;
+                    continue;
+                }
+                String[] parts = parseCSVLine(line);
+                if (parts.length == 6) {
+                    String festival = parts[0];
+                    int income = Integer.parseInt(parts[1]);
+                    int expenses = Integer.parseInt(parts[2]);
+                    String startDate = parts[3];
+                    String endDate = parts[4];
+                    String notes = parts[5].replace("\"\"", "\"");
+                    dataList.add(new BudgetData(festival, income, expenses, startDate, endDate, notes));
+                }
+            }
+        } catch (IOException | NumberFormatException e) {
+            showAlert("Error loading data from CSV file!");
+        }
+    }
+
+    private String[] parseCSVLine(String line) {
+        List<String> fields = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        boolean inQuotes = false;
+
+        for (char c : line.toCharArray()) {
+            if (c == '"') {
+                inQuotes = !inQuotes;
+            } else if (c == ',' && !inQuotes) {
+                fields.add(sb.toString());
+                sb.setLength(0);
+            } else {
+                sb.append(c);
+            }
+        }
+        fields.add(sb.toString());
+        return fields.toArray(new String[0]);
+    }
+
+    // 数据初始化
+    private void initializeData() {
+        loadDataFromCSV();
+        if (dataList.isEmpty()) {
+            dataList.addAll(Arrays.asList(
                 new BudgetData("Spring Festival", 3000, 1900, "2024-02-10", "2024-02-17", ""),
                 new BudgetData("Dragon Boat Festival", 500, 800, "2024-06-10", "2024-06-12", ""),
                 new BudgetData("Mid-Autumn Festival", 700, 750, "2024-09-15", "2024-09-17", ""),
                 new BudgetData("Christmas", 1000, 700, "2024-12-25", "2024-12-26", ""),
                 new BudgetData("Harvest Day", 500, 800, "2024-10-01", "2024-10-07", "")
-        ));
+            ));
+            saveDataToCSV();
+        }
         refreshDataDisplay();
     }
 
@@ -289,7 +379,6 @@ public class UI_1 extends Application {
                     notes
             );
 
-            // 更新或添加数据
             boolean exists = dataList.stream()
                     .anyMatch(d -> d.getFestival().equalsIgnoreCase(festival));
 
@@ -301,6 +390,7 @@ public class UI_1 extends Application {
             }
 
             refreshDataDisplay();
+            saveDataToCSV();
 
             // 重置输入字段
             festivalComboBox.setValue(null);
@@ -318,32 +408,29 @@ public class UI_1 extends Application {
     }
 
     private void refreshDataDisplay() {
-        // 更新表格
         tableView.getItems().setAll(FXCollections.observableArrayList(dataList));
 
-        // 获取所有节日名称（去重）
         List<String> festivals = dataList.stream()
                 .map(BudgetData::getFestival)
                 .distinct()
+                .sorted()
                 .collect(Collectors.toList());
 
-        // 更新图表轴类别
         updateChartCategories(festivals);
 
-        // 重建图表数据
         XYChart.Series<String, Number> incomeSeries = new XYChart.Series<>();
         incomeSeries.setName("Income");
         XYChart.Series<String, Number> expensesSeries = new XYChart.Series<>();
         expensesSeries.setName("Expenses");
-        XYChart.Series<String, Number> ratioSeries = new XYChart.Series<>();
+        XYChart.Series<Number, String> ratioSeries = new XYChart.Series<>();
         ratioSeries.setName("Ratio");
 
         dataList.forEach(data -> {
             String festival = data.getFestival();
             incomeSeries.getData().add(new XYChart.Data<>(festival, data.getIncome()));
             expensesSeries.getData().add(new XYChart.Data<>(festival, data.getExpenses()));
-            ratioSeries.getData().add(new XYChart.Data<>(festival,
-                    data.getIncome() / (double) data.getExpenses()));
+            double ratio = data.getIncome() / (double) data.getExpenses();
+            ratioSeries.getData().add(new XYChart.Data<>(ratio, festival));
         });
 
         barChart1.getData().clear();
@@ -354,13 +441,11 @@ public class UI_1 extends Application {
     }
 
     private void updateChartCategories(List<String> festivals) {
-        // 更新第一个图表的X轴
         CategoryAxis xAxis1 = (CategoryAxis) barChart1.getXAxis();
         xAxis1.setCategories(FXCollections.observableArrayList(festivals));
 
-        // 更新第二个图表的Y轴（因为第二个是横向柱状图）
-        CategoryAxis xAxis2 = (CategoryAxis) barChart2.getXAxis();
-        xAxis2.setCategories(FXCollections.observableArrayList(festivals));
+        CategoryAxis yAxis2 = (CategoryAxis) barChart2.getYAxis();
+        yAxis2.setCategories(FXCollections.observableArrayList(festivals));
     }
 
     private void showAlert(String message) {
@@ -416,6 +501,8 @@ public class UI_1 extends Application {
         private final SimpleStringProperty festival;
         private final SimpleIntegerProperty income;
         private final SimpleIntegerProperty expenses;
+        private final SimpleStringProperty startDate;
+        private final SimpleStringProperty endDate;
         private final SimpleStringProperty dateRange;
         private final SimpleStringProperty notes;
 
@@ -424,6 +511,8 @@ public class UI_1 extends Application {
             this.festival = new SimpleStringProperty(festival);
             this.income = new SimpleIntegerProperty(income);
             this.expenses = new SimpleIntegerProperty(expenses);
+            this.startDate = new SimpleStringProperty(startDate);
+            this.endDate = new SimpleStringProperty(endDate);
             this.dateRange = new SimpleStringProperty(startDate + " - " + endDate);
             this.notes = new SimpleStringProperty(notes.isEmpty() ? "None." : notes);
         }
@@ -439,7 +528,8 @@ public class UI_1 extends Application {
         public String getFestival() { return festival.get(); }
         public int getIncome() { return income.get(); }
         public int getExpenses() { return expenses.get(); }
-        public String getDateRange() { return dateRange.get(); }
+        public String getStartDate() { return startDate.get(); }
+        public String getEndDate() { return endDate.get(); }
         public String getNotes() { return notes.get(); }
     }
 
