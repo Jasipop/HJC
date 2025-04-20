@@ -1,4 +1,3 @@
-package Merge;
 
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
@@ -18,7 +17,6 @@ import javafx.util.Duration;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,13 +24,11 @@ import java.util.List;
 public class InternationalList extends Application {
 
     private final List<HBox> allItems = new ArrayList<>();
-    private VBox itemsContainer;
-    private List<String[]> csvData = new ArrayList<>();
 
     @Override
     public void start(Stage primaryStage) {
-        BorderPane rootplus = new BorderPane();
-        StackPane root = new StackPane();
+        BorderPane root = new BorderPane();
+        StackPane contentPane = new StackPane(); // 用于放置主要内容
 
         VBox mainLayout = new VBox();
         mainLayout.setPadding(new Insets(20));
@@ -58,7 +54,7 @@ public class InternationalList extends Application {
         searchBox.setPrefWidth(800);
         searchBox.setAlignment(Pos.CENTER);
 
-        itemsContainer = new VBox();  // 去掉前面的VBox类型声明
+        VBox itemsContainer = new VBox();
         itemsContainer.setSpacing(10);
         itemsContainer.setPadding(new Insets(10));
         itemsContainer.setAlignment(Pos.CENTER);
@@ -68,12 +64,11 @@ public class InternationalList extends Application {
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",", -1);
                 if (parts.length >= 4) {
-                    csvData.add(parts); // 存储CSV数据
                     String foreignCurrency = parts[0];
                     Double foreignAmount = Double.valueOf(parts[1]);
                     Double localAmount = Double.valueOf(parts[2]);
                     String date = parts[3];
-                    HBox item = createItem(foreignCurrency, foreignAmount, localAmount, date, csvData.size() - 1);
+                    HBox item = createItem(foreignCurrency, foreignAmount, localAmount, date);
                     allItems.add(item);
                     itemsContainer.getChildren().add(item);
                 }
@@ -81,7 +76,6 @@ public class InternationalList extends Application {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-
 
         ScrollPane scrollPane = new ScrollPane(itemsContainer);
         scrollPane.setFitToWidth(true);
@@ -142,8 +136,9 @@ public class InternationalList extends Application {
             }
         });
 
-        root.getChildren().addAll(mainLayout, addButton);
-        rootplus.setCenter(mainLayout); // 不再是 root，直接是 mainLayout
+        contentPane.getChildren().addAll(mainLayout, addButton);
+        root.setCenter(contentPane);
+
 
         // Bottom Navigation Bar
         HBox navBar = new HBox();
@@ -157,29 +152,21 @@ public class InternationalList extends Application {
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙️
 
         homeBtn.setOnAction(e -> {
-            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            //try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverBtn.setOnAction(e -> {
-            try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            //try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         settingsBtn.setOnAction(e -> {
-            try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            //try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
-        rootplus.setBottom(navBar);
-        // 用一个 StackPane 包住 rootplus 和 addButton，使按钮浮动
-        StackPane outerStack = new StackPane();
+        root.setBottom(navBar);
 
-// 把 rootplus 放进去（它含 mainLayout 和底部导航）
-        outerStack.getChildren().addAll(rootplus, addButton);
-
-// 设置按钮对齐在右下角，并适当边距
         StackPane.setAlignment(addButton, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(addButton, new Insets(0, 30, 30, 0)); // 距离右边30px，底部30px
-
-        Scene scene = new Scene(outerStack, 1366, 768);
-
+//      
+        Scene scene = new Scene(root, 1366, 768);
         primaryStage.setTitle("Reimbursements");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -220,61 +207,7 @@ public class InternationalList extends Application {
         return button;
     }
 
-    private void deleteItem(int index) {
-        // 创建确认对话框
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirm Delete");
-        alert.setHeaderText("Sure you want to delete this transaction?");
-        alert.setContentText("Deletion will not be recovered");
-
-        ButtonType buttonTypeYes = new ButtonType("Confirm");
-        ButtonType buttonTypeNo = new ButtonType("Cancel");
-        alert.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
-
-        alert.showAndWait().ifPresent(response -> {
-            if (response == buttonTypeYes) {
-                // 3. 先更新CSV文件再刷新界面
-                csvData.remove(index);
-
-                try (FileWriter writer = new FileWriter("international.csv")) {
-                    for (String[] parts : csvData) {
-                        writer.write(String.join(",", parts) + "\n");
-                    }
-
-                    // 4. 直接更新界面而不重新读取文件
-                    allItems.remove(index);
-                    itemsContainer.getChildren().remove(index);
-
-                    // 5. 重新设置所有条目的索引
-                    for (int i = 0; i < allItems.size(); i++) {
-                        HBox item = allItems.get(i);
-                        // 找到删除按钮并更新其事件处理
-                        for (javafx.scene.Node node : item.getChildren()) {
-                            if (node instanceof HBox) {
-                                for (javafx.scene.Node btnNode : ((HBox) node).getChildren()) {
-                                    if (btnNode instanceof Button && ((Button) btnNode).getText().equals("×")) {
-                                        Button deleteBtn = (Button) btnNode;
-                                        final int newIndex = i;
-                                        deleteBtn.setOnAction(e -> deleteItem(newIndex));
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                    successAlert.setTitle("Successful Operation");
-                    successAlert.setHeaderText(null);
-                    successAlert.setContentText("Transaction deleted successfully");
-                    successAlert.showAndWait();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
-    }
-
-    private HBox createItem(String foreignCurrency, Double foreignAmount, Double localAmount, String date, int index) {
+    private HBox createItem(String foreignCurrency, Double foreignAmount, Double localAmount, String date) {
         HBox itemBox = new HBox();
         itemBox.setSpacing(15);
         itemBox.setPadding(new Insets(15));
@@ -293,15 +226,15 @@ public class InternationalList extends Application {
         foreignAmountBox.setSpacing(5);
         foreignAmountBox.setAlignment(Pos.CENTER_LEFT);
 
-        Text currencyLabel = new Text(foreignCurrency);
-        currencyLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        currencyLabel.setFill(Color.web("#2c3e50"));
+        Text categoryLabel = new Text(foreignCurrency);
+        categoryLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        categoryLabel.setFill(Color.web("#2c3e50"));
 
-        Text amountLabel = new Text(String.valueOf(foreignAmount));
-        amountLabel.setFont(Font.font("Arial", 16));
-        amountLabel.setFill(Color.web("#2c3e50"));
+        Text detailLabel = new Text(String.valueOf(foreignAmount));
+        detailLabel.setFont(Font.font("Arial", 16));
+        detailLabel.setFill(Color.web("#2c3e50"));
 
-        foreignCurrencyBox.getChildren().addAll(currencyLabel, amountLabel);
+        foreignCurrencyBox.getChildren().addAll(categoryLabel, detailLabel);
 
         Text dateLabel = new Text(date);
         dateLabel.setFont(Font.font("Arial", 14));
@@ -311,15 +244,7 @@ public class InternationalList extends Application {
 
         ToggleButton starButton = createStarToggleButton();
 
-        // 添加删除按钮
-        Button deleteButton = new Button("×");
-        deleteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-font-size: 20px; -fx-font-weight: bold;");
-        deleteButton.setOnAction(e -> deleteItem(index));
-
-        HBox buttonsBox = new HBox(10, starButton, deleteButton);
-        buttonsBox.setAlignment(Pos.CENTER_RIGHT);
-
-        itemBox.getChildren().addAll(localAmountLabel, foreignAmountBox, buttonsBox);
+        itemBox.getChildren().addAll(localAmountLabel, foreignAmountBox, starButton);
         HBox.setHgrow(foreignAmountBox, Priority.ALWAYS);
 
         return itemBox;
