@@ -27,7 +27,8 @@ public class InternationalList extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        StackPane root = new StackPane();
+        BorderPane root = new BorderPane();
+        StackPane contentPane = new StackPane(); // 用于放置主要内容
 
         VBox mainLayout = new VBox();
         mainLayout.setPadding(new Insets(20));
@@ -135,7 +136,9 @@ public class InternationalList extends Application {
             }
         });
 
-        root.getChildren().addAll(mainLayout, addButton);
+        contentPane.getChildren().addAll(mainLayout, addButton);
+        root.setCenter(contentPane);
+
 
         // Bottom Navigation Bar
         HBox navBar = new HBox();
@@ -149,18 +152,20 @@ public class InternationalList extends Application {
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙️
 
         homeBtn.setOnAction(e -> {
-            //try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverBtn.setOnAction(e -> {
-            //try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         settingsBtn.setOnAction(e -> {
-            //try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
-        mainLayout.getChildren().add(navBar);
+        root.setBottom(navBar);
 
+        StackPane.setAlignment(addButton, Pos.BOTTOM_RIGHT);
+//
         Scene scene = new Scene(root, 1366, 768);
         primaryStage.setTitle("Reimbursements");
         primaryStage.setScene(scene);
