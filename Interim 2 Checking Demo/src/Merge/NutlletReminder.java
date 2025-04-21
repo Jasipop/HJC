@@ -22,10 +22,10 @@ public class NutlletReminder extends Application {
         BorderPane root = new BorderPane();
 
         root.setTop(createHeader());
-        root.setCenter(createMainContent());
+        root.setCenter(createMainContent(primaryStage));
         root.setBottom(createBottomNav(primaryStage));
 
-        Scene scene = new Scene(root, 1200, 800);
+        Scene scene = new Scene(root, 1366, 768);
         primaryStage.setTitle("Nutllet - Reminders");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -46,7 +46,7 @@ public class NutlletReminder extends Application {
         return header;
     }
 
-    private VBox createMainContent() {
+    private VBox createMainContent(Stage primaryStage) {
         VBox mainContent = new VBox(20);
         mainContent.setPadding(new Insets(20));
         mainContent.setBackground(new Background(new BackgroundFill(
@@ -62,6 +62,7 @@ public class NutlletReminder extends Application {
         addReminderButton.setOnAction(e -> {
             try {
                 new NutlletAddNewReminder().start(new Stage());
+                primaryStage.close(); // 关闭当前页面
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

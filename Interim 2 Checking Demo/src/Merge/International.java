@@ -307,7 +307,7 @@ public class International extends Application {
 
     // --- 加载汇率数据 ---
     private static void loadExchangeRates() {
-        String filename = "人民币汇率中间价历史数据.csv";
+        String filename = "Historical_data.csv";
         try (BufferedReader br = new BufferedReader(new InputStreamReader(
                 new FileInputStream(filename), StandardCharsets.UTF_8))) {
 

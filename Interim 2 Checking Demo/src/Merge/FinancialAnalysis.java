@@ -1,3 +1,6 @@
+package Merge;
+
+
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
@@ -24,6 +27,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import java.awt.*;
 import java.net.URI;
+import javafx.application.Platform;
 
 public class FinancialAnalysis extends Application {
 
@@ -147,7 +151,6 @@ public class FinancialAnalysis extends Application {
 
         ScrollPane scrollPane = new ScrollPane(contentContainer);
         scrollPane.setFitToWidth(true);
-        scrollPane.setVvalue(0);
 
         mainContainer.getChildren().add(scrollPane);
         root.setCenter(mainContainer);
@@ -180,6 +183,11 @@ public class FinancialAnalysis extends Application {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Financial Analysis");
         primaryStage.show();
+        
+        Platform.runLater(() -> {
+            scrollPane.setVvalue(0);  // 强制滚动到顶部
+            scrollPane.layout();      // 确保布局计算完成
+        });
     }
 
     private LineChart<Number, Number> buildLineChart() {
@@ -384,3 +392,4 @@ public class FinancialAnalysis extends Application {
         launch(args);
     }
 }
+
