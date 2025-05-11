@@ -1,4 +1,3 @@
-
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -62,17 +61,28 @@ public class ReimbursementList extends Application {
         itemsContainer.setPadding(new Insets(10));
         itemsContainer.setAlignment(Pos.CENTER);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("reimbursements.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
             String line;
+            boolean headerSkipped = false;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-                if (parts.length >= 4) {
-                    csvData.add(parts); // Store the CSV data
-                    String category = parts[0];
-                    String detail = parts[4];
-                    String amount = parts[3];
-                    String date = parts[2];
-                    HBox item = createItem(category, detail, amount, date, csvData.size() - 1);
+                if (!headerSkipped) {
+                    headerSkipped = true;
+                    continue;
+                }
+                if (line.trim().isEmpty()) continue;
+
+                // Parse CSV line with quotes
+                String[] parts = parseCsvLine(line);
+                if (parts.length >= 8 && "报销".equals(parts[1])) {
+                    csvData.add(parts);
+                    String category = parts[2]; // 交易对方 -> title
+                    String detail = parts[3];  // 商品 -> note
+                    String amount = parts[5].substring(1); // 金额(元) -> amount (remove ¥)
+                    String date = parts[0];     // 交易时间 -> date
+                    String status = parts[7];  // 当前状态 -> isReimbursable
+                    String person = parts.length > 10 ? parts[9] : ""; // 备注 -> person
+
+                    HBox item = createItem(category, detail, amount, date, status, person, csvData.size() - 1);
                     allItems.add(item);
                     itemsContainer.getChildren().add(item);
                 }
@@ -172,37 +182,55 @@ public class ReimbursementList extends Application {
         primaryStage.show();
     }
 
+    private String[] parseCsvLine(String line) {
+        List<String> values = new ArrayList<>();
+        boolean inQuotes = false;
+        StringBuilder sb = new StringBuilder();
+
+        for (char c : line.toCharArray()) {
+            if (c == '"') {
+                inQuotes = !inQuotes;
+            } else if (c == ',' && !inQuotes) {
+                values.add(sb.toString());
+                sb = new StringBuilder();
+            } else {
+                sb.append(c);
+            }
+        }
+        values.add(sb.toString());
+        return values.toArray(new String[0]);
+    }
+
     private void deleteItem(int index) {
-        // 创建确认对话框
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Delete");
         alert.setHeaderText("Sure you want to delete this reimbursement?");
         alert.setContentText("Deletion will not be recovered");
 
-        // 自定义对话框按钮（中文）
         ButtonType buttonTypeYes = new ButtonType("Confirm");
         ButtonType buttonTypeNo = new ButtonType("Cancel");
         alert.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
 
-        // 显示对话框并等待用户选择
         alert.showAndWait().ifPresent(response -> {
             if (response == buttonTypeYes) {
-                // 从内存数据中移除
                 csvData.remove(index);
 
-                // 更新CSV文件
-                try (FileWriter writer = new FileWriter("reimbursements.csv")) {
+                try (FileWriter writer = new FileWriter("deals.csv")) {
+                    // Write header
+                    writer.write("交易时间,交易类型,交易对方,商品,收/支,金额(元),支付方式,当前状态,交易单号,商户单号,备注\n");
+
+                    // Write remaining data
                     for (String[] parts : csvData) {
-                        writer.write(String.join(",", parts) + "\n");
+                        if ("报销".equals(parts[1])) {
+                            writer.write(String.join(",", parts) + "\n");
+                        }
                     }
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
 
-                // 刷新界面
                 refreshUI();
 
-                // 添加删除成功提示
                 Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
                 successAlert.setTitle("Successful Operation");
                 successAlert.setHeaderText(null);
@@ -215,16 +243,29 @@ public class ReimbursementList extends Application {
     private void refreshUI() {
         allItems.clear();
         itemsContainer.getChildren().clear();
+        csvData.clear();
 
-        // 重新从CSV文件加载数据
-        try (BufferedReader reader = new BufferedReader(new FileReader("reimbursements.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
             String line;
-            csvData.clear();
+            boolean headerSkipped = false;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-                if (parts.length >= 4) {
+                if (!headerSkipped) {
+                    headerSkipped = true;
+                    continue;
+                }
+                if (line.trim().isEmpty()) continue;
+
+                String[] parts = parseCsvLine(line);
+                if (parts.length >= 8 && "报销".equals(parts[1])) {
                     csvData.add(parts);
-                    HBox item = createItem(parts[0], parts[4], parts[3], parts[2], csvData.size() - 1);
+                    String category = parts[2];
+                    String detail = parts[3];
+                    String amount = parts[5].substring(1);
+                    String date = parts[0];
+                    String status = parts[7];
+                    String person = parts.length > 10 ? parts[10] : "";
+
+                    HBox item = createItem(category, detail, amount, date, status, person, csvData.size() - 1);
                     allItems.add(item);
                     itemsContainer.getChildren().add(item);
                 }
@@ -233,7 +274,7 @@ public class ReimbursementList extends Application {
             ex.printStackTrace();
         }
     }
-    // Helper method with emoji
+
     private Button createNavButtonWithEmoji(String label, String emoji) {
         VBox btnContainer = new VBox();
         btnContainer.setAlignment(Pos.CENTER);
@@ -255,20 +296,8 @@ public class ReimbursementList extends Application {
 
         return button;
     }
-    private Button createNavButton(String label) {
-        Button button = new Button(label);
-        button.setPrefWidth(456); // 1366 / 3
-        button.setPrefHeight(60);
-        button.setStyle(
-                "-fx-background-color: white;" +
-                        "-fx-font-size: 16px;" +
-                        "-fx-text-fill: #7f8c8d;" +
-                        "-fx-border-color: transparent;"
-        );
-        return button;
-    }
 
-    private HBox createItem(String category, String detail, String amount, String date, int index) {
+    private HBox createItem(String category, String detail, String amount, String date, String status, String person, int index) {
         HBox itemBox = new HBox();
         itemBox.setSpacing(15);
         itemBox.setPadding(new Insets(15));
@@ -295,17 +324,24 @@ public class ReimbursementList extends Application {
         detailLabel.setFont(Font.font("Arial", 16));
         detailLabel.setFill(Color.web("#2c3e50"));
 
+        Text statusLabel = new Text("Status: " + status);
+        statusLabel.setFont(Font.font("Arial", 14));
+        statusLabel.setFill(status.equals("Yes") ? Color.web("#e74c3c") : Color.web("#7f8c8d"));
+
+        Text personLabel = new Text("Person: " + person);
+        personLabel.setFont(Font.font("Arial", 14));
+        personLabel.setFill(Color.web("#7f8c8d"));
+
         categoryDetailBox.getChildren().addAll(categoryLabel, detailLabel);
 
         Text dateLabel = new Text(date);
         dateLabel.setFont(Font.font("Arial", 14));
         dateLabel.setFill(Color.web("#7f8c8d"));
 
-        detailsBox.getChildren().addAll(categoryDetailBox, dateLabel);
+        detailsBox.getChildren().addAll(categoryDetailBox, dateLabel, statusLabel, personLabel);
 
         ToggleButton starButton = createStarToggleButton();
 
-        // Create delete button
         Button deleteButton = new Button("×");
         deleteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-font-size: 20px; -fx-font-weight: bold;");
         deleteButton.setOnAction(e -> deleteItem(index));
@@ -318,6 +354,7 @@ public class ReimbursementList extends Application {
 
         return itemBox;
     }
+
     private ToggleButton createStarToggleButton() {
         ToggleButton toggleButton = new ToggleButton();
         toggleButton.setStyle("-fx-background-color: transparent; -fx-padding: 5;");
@@ -352,7 +389,6 @@ public class ReimbursementList extends Application {
         }
         return false;
     }
-
 
     public static void main(String[] args) {
         launch(args);
