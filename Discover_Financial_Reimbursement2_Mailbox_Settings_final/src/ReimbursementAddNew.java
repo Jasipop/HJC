@@ -1,4 +1,3 @@
-
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
@@ -31,7 +30,7 @@ public class ReimbursementAddNew extends Application {
         root.setPadding(new Insets(25, 30, 25, 30));
         root.setStyle("-fx-background-color: #FFD4EC54;");
 
-        // Back 按钮区域
+        // Back button area
         Button backButton = new Button("← Back");
         backButton.setStyle(
                 "-fx-background-color: #855FAF;" +
@@ -67,7 +66,6 @@ public class ReimbursementAddNew extends Application {
 
         HBox backBox = new HBox(backButton);
         backBox.setAlignment(Pos.TOP_LEFT);
-
 
         Text title = new Text("Add New Reimbursement Item");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
@@ -111,15 +109,15 @@ public class ReimbursementAddNew extends Application {
         dateLabel.setStyle("-fx-text-fill: #2c3e50; -fx-font-size: 16px;");
         DatePicker datePicker = new DatePicker();
         datePicker.setStyle("-fx-background-color: #f9f9f9; -fx-border-color: #bdc3c7; -fx-font-size: 16px; -fx-pref-height: 40px;");
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-        datePicker.setValue(LocalDate.of(2025, 3, 30));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        datePicker.setValue(LocalDate.of(2025, 4, 15));
         datePicker.setPromptText("Select date");
         datePicker.setConverter(new javafx.util.StringConverter<LocalDate>() {
             @Override public String toString(LocalDate date) {
-                return date != null ? formatter.format(date) : "";
+                return date != null ? date.atTime(12, 0).format(formatter) : "";
             }
             @Override public LocalDate fromString(String string) {
-                return string != null && !string.isEmpty() ? LocalDate.parse(string, formatter) : null;
+                return string != null && !string.isEmpty() ? LocalDate.parse(string.substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")) : null;
             }
         });
         formGrid.addRow(2, dateLabel, datePicker);
@@ -154,7 +152,8 @@ public class ReimbursementAddNew extends Application {
         responsiblePersonDescription.setFill(Color.web("#7f8c8d"));
 
         ComboBox<String> personComboBox = new ComboBox<>();
-        personComboBox.setPromptText("Financial Office");
+//        personComboBox.setPromptText("Financial Office");
+        personComboBox.setValue("Financial Office");
         personComboBox.getItems().addAll("Financial Office", "The Accountant", "Direct Superior");
         personComboBox.setStyle("-fx-background-color: #f9f9f9; -fx-border-color: #bdc3c7; -fx-font-size: 16px; -fx-pref-height: 40px;");
 
@@ -177,18 +176,18 @@ public class ReimbursementAddNew extends Application {
         confirmButton.setOnAction(e -> {
             String titleText = titleField.getText();
             String isReimbursable = yesRadio.isSelected() ? "Yes" : "No";
-            String date = datePicker.getValue().format(formatter);
+            String date = datePicker.getValue().atTime(12, 0).format(formatter);
             String amount = amountField.getText();
             String noteText = notes.getText();
             String person = personComboBox.getValue() != null ? personComboBox.getValue() : "";
 
-            try (PrintWriter writer = new PrintWriter(new FileWriter("reimbursements.csv", true))) {
-                writer.printf("\n%s,%s,%s,%s,%s,%s", titleText, isReimbursable, date, amount, noteText, person);
+            try (PrintWriter writer = new PrintWriter(new FileWriter("deals.csv", true))) {
+                writer.printf("\n\"%s\",\"报销\",\"%s\",\"%s\",\"支出\",\"¥%s\",\"零钱\",\"%s\",\"\",\"%s\",\"\"",
+                        date, titleText, noteText, amount, isReimbursable, person);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
 
-            // close current window and reopen list
             Stage currentStage = (Stage) confirmButton.getScene().getWindow();
             currentStage.close();
 
@@ -200,14 +199,13 @@ public class ReimbursementAddNew extends Application {
         });
 
         root.getChildren().addAll(
-                backBox, // ← 添加 Back 按钮在最上方
+                backBox,
                 titleBox, requiredNote, formGrid,
                 amountSectionTitle, amountDescription, amountField,
                 notesTitle, notes,
                 responsiblePersonLabel, responsiblePersonDescription,
                 personComboBox, financialOfficeButtons
         );
-
 
         Scene scene = new Scene(root, 1366, 768);
         primaryStage.setScene(scene);
