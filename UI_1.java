@@ -71,8 +71,8 @@ public class UI_1 extends Application {
         scrollPane.setContent(contentGrid);
 
         // 底部导航栏
-        /*HBox navBar = createNavigationBar();
-        mainLayout.setBottom(navBar);*/
+        HBox navBar = createNavigationBar(primaryStage);
+        mainLayout.setBottom(navBar);
         mainLayout.setCenter(scrollPane);
 
         initializeData();
@@ -83,7 +83,7 @@ public class UI_1 extends Application {
         primaryStage.show();
     }
 
-    /*private HBox createNavigationBar() {
+    private HBox createNavigationBar(Stage primaryStage) {
         HBox navBar = new HBox();
         navBar.setSpacing(0);
         navBar.setAlignment(Pos.CENTER);
@@ -107,7 +107,7 @@ public class UI_1 extends Application {
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
         return navBar;
-    }*/
+    }
 
     private Button createNavButtonWithEmoji(String label, String emoji) {
         VBox btnContainer = new VBox();
@@ -349,11 +349,11 @@ public class UI_1 extends Application {
         loadDataFromCSV();
         if (dataList.isEmpty()) {
             dataList.addAll(Arrays.asList(
-                new BudgetData("Spring Festival", 3000, 1900, "2024-02-10", "2024-02-17", ""),
-                new BudgetData("Dragon Boat Festival", 500, 800, "2024-06-10", "2024-06-12", ""),
-                new BudgetData("Mid-Autumn Festival", 700, 750, "2024-09-15", "2024-09-17", ""),
-                new BudgetData("Christmas", 1000, 700, "2024-12-25", "2024-12-26", ""),
-                new BudgetData("Harvest Day", 500, 800, "2024-10-01", "2024-10-07", "")
+                    new BudgetData("Spring Festival", 3000, 1900, "2024-02-10", "2024-02-17", ""),
+                    new BudgetData("Dragon Boat Festival", 500, 800, "2024-06-10", "2024-06-12", ""),
+                    new BudgetData("Mid-Autumn Festival", 700, 750, "2024-09-15", "2024-09-17", ""),
+                    new BudgetData("Christmas", 1000, 700, "2024-12-25", "2024-12-26", ""),
+                    new BudgetData("Harvest Day", 500, 800, "2024-10-01", "2024-10-07", "")
             ));
             saveDataToCSV();
         }
