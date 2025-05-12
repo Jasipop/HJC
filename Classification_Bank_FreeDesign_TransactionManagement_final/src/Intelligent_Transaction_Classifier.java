@@ -1,4 +1,4 @@
-//package Merge;
+package myapp;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -19,9 +19,15 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 
 public class Intelligent_Transaction_Classifier extends Application {
 
@@ -79,8 +85,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         ScrollPane scrollPane = createScrollPane(content);
         VBox mainLayout = createMainLayout(scrollPane);
 
-        BorderPane root = new BorderPane();
-        Scene scene = new Scene(root,1366, 768);
+        Scene scene = new Scene(mainLayout,1366, 768);
         primaryStage.setTitle("AI Transaction Classifier");
         primaryStage.setScene(scene);
 
@@ -98,7 +103,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙
 
         homeBtn.setOnAction(e -> {
-            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Nutllet.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverBtn.setOnAction(e -> {
             try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
@@ -107,37 +112,79 @@ public class Intelligent_Transaction_Classifier extends Application {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
-
-        root.setCenter(mainLayout);
-        root.setBottom(navBar);
+        navBar.getChildren().addAll(settingsBtn, discoverBtn, homeBtn); // 从右到左
+        mainLayout.getChildren().add(navBar);
     }
 
     private void initializeData() {
-        data = FXCollections.observableArrayList(
-                new Transaction("2025-04-01", "Starbucks Coffee", "35", "Food & Beverage"),
-                new Transaction("2025-04-03", "UNIQLO Shopping", "299", "Shopping"),
-                new Transaction("2025-04-05", "Subway Ride", "5", "Transportation"),
-                new Transaction("2025-04-06", "Online Grocery", "120", "Food & Beverage"),
-                new Transaction("2025-04-08", "Cloud Subscription", "15", "Entertainment"),
-                new Transaction("2025-04-10", "Online Course", "200", "Education"),
-                new Transaction("2025-04-12", "Gym Membership", "50", "Fitness"),
-                new Transaction("2025-04-14", "Movie Ticket", "30", "Entertainment"),
-                new Transaction("2025-04-15", "KFC", "45", "Food & Beverage"),
-                new Transaction("2025-04-16", "Didi Taxi", "22", "Transportation"),
-                new Transaction("2025-04-17", "H&M", "280", "Shopping"),
-                new Transaction("2025-04-18", "Water Bill", "35", "Utilities"),
-                new Transaction("2025-04-19", "Electricity Bill", "90", "Utilities"),
-                new Transaction("2025-04-20", "Spotify", "10", "Entertainment"),
-                new Transaction("2025-04-21", "Coursera", "150", "Education"),
-                new Transaction("2025-04-22", "Pizza Hut", "88", "Food & Beverage"),
-                new Transaction("2025-04-23", "Amazon Purchase", "330", "Shopping"),
-                new Transaction("2025-04-24", "Gym Snack", "15", "Fitness"),
-                new Transaction("2025-04-25", "Train Ticket", "60", "Transportation"),
-                new Transaction("2025-04-26", "Google Cloud", "25", "Entertainment")
-        );
-        totalAmount = data.stream().mapToDouble(t -> Double.parseDouble(t.getAmount())).sum();
+        data = FXCollections.observableArrayList();
+        totalAmount = 0.0;
+
+        try {
+            Path path = Paths.get("src/deals.csv");
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(path.toFile()), StandardCharsets.UTF_8)
+            );
+
+
+            String line;
+
+            while ((line = reader.readLine()) != null && !line.startsWith("交易时间")) {}
+
+            while ((line = reader.readLine()) != null) {
+                String[] fields = line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+                if (fields.length < 6) continue;
+
+                String rawDate = fields[0].replace("\"", "").trim();
+                String rawGoods = fields[3].replace("\"", "").trim(); // 商品字段
+                String rawCounterparty = fields[2].replace("\"", "").trim(); // 交易对方字段
+
+                // 判断是否应替换为交易对方
+                boolean isFallbackToCounterparty = rawGoods.equals("/") || rawGoods.matches("^\\d+$");
+
+                String rawDescription = isFallbackToCounterparty ? rawCounterparty : rawGoods;
+
+                String rawAmount = fields[5].replace("\"", "").replace("¥", "").trim();
+                if (rawAmount.isEmpty()) continue;
+
+                String category;
+                if (rawGoods.equals("/")) {
+                    category = "Utilities & Transfer";
+                } else {
+                    category = autoClassify(rawDescription);
+                }
+
+                data.add(new Transaction(rawDate, rawDescription, rawAmount, category));
+                totalAmount += Double.parseDouble(rawAmount);
+            }
+
+
+            reader.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // fallback to default static data if CSV fails
+            System.out.println("Failed to read CSV, using default data");
+            data.add(new Transaction("2025-04-01", "Fallback Coffee", "35", "Food & Beverage"));
+            totalAmount = 35;
+        }
     }
+
+
+    private String autoClassify(String description) {
+        description = description.toLowerCase();
+
+        if (description.matches(".*(滴滴|出行|一卡通|交通卡|先乘后付).*")) return "Transportation";
+        if (description.matches(".*(美团|饿了么|肉夹馍|米粉|饭|餐|海鲜|先购后付|汤|砂锅|鸡架|买菜|茶|手工粉|果汁|餐费|大众点评).*")) return "Food & Beverage";
+        if (description.matches(".*(apple|spotify|爱奇艺|优酷|bilibili|定制游|签证).*")) return "Entertainment";
+        if (description.matches(".*(gym|健身|运动).*")) return "Fitness";
+        if (description.matches(".*(coursera|课程|学习|教育|培训).*")) return "Education";
+        if (description.matches(".*(京东|淘宝|购物|uniqlo|h&m|amazon).*")) return "Shopping";
+        if (description.matches(".*(水费|电费|燃气|账单|云服务|WPS|会员|汽油|apple).*")) return "Utilities & Transfer";
+
+        return "Uncategorized"; // 默认
+    }
+
 
     private TableView<Transaction> createTableView() {
         TableView<Transaction> table = new TableView<>(data);
@@ -163,7 +210,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         categoryCol.setCellFactory(col -> new TableCell<Transaction, String>() {
             private final ComboBox<String> comboBox = new ComboBox<>(FXCollections.observableArrayList(
                     "Food & Beverage", "Shopping", "Transportation",
-                    "Entertainment", "Education", "Fitness", "Utilities"));
+                    "Entertainment", "Education", "Fitness", "Utilities & Transfer"));
 
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -245,6 +292,7 @@ public class Intelligent_Transaction_Classifier extends Application {
                 new KeyFrame(Duration.millis(400), e -> slice.getNode().setOpacity(1))
         );
         blinkTimeline.setCycleCount(Timeline.INDEFINITE);
+        //调用 blinkTimeline.play() 开始闪烁。
 
         Tooltip tooltip = new Tooltip();
         tooltip.setStyle("-fx-font-size: 12px; -fx-font-family: 'Microsoft YaHei';");
@@ -266,7 +314,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         });
 
         slice.getNode().setOnMouseExited(e -> {
-            blinkTimeline.stop();
+            blinkTimeline.stop();// 停止闪烁动画
             slice.getNode().setOpacity(1);
             slice.getNode().setScaleX(1);
             slice.getNode().setScaleY(1);
