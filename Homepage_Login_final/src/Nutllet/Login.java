@@ -1,5 +1,3 @@
-//package Nutllet;
-
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,8 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Login extends Application {
-    private Stage loginStage;
+    private Stage primaryStage;
     private Scene loginScene;
+    private Scene changePasswordScene;
 
     private Map<String, String> userCredentials = new HashMap<>();
     private static final String CREDENTIALS_FILE = "user_credentials.csv";
@@ -28,13 +27,21 @@ public class Login extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        this.loginStage = primaryStage;
+        this.primaryStage = primaryStage;
         loadCredentials();
 
         primaryStage.setTitle("Login System");
         primaryStage.setWidth(1366);
         primaryStage.setHeight(768);
 
+        createLoginScene();
+        createChangePasswordScene();
+
+        primaryStage.setScene(loginScene);
+        primaryStage.show();
+    }
+
+    private void createLoginScene() {
         // Main container
         VBox mainContainer = new VBox(20);
         mainContainer.setAlignment(Pos.CENTER);
@@ -86,6 +93,10 @@ public class Login extends Application {
         signupButton.setStyle("-fx-background-color: #71b6c5; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px; -fx-pref-height: 40px;");
         signupButton.setOnAction(e -> showRegistrationForm());
 
+        // Change password link
+        Hyperlink changePasswordLink = new Hyperlink("Change password");
+        changePasswordLink.setStyle("-fx-text-fill: #666666; -fx-font-size: 12;");
+        changePasswordLink.setOnAction(e -> showChangePasswordForm());
 
         // Forgot password link
         Hyperlink forgotPasswordLink = new Hyperlink("Forgot your password?");
@@ -97,16 +108,147 @@ public class Login extends Application {
                 usernameLabel, usernameField,
                 passwordLabel, passwordField,
                 loginButton, signupButton,
-                forgotPasswordLink
+                changePasswordLink, forgotPasswordLink
         );
 
         // Add components to main container
         mainContainer.getChildren().addAll(titleLabel, instructionLabel, formContainer);
 
-        // Set scene
-        loginScene = new Scene(mainContainer);  // 将场景保存到成员变量
+        // Create scene
+        loginScene = new Scene(mainContainer);
+    }
+
+    private void createChangePasswordScene() {
+        // Main container
+        VBox mainContainer = new VBox(20);
+        mainContainer.setAlignment(Pos.CENTER);
+        mainContainer.setPadding(new Insets(20));
+        mainContainer.setStyle("-fx-background-color: #FFD4EC54;");
+
+        // Title
+        Label titleLabel = new Label("Change Password");
+        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
+        titleLabel.setTextFill(Color.web("#855FAF"));
+
+        // Instruction
+        Label instructionLabel = new Label("Enter your current and new password");
+        instructionLabel.setFont(Font.font("Arial", 16));
+        instructionLabel.setTextFill(Color.web("#666666"));
+
+        // Form container
+        VBox formContainer = new VBox(15);
+        formContainer.setAlignment(Pos.CENTER);
+        formContainer.setMaxWidth(400);
+        formContainer.setPadding(new Insets(30, 40, 30, 40));
+        formContainer.setStyle("-fx-background-color: rgba(237,223,248,0.88); -fx-border-radius: 5; -fx-background-radius: 5;");
+
+        // Username field
+        Label usernameLabel = new Label("Username");
+        usernameLabel.setFont(Font.font("Arial", 14));
+        usernameLabel.setTextFill(Color.web("#333333"));
+
+        TextField usernameField = new TextField();
+        usernameField.setPromptText("Enter your username");
+        usernameField.setStyle("-fx-pref-height: 40; -fx-font-size: 14;");
+
+        // Current password field
+        Label currentPasswordLabel = new Label("Current Password");
+        currentPasswordLabel.setFont(Font.font("Arial", 14));
+        currentPasswordLabel.setTextFill(Color.web("#333333"));
+
+        PasswordField currentPasswordField = new PasswordField();
+        currentPasswordField.setPromptText("Enter current password");
+        currentPasswordField.setStyle("-fx-pref-height: 40; -fx-font-size: 14;");
+
+        // New password field
+        Label newPasswordLabel = new Label("New Password");
+        newPasswordLabel.setFont(Font.font("Arial", 14));
+        newPasswordLabel.setTextFill(Color.web("#333333"));
+
+        PasswordField newPasswordField = new PasswordField();
+        newPasswordField.setPromptText("Enter new password (min 8 characters)");
+        newPasswordField.setStyle("-fx-pref-height: 40; -fx-font-size: 14;");
+
+        // Confirm new password field
+        Label confirmPasswordLabel = new Label("Confirm New Password");
+        confirmPasswordLabel.setFont(Font.font("Arial", 14));
+        confirmPasswordLabel.setTextFill(Color.web("#333333"));
+
+        PasswordField confirmPasswordField = new PasswordField();
+        confirmPasswordField.setPromptText("Re-enter new password");
+        confirmPasswordField.setStyle("-fx-pref-height: 40; -fx-font-size: 14;");
+
+        // Change password button
+        Button changePasswordButton = new Button("Change Password");
+        changePasswordButton.setStyle("-fx-background-color: #855faf; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 200px; -fx-pref-height: 40px;");
+        changePasswordButton.setOnAction(e -> handleChangePassword(
+                usernameField.getText(),
+                currentPasswordField.getText(),
+                newPasswordField.getText(),
+                confirmPasswordField.getText()
+        ));
+
+        // Back to login link
+        Hyperlink backToLoginLink = new Hyperlink("Back to Login");
+        backToLoginLink.setStyle("-fx-text-fill: #666666; -fx-font-size: 12;");
+        backToLoginLink.setOnAction(e -> primaryStage.setScene(loginScene));
+
+        // Add components to form
+        formContainer.getChildren().addAll(
+                usernameLabel, usernameField,
+                currentPasswordLabel, currentPasswordField,
+                newPasswordLabel, newPasswordField,
+                confirmPasswordLabel, confirmPasswordField,
+                changePasswordButton, backToLoginLink
+        );
+
+        // Add components to main container
+        mainContainer.getChildren().addAll(titleLabel, instructionLabel, formContainer);
+
+        // Create scene
+        changePasswordScene = new Scene(mainContainer);
+    }
+
+    private void showChangePasswordForm() {
+        primaryStage.setScene(changePasswordScene);
+    }
+
+    private void handleChangePassword(String username, String currentPassword, String newPassword, String confirmPassword) {
+        if (username.isEmpty() || currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
+            showAlert("Error", "Please fill in all fields.");
+            return;
+        }
+
+        if (!userCredentials.containsKey(username)) {
+            showAlert("Error", "Username not found.");
+            return;
+        }
+
+        if (!userCredentials.get(username).equals(currentPassword)) {
+            showAlert("Error", "Current password is incorrect.");
+            return;
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            showAlert("Error", "New passwords do not match.");
+            return;
+        }
+
+        if (newPassword.length() < 8) {
+            showAlert("Error", "New password must be at least 8 characters long.");
+            return;
+        }
+
+        if (newPassword.equals(currentPassword)) {
+            showAlert("Error", "New password must be different from current password.");
+            return;
+        }
+
+        // Update password
+        userCredentials.put(username, newPassword);
+        saveCredentials();
+        showAlert("Success", "Password changed successfully!");
         primaryStage.setScene(loginScene);
-        primaryStage.show();
     }
 
     private void handleLogin(String username, String password) {
@@ -117,18 +259,7 @@ public class Login extends Application {
 
         if (userCredentials.containsKey(username) && userCredentials.get(username).equals(password)) {
             showAlert("Success", "Login successful!");
-
-            // 启动主界面
-            Stage nutlletStage = new Stage();
-            try {
-                new Nutllet().start(nutlletStage);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // 关闭当前登录窗口
-            loginStage.close();
-
+            primaryStage.close();
         } else {
             showAlert("Error", "Invalid username or password.");
         }
@@ -137,6 +268,16 @@ public class Login extends Application {
     private void handleSignup(String username, String password) {
         if (username.isEmpty() || password.isEmpty()) {
             showAlert("Error", "Please enter both username and password.");
+            return;
+        }
+
+        if (username.length() < 4 || username.length() > 20) {
+            showAlert("Error", "Username must be 4-20 characters long.");
+            return;
+        }
+
+        if (password.length() < 8) {
+            showAlert("Error", "Password must be at least 8 characters long.");
             return;
         }
 
@@ -186,6 +327,7 @@ public class Login extends Application {
             e.printStackTrace();
         }
     }
+
     private void showRegistrationForm() {
         // 创建注册页面容器
         VBox regMainContainer = new VBox(20);
@@ -270,17 +412,14 @@ public class Login extends Application {
                 return;
             }
 
-            handleSignup(username, password); // 复用原有的注册逻辑
-            loginStage.setScene(loginScene); // 返回登录页
+            handleSignup(username, password);
+            primaryStage.setScene(loginScene);
         });
 
         // 返回登录链接事件
-        backToLoginLink.setOnAction(e ->
-                loginStage.setScene(loginScene)  // 使用保存的登录场景
-        );
+        backToLoginLink.setOnAction(e -> primaryStage.setScene(loginScene));
 
         // 切换场景
-        loginStage.setScene(regScene);
+        primaryStage.setScene(regScene);
     }
-
 }
