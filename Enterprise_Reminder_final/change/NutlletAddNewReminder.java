@@ -1,3 +1,5 @@
+//package Merge;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -11,6 +13,7 @@ import javafx.stage.Stage;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
 
 public class NutlletAddNewReminder extends Application {
     private static final Color PRIMARY_COLOR = Color.rgb(202, 182, 244);
@@ -190,7 +193,6 @@ public class NutlletAddNewReminder extends Application {
         return questionBox;
     }
 
-
     public void setReminderData(Reminder reminder) {
         this.currentReminder = reminder;
         reminderNameField.setText(reminder.name);
@@ -238,7 +240,6 @@ public class NutlletAddNewReminder extends Application {
                     content.append(line).append("\n");
                 }
             }
-
 
             // 写入更新后的内容
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {

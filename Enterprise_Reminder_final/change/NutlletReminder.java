@@ -1,3 +1,5 @@
+//package Merge;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,21 +17,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public class NutlletReminder extends Application {
     private static final Color PRIMARY_COLOR = Color.rgb(202, 182, 244);
     private static final Color BACKGROUND_COLOR = Color.rgb(255, 212, 236, 0.33);
     private static final Color TEXT_COLOR = Color.BLACK;
-
-
-    private static class Reminder {
-        String name;
-        String type;
-        double minAmount;
-        double maxAmount;
-        String remark;
-        double progress;
-        String progressText;
-    }
 
     private List<Reminder> reminders = new ArrayList<>();
     private double totalIncome = 0;
@@ -129,6 +121,21 @@ public class NutlletReminder extends Application {
         }
     }
 
+    private HBox createHeader() {
+        HBox header = new HBox();
+        header.setBackground(new Background(new BackgroundFill(
+                PRIMARY_COLOR, CornerRadii.EMPTY, Insets.EMPTY)));
+        header.setPadding(new Insets(20));
+        header.setAlignment(Pos.CENTER);
+
+        Label title = new Label("Reminders");
+        title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 24));
+        title.setTextFill(Color.WHITE);
+
+        header.getChildren().addAll(title);
+        return header;
+    }
+
     private VBox createMainContent(Stage primaryStage) {
         VBox mainContent = new VBox(20);
         mainContent.setPadding(new Insets(20));
@@ -165,19 +172,21 @@ public class NutlletReminder extends Application {
                 Color.WHITE, new CornerRadii(12), Insets.EMPTY)));
         content.setStyle("-fx-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);");
 
-        Label description = new Label(descriptionText);
-        description.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
-        description.setTextFill(TEXT_COLOR);
+        Label title = new Label(reminder.name);
+        title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
+        title.setTextFill(TEXT_COLOR);
 
         HBox progressBarContainer = new HBox();
         progressBarContainer.setBackground(new Background(new BackgroundFill(
                 Color.LIGHTGRAY, new CornerRadii(6), Insets.EMPTY)));
         progressBarContainer.setPrefHeight(12);
+        progressBarContainer.setPrefWidth(400);
 
         Region progressBar = new Region();
         progressBar.setBackground(new Background(new BackgroundFill(
                 PRIMARY_COLOR, new CornerRadii(6), Insets.EMPTY)));
-        progressBar.setPrefWidth(reminder.progress * 4); // 400 * progress%
+        progressBar.setPrefHeight(12);
+        progressBar.setPrefWidth(reminder.progress * 4); // 400 * 百分比
         progressBarContainer.getChildren().add(progressBar);
 
         Label description = new Label(reminder.progressText);
@@ -204,20 +213,6 @@ public class NutlletReminder extends Application {
         return button;
     }
 
-    private HBox createHeader() {
-        HBox header = new HBox();
-        header.setBackground(new Background(new BackgroundFill(
-                PRIMARY_COLOR, CornerRadii.EMPTY, Insets.EMPTY)));
-        header.setPadding(new Insets(20));
-        header.setAlignment(Pos.CENTER);
-
-        Label title = new Label("Reminders");
-        title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 24));
-        title.setTextFill(Color.WHITE);
-
-        header.getChildren().addAll(title);
-        return header;
-    }
     private HBox createBottomNav(Stage primaryStage) {
         HBox navBar = new HBox();
         navBar.setSpacing(0);
