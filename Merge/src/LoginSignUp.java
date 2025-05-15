@@ -86,9 +86,16 @@ public class LoginSignUp extends Login {
                 return;
             }
 
-            handleSignup(username, password);
-            primaryStage.close();
-            new Login().start(new Stage());
+            int signupResult = handleSignup(username, password);  // 只调用一次
+
+            if (signupResult == 1) {
+                new Discover().start(new Stage());
+                primaryStage.close();
+            }
+            else if (signupResult == 0) {
+                new LoginSignUp().start(new Stage());
+                primaryStage.close();
+            }
         });
 
         // Back to login link
@@ -116,28 +123,30 @@ public class LoginSignUp extends Login {
         primaryStage.show();
     }
 
-    private void handleSignup(String username, String password) {
+    private int handleSignup(String username, String password) {
         if (username.isEmpty() || password.isEmpty()) {
             showAlert("Error", "Please enter both username and password.");
-            return;
+            return 0;
         }
 
         if (username.length() < 4 || username.length() > 20) {
             showAlert("Error", "Username must be 4-20 characters long.");
-            return;
+            return 0;
         }
 
         if (password.length() < 8) {
             showAlert("Error", "Password must be at least 8 characters long.");
-            return;
+            return 0;
         }
 
         if (userCredentials.containsKey(username)) {
             showAlert("Error", "Username already exists.");
+            return 0;
         } else {
             userCredentials.put(username, password);
             saveCredentials();
             showAlert("Success", "Account created successfully!");
+            return 1;
         }
     }
 }
