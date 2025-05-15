@@ -79,17 +79,39 @@ public class Login extends Application {
         // Login button
         Button loginButton = new Button("Log in");
         loginButton.setStyle("-fx-background-color: #855faf; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px; -fx-pref-height: 40px;");
-        loginButton.setOnAction(e -> handleLogin(usernameField.getText(), passwordField.getText()));
+        loginButton.setOnAction(e -> {
+            if(handleLogin(usernameField.getText(), passwordField.getText())==1){
+                new Discover().start(new Stage());
+                primaryStage.close();
+            }
+            else if (handleLogin(usernameField.getText(), passwordField.getText())==0){
+                new Login().start(new Stage());
+                primaryStage.close();
+            }
+            else if (handleLogin(usernameField.getText(), passwordField.getText())==-1){
+                showAlert("Error", "Invalid username or password.");
+                new Login().start(new Stage());
+                primaryStage.close();
+
+            }
+        });
+
 
         // Signup button
         Button signupButton = new Button("Click to sign up");
         signupButton.setStyle("-fx-background-color: #71b6c5; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px; -fx-pref-height: 40px;");
-        signupButton.setOnAction(e -> new LoginSignUp().start(new Stage()));
+        signupButton.setOnAction(e -> {
+            new LoginSignUp().start(new Stage());
+            primaryStage.close();
+        });
 
         // Change password link
         Hyperlink changePasswordLink = new Hyperlink("Change password");
         changePasswordLink.setStyle("-fx-text-fill: #666666; -fx-font-size: 12;");
-        changePasswordLink.setOnAction(e -> new LoginPassword().start(new Stage()));
+        changePasswordLink.setOnAction(e -> {
+            new LoginPassword().start(new Stage());
+            primaryStage.close();
+        });
 
         // Forgot password link
         Hyperlink forgotPasswordLink = new Hyperlink("Forgot your password?");
@@ -113,17 +135,22 @@ public class Login extends Application {
         primaryStage.show();
     }
 
-    protected void handleLogin(String username, String password) {
+    protected int handleLogin(String username, String password) {
         if (username.isEmpty() || password.isEmpty()) {
             showAlert("Error", "Please enter both username and password.");
-            return;
+            return 0;
         }
 
-        if (userCredentials.containsKey(username) && userCredentials.get(username).equals(password)) {
+        if (!userCredentials.containsKey(username)) {
+//            showAlert("Error", "Invalid username or password.");
+            return -1;
+        }else if (userCredentials.get(username).equals(password)) {
             showAlert("Success", "Login successful!");
             primaryStage.close();
-        } else {
-            showAlert("Error", "Invalid username or password.");
+            return 1;
+        }else {
+//            showAlert("Error", "Invalid username or password.");
+            return -1;
         }
     }
 
