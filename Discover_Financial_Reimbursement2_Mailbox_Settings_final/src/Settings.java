@@ -1,3 +1,4 @@
+//package Merge;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -271,8 +272,8 @@ public class Settings extends Application {
                 case "Enterprise Edition" -> new NutlletEnterprise().start(new Stage());
                 case "App Feedback" -> new Mailbox().start(new Stage());
 //                case "AI preference" -> new NutlletReminder().start(new Stage());
-                case "Change Password" -> new Login().start(new Stage());
-                case "Sign Up with New Account" -> new Login().start(new Stage());
+                case "Change Password" -> new LoginPassword().start(new Stage());
+                case "Sign Up with New Account" -> new LoginSignUp().start(new Stage());
                 case "Log out" -> new Login().start(new Stage());
                 default -> showDefaultWelcomePage(primaryStage, pageTitle);
             }
