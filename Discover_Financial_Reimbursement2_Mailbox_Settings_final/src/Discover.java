@@ -1,3 +1,5 @@
+//package Merge;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
@@ -307,3 +309,4 @@ public class Discover extends Application {
         launch(args);
     }
 }
+
