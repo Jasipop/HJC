@@ -72,25 +72,34 @@ public class Discover extends Application {
         };
 
         String[] titles = {
-                "Enterprise Edition", "MailBox", "Reminders", "Reimbursement Items", "Financial Analysis",
-                "Transaction Management", "Bank Data Management", "Expenditure Classification System",
-                "Seasonal Spikes", "International Currency Exchange", "AI Intelligent Classification",
-                "Settings", "Log out",
+                "Transaction Management",
+                "Expenditure Classification System",
+                "AI Intelligent Classification",
+                "Reimbursement Items",
+                "Financial Analysis",
+                "Bank Data Management",
+                "International Currency Exchange",
+                "Seasonal Spikes",
+                "Reminders",
+                "MailBox",
+                "Settings",
+                "Enterprise Edition",
+                "Log out",
         };
 
         String[] descriptions = {
-                "Open the Enterprise Edition",
-                "Get app updates and admin notifications",
-                "Set budget alerts and reminders",
+                "Manage your financial both online and offline",
+                "Auto-categorize expenses with custom options",
+                "AI transaction categorization with manual edits",
                 "Track reimbursable/non-reimbursable funds",
                 "Analyze trends and predict cash flow",
-                "Manage all financial transactions",
                 "Import bank CSV files for reconciliation",
-                "Auto-categorize expenses with custom options",
-                "Special date budget alerts",
                 "Real-time multi-currency tracking",
-                "AI transaction categorization with manual edits",
+                "Special date budget alerts",
+                "Set budget alerts and reminders",
+                "Get app updates and admin notifications",
                 "Set default and preference",
+                "Open the Enterprise Edition",
                 "Back to the login page",
         };
 
