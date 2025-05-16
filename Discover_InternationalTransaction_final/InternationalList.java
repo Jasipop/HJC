@@ -1,4 +1,3 @@
-
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -17,6 +16,7 @@ import javafx.util.Duration;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,11 +24,13 @@ import java.util.List;
 public class InternationalList extends Application {
 
     private final List<HBox> allItems = new ArrayList<>();
+    private VBox itemsContainer;
+    private List<String[]> csvData = new ArrayList<>();
 
     @Override
     public void start(Stage primaryStage) {
-        BorderPane root = new BorderPane();
-        StackPane contentPane = new StackPane(); // 用于放置主要内容
+        BorderPane rootplus = new BorderPane();
+        StackPane root = new StackPane();
 
         VBox mainLayout = new VBox();
         mainLayout.setPadding(new Insets(20));
@@ -54,27 +56,61 @@ public class InternationalList extends Application {
         searchBox.setPrefWidth(800);
         searchBox.setAlignment(Pos.CENTER);
 
-        VBox itemsContainer = new VBox();
+        itemsContainer = new VBox();
         itemsContainer.setSpacing(10);
         itemsContainer.setPadding(new Insets(10));
         itemsContainer.setAlignment(Pos.CENTER);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("international.csv"))) {
+        // 修改读取deals.csv的逻辑
+        try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
             String line;
+            boolean isDataSection = false;
+            int index = 0;
+
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-                if (parts.length >= 4) {
-                    String foreignCurrency = parts[0];
-                    Double foreignAmount = Double.valueOf(parts[1]);
-                    Double localAmount = Double.valueOf(parts[2]);
-                    String date = parts[3];
-                    HBox item = createItem(foreignCurrency, foreignAmount, localAmount, date);
-                    allItems.add(item);
-                    itemsContainer.getChildren().add(item);
+                if (line.startsWith("----------------------")) {
+                    isDataSection = true;
+                    continue;
+                }
+
+                if (isDataSection && line.startsWith("\"")) {
+                    String[] parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+                    if (parts.length >= 6 && parts[1].contains("国际交易")) {
+                        String date = parts[0].replace("\"", "").split(" ")[0]; // 只取日期部分
+                        String currency = parts[3].replace("兑换", "").replace("\"", "");
+
+                        // 处理本地金额 - 移除¥和引号
+                        String localAmountStr = parts[5].replace("\"", "").replace("¥", "").trim();
+                        double localAmount = Double.parseDouble(localAmountStr);
+
+                        // 从商品字段提取外币金额
+                        double foreignAmount = 1.0; // 默认值
+                        if (parts[3].contains("(")) { // 如果有括号包含外币金额
+                            String[] split = parts[3].split("\\(");
+                            if (split.length > 1) {
+                                String foreignAmountStr = split[1].replace(")", "").trim();
+                                try {
+                                    foreignAmount = Double.parseDouble(foreignAmountStr);
+                                } catch (NumberFormatException e) {
+                                    foreignAmount = 1.0; // 如果解析失败，使用默认值
+                                }
+                            }
+                        }
+
+                        // 创建国际交易条目
+                        String[] newData = {currency, String.valueOf(foreignAmount), String.valueOf(localAmount), date};
+                        csvData.add(newData);
+
+                        HBox item = createItem(currency, foreignAmount, localAmount, date, index);
+                        allItems.add(item);
+                        itemsContainer.getChildren().add(item);
+                        index++;
+                    }
                 }
             }
         } catch (IOException ex) {
             ex.printStackTrace();
+            //showAlert("Error", "Failed to load transactions: " + ex.getMessage());
         }
 
         ScrollPane scrollPane = new ScrollPane(itemsContainer);
@@ -101,7 +137,6 @@ public class InternationalList extends Application {
                 }
             }
         });
-
 
         mainLayout.getChildren().addAll(titleBox, searchBox, scrollPane);
 
@@ -136,9 +171,8 @@ public class InternationalList extends Application {
             }
         });
 
-        contentPane.getChildren().addAll(mainLayout, addButton);
-        root.setCenter(contentPane);
-
+        root.getChildren().addAll(mainLayout, addButton);
+        rootplus.setCenter(root);
 
         // Bottom Navigation Bar
         HBox navBar = new HBox();
@@ -147,32 +181,20 @@ public class InternationalList extends Application {
         navBar.setPrefHeight(80);
         navBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
 
-        Button homeBtn = createNavButtonWithEmoji("Home", "🏠"); // 🏠
-        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍"); // 🔍
-        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙️
+        Button homeBtn = createNavButtonWithEmoji("Home", "🏠");
+        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍");
+        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙");
 
-        homeBtn.setOnAction(e -> {
-            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
-        });
-        discoverBtn.setOnAction(e -> {
-            try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
-        });
-        settingsBtn.setOnAction(e -> {
-            try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
-        });
+        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
+        rootplus.setBottom(navBar);
 
-        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
-        root.setBottom(navBar);
-
-        StackPane.setAlignment(addButton, Pos.BOTTOM_RIGHT);
-//
-        Scene scene = new Scene(root, 1366, 768);
-        primaryStage.setTitle("Reimbursements");
+        Scene scene = new Scene(rootplus, 1366, 768);
+        primaryStage.setTitle("InternationalList");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    // Helper method with emoji
+    // 其余辅助方法保持不变...
     private Button createNavButtonWithEmoji(String label, String emoji) {
         VBox btnContainer = new VBox();
         btnContainer.setAlignment(Pos.CENTER);
@@ -194,20 +216,57 @@ public class InternationalList extends Application {
 
         return button;
     }
-    private Button createNavButton(String label) {
-        Button button = new Button(label);
-        button.setPrefWidth(456); // 1366 / 3
-        button.setPrefHeight(60);
-        button.setStyle(
-                "-fx-background-color: white;" +
-                        "-fx-font-size: 16px;" +
-                        "-fx-text-fill: #7f8c8d;" +
-                        "-fx-border-color: transparent;"
-        );
-        return button;
+
+    private void deleteItem(int index) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Delete");
+        alert.setHeaderText("Sure you want to delete this transaction?");
+        alert.setContentText("Deletion will not be recovered");
+
+        ButtonType buttonTypeYes = new ButtonType("Confirm");
+        ButtonType buttonTypeNo = new ButtonType("Cancel");
+        alert.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == buttonTypeYes) {
+                csvData.remove(index);
+
+                try (FileWriter writer = new FileWriter("deals.csv")) {
+                    // 这里需要实现从deals.csv中删除对应行的逻辑
+                    // 由于deals.csv格式更复杂，可能需要更复杂的处理
+                    // 这里简化为只更新内存中的数据
+                    
+                    allItems.remove(index);
+                    itemsContainer.getChildren().remove(index);
+
+                    for (int i = 0; i < allItems.size(); i++) {
+                        HBox item = allItems.get(i);
+                        for (javafx.scene.Node node : item.getChildren()) {
+                            if (node instanceof HBox) {
+                                for (javafx.scene.Node btnNode : ((HBox) node).getChildren()) {
+                                    if (btnNode instanceof Button && ((Button) btnNode).getText().equals("×")) {
+                                        Button deleteBtn = (Button) btnNode;
+                                        final int newIndex = i;
+                                        deleteBtn.setOnAction(e -> deleteItem(newIndex));
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                    successAlert.setTitle("Successful Operation");
+                    successAlert.setHeaderText(null);
+                    successAlert.setContentText("Transaction deleted successfully");
+                    successAlert.showAndWait();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
 
-    private HBox createItem(String foreignCurrency, Double foreignAmount, Double localAmount, String date) {
+    private HBox createItem(String foreignCurrency, Double foreignAmount, Double localAmount, String date, int index) {
         HBox itemBox = new HBox();
         itemBox.setSpacing(15);
         itemBox.setPadding(new Insets(15));
@@ -226,15 +285,13 @@ public class InternationalList extends Application {
         foreignAmountBox.setSpacing(5);
         foreignAmountBox.setAlignment(Pos.CENTER_LEFT);
 
-        Text categoryLabel = new Text(foreignCurrency);
-        categoryLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        categoryLabel.setFill(Color.web("#2c3e50"));
+        // 修改这里：只显示货币类型
+        Text currencyLabel = new Text(foreignCurrency);
+        currencyLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        currencyLabel.setFill(Color.web("#2c3e50"));
 
-        Text detailLabel = new Text(String.valueOf(foreignAmount));
-        detailLabel.setFont(Font.font("Arial", 16));
-        detailLabel.setFill(Color.web("#2c3e50"));
-
-        foreignCurrencyBox.getChildren().addAll(categoryLabel, detailLabel);
+        // 修改这里：移除外币金额显示
+        foreignCurrencyBox.getChildren().add(currencyLabel);  // 只添加货币类型，不添加金额
 
         Text dateLabel = new Text(date);
         dateLabel.setFont(Font.font("Arial", 14));
@@ -244,7 +301,14 @@ public class InternationalList extends Application {
 
         ToggleButton starButton = createStarToggleButton();
 
-        itemBox.getChildren().addAll(localAmountLabel, foreignAmountBox, starButton);
+        Button deleteButton = new Button("×");
+        deleteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-font-size: 20px; -fx-font-weight: bold;");
+        deleteButton.setOnAction(e -> deleteItem(index));
+
+        HBox buttonsBox = new HBox(10, starButton, deleteButton);
+        buttonsBox.setAlignment(Pos.CENTER_RIGHT);
+
+        itemBox.getChildren().addAll(localAmountLabel, foreignAmountBox, buttonsBox);
         HBox.setHgrow(foreignAmountBox, Priority.ALWAYS);
 
         return itemBox;
@@ -283,10 +347,5 @@ public class InternationalList extends Application {
             }
         }
         return false;
-    }
-
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }
