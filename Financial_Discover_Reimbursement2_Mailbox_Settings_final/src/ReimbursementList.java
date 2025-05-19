@@ -1,3 +1,5 @@
+//package Merge;
+
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -213,31 +215,114 @@ public class ReimbursementList extends Application {
 
         alert.showAndWait().ifPresent(response -> {
             if (response == buttonTypeYes) {
-                csvData.remove(index);
+                // 获取要删除的交易数据
+                String[] deletedData = csvData.get(index);
+                String deletedLine = findMatchingLineInCSV(deletedData);
 
-                try (FileWriter writer = new FileWriter("deals.csv")) {
-                    // Write header
-                    writer.write("交易时间,交易类型,交易对方,商品,收/支,金额(元),支付方式,当前状态,交易单号,商户单号,备注\n");
-
-                    // Write remaining data
-                    for (String[] parts : csvData) {
-                        if ("报销".equals(parts[1])) {
-                            writer.write(String.join(",", parts) + "\n");
-                        }
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                if (deletedLine.isEmpty()) {
+                    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    errorAlert.setTitle("Error");
+                    errorAlert.setHeaderText("Transaction not found");
+                    errorAlert.setContentText("Could not find matching transaction in CSV file");
+                    errorAlert.showAndWait();
+                    return;
                 }
 
-                refreshUI();
+                // 从内存中删除数据
+                csvData.remove(index);
+                allItems.remove(index);
+                itemsContainer.getChildren().remove(index);
 
-                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                successAlert.setTitle("Successful Operation");
-                successAlert.setHeaderText(null);
-                successAlert.setContentText("Claims Records Deleted");
-                successAlert.showAndWait();
+                // 更新CSV文件
+                try {
+                    // 读取原始文件
+                    List<String> lines = new ArrayList<>();
+                    try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
+                        String line;
+                        boolean headerSkipped = false;
+                        while ((line = reader.readLine()) != null) {
+                            if (!headerSkipped) {
+                                headerSkipped = true;
+                                lines.add(line);
+                                continue;
+                            }
+
+                            // 跳过要删除的行
+                            if (line.equals(deletedLine)) {
+                                continue;
+                            }
+                            lines.add(line);
+                        }
+                    }
+
+                    // 写入更新后的文件
+                    try (FileWriter writer = new FileWriter("deals.csv")) {
+                        for (String line : lines) {
+                            writer.write(line + "\n");
+                        }
+                    }
+
+                    // 更新剩余项的索引
+                    for (int i = 0; i < allItems.size(); i++) {
+                        HBox item = allItems.get(i);
+                        for (javafx.scene.Node node : item.getChildren()) {
+                            if (node instanceof HBox) {
+                                for (javafx.scene.Node btnNode : ((HBox) node).getChildren()) {
+                                    if (btnNode instanceof Button && ((Button) btnNode).getText().equals("×")) {
+                                        Button deleteBtn = (Button) btnNode;
+                                        final int newIndex = i;
+                                        deleteBtn.setOnAction(e -> deleteItem(newIndex));
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                    successAlert.setTitle("Successful Operation");
+                    successAlert.setHeaderText(null);
+                    successAlert.setContentText("Reimbursement deleted successfully");
+                    successAlert.showAndWait();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    errorAlert.setTitle("Error");
+                    errorAlert.setHeaderText("Failed to delete reimbursement");
+                    errorAlert.setContentText(ex.getMessage());
+                    errorAlert.showAndWait();
+                }
             }
         });
+    }
+
+    // 辅助方法：根据内存中的数据找到CSV文件中对应的行
+    private String findMatchingLineInCSV(String[] data) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
+            String line;
+            boolean headerSkipped = false;
+
+            while ((line = reader.readLine()) != null) {
+                if (!headerSkipped) {
+                    headerSkipped = true;
+                    continue;
+                }
+
+                String[] parts = parseCsvLine(line);
+                if (parts.length >= 8 && "报销".equals(parts[1])) {
+                    // 比较所有关键字段是否匹配
+                    if (parts[0].equals(data[0]) &&  // 交易时间
+                            parts[2].equals(data[2]) &&  // 交易对方
+                            parts[3].equals(data[3]) &&  // 商品
+                            parts[5].equals(data[5]) &&  // 金额(元)
+                            parts[7].equals(data[7])) {  // 当前状态
+                        return line;
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return "";
     }
 
     private void refreshUI() {
