@@ -81,7 +81,7 @@ public class Login extends Application {
         loginButton.setStyle("-fx-background-color: #855faf; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px; -fx-pref-height: 40px;");
         loginButton.setOnAction(e -> {
             if(handleLogin(usernameField.getText(), passwordField.getText())==1){
-                new Discover().start(new Stage());
+                new Nutllet().start(new Stage());
                 primaryStage.close();
             }
             else if (handleLogin(usernameField.getText(), passwordField.getText())==0){

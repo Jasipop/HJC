@@ -1,5 +1,3 @@
-//package Merge;
-
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -136,7 +134,6 @@ public class International extends Application {
         timePicker.setStyle("-fx-background-color: #f9f9f9; -fx-border-color: #bdc3c7; -fx-font-size: 16px; -fx-pref-height: 40px;");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         timePicker.setPromptText("Click here to select the trading time");
-
         timePicker.setPrefWidth(500);
 
         // 添加表单元素到网格
@@ -150,8 +147,6 @@ public class International extends Application {
         formGrid.add(timeLabel, 0, 4);
         formGrid.add(timePicker, 1, 4);
 
-
-
         // 按钮区域
         HBox buttonBox = new HBox(15);
         Button clearButton = new Button("Clear all");
@@ -160,7 +155,6 @@ public class International extends Application {
         confirmButton.setStyle("-fx-background-color: #71b6c5; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 120px; -fx-pref-height: 40px;");
         buttonBox.getChildren().addAll(new Node[]{clearButton, confirmButton});
         buttonBox.setAlignment(Pos.BOTTOM_RIGHT);
-
 
         // 添加所有组件到主布局
         mainLayout.getChildren().addAll(
@@ -188,46 +182,57 @@ public class International extends Application {
             String localCurrency = localCurrencyCombo.getValue();
             String foreignCurrency = foreignCurrencyCombo.getValue();
             String amountText = amountField.getText();
-            String date = timePicker.getValue().format(formatter);
+            LocalDate date = timePicker.getValue();
+
+            if (date == null) {
+                showAlert("Error", "Please select a date!");
+                return;
+            }
+
+            String formattedDate = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
             // 2. 验证输入
             if (localCurrency == null || foreignCurrency == null ||
-                    amountText.isEmpty() || date == null) {
+                    amountText.isEmpty()) {
                 showAlert("Error", "Please fill all required fields!");
                 return;
             }
 
             try {
                 double foreignAmount = Double.parseDouble(amountText);
-
-                // 3. 获取汇率（示例API，实际需替换为真实API）
-                double exchangeRate = getExchangeRate(foreignCurrency, localCurrency, date);
-
-                // 4. 计算本币金额
+                double exchangeRate = getExchangeRate(foreignCurrency, localCurrency, formattedDate);
                 double localAmount = foreignAmount * exchangeRate;
 
-                try (PrintWriter writer = new PrintWriter(new FileWriter("international.csv", true))) {
-                    writer.printf("\n%s,%.2f,%.2f,%s,",foreignCurrency, foreignAmount, localAmount, date);
+                // 修改保存格式，在外币兑换描述中包含外币金额
+                try (FileWriter writer = new FileWriter("deals.csv", true)) {
+                    String record = String.format(
+                            "\"%s 00:00:00\",\"国际交易\",\"外汇交易\",\"%s兑换(%.2f)\",\"支出\",\"¥%.2f\",\"零钱\",\"支付成功\",\"\",\"\",\"\"",
+                            formattedDate, foreignCurrency, foreignAmount, localAmount
+                    );
+                    writer.write("\n" + record);
                 } catch (IOException ex) {
+                    ex.printStackTrace();
+                    showAlert("Error", "Failed to save transaction: " + ex.getMessage());
+                    return;
+                }
+
+                // 6. 返回列表页面
+                try {
+                    new InternationalList().start(new Stage());
+                    primaryStage.close();
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
 
             } catch (NumberFormatException ex) {
                 showAlert("Error", "Invalid amount format!");
             } catch (Exception ex) {
-                showAlert("Error", "Failed to fetch exchange rate: " + ex.getMessage());
-            }
-
-            try {
-                new InternationalList().start(new Stage());
-                primaryStage.close();
-            } catch (Exception ex) {
-                ex.printStackTrace();
+                showAlert("Error", "Failed to process transaction: " + ex.getMessage());
             }
         });
     }
 
-    // --- 汇率查询方法 ---
+    // 汇率相关方法保持不变...
     private double getExchangeRate(String fromCurrency, String toCurrency, String dateStr) throws Exception {
         // 参数标准化
         fromCurrency = fromCurrency.toUpperCase().trim();
@@ -237,9 +242,9 @@ public class International extends Application {
         // 日期解析
         LocalDate date;
         try {
-            date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+            date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         } catch (DateTimeParseException e) {
-            throw new Exception("日期格式错误，请使用yyyy/MM/dd格式");
+            throw new Exception("日期格式错误，请使用yyyy-MM-dd格式");
         }
 
         // 获取当日汇率
@@ -304,8 +309,6 @@ public class International extends Application {
         throw new Exception("无法转换: " + fromCurrency + "→" + toCurrency);
     }
 
-
-    // --- 加载汇率数据 ---
     private static void loadExchangeRates() {
         String filename = "Historical_data.csv";
         try (BufferedReader br = new BufferedReader(new InputStreamReader(
@@ -401,7 +404,7 @@ public class International extends Application {
         }
         throw new DateTimeParseException("无法解析日期格式", dateStr, 0);
     }
-    // --- 显示弹窗 ---
+
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -410,9 +413,7 @@ public class International extends Application {
         alert.showAndWait();
     }
 
-
-
     public static void main(String[] args) {
-    launch(args);
+        launch(args);
     }
 }

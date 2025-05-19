@@ -1,4 +1,4 @@
-//package Merge;
+//package myapp;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -10,12 +10,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.input.*;
 import javafx.scene.control.cell.TextFieldTreeCell;
 import javafx.util.Pair;
-import javafx.util.StringConverter;
+
+import java.io.File;
 import java.util.*;
 
 public class Free_Design_Classification extends Application {
@@ -28,14 +26,15 @@ public class Free_Design_Classification extends Application {
     private Map<String, TreeItem<String>> groupData;
     private Map<String, TreeItem<String>> classificationSystems;
     private String currentGroup;
+    private List<String> addedNames = new ArrayList<>();
+    private List<String> addedAmounts = new ArrayList<>();
 
     @Override
     public void start(Stage primaryStage) {
         initializeDataStructures();
         VBox mainLayout = createMainLayout(createMainContent());
-        BorderPane root = new BorderPane();
-        Scene scene = new Scene(root, 1366, 768);
 
+        Scene scene = new Scene(mainLayout, 1366, 768);
         primaryStage.setTitle("Free Definition");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -62,10 +61,9 @@ public class Free_Design_Classification extends Application {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
+        navBar.getChildren().addAll( homeBtn, discoverBtn,settingsBtn); // 从右到左
 
-        root.setCenter(mainLayout);
-        root.setBottom(navBar);
+        mainLayout.getChildren().add(navBar);
     }
 
     private void initializeDataStructures() {
@@ -108,49 +106,23 @@ public class Free_Design_Classification extends Application {
         TreeItem<String> root = groupData.get("Daily Expenses");
         TreeItem<String> classRoot = classificationSystems.get("Daily Expenses");
 
-        // Food & Beverages
-        TreeItem<String> food = new TreeItem<>("Food & Beverages");
-        food.getChildren().addAll(
-                new TreeItem<>("Breakfast - ¥15"),
-                new TreeItem<>("Lunch - ¥25"),
-                new TreeItem<>("Dinner - ¥30"),
-                new TreeItem<>("Snacks - ¥50"),
-                new TreeItem<>("Drinks - ¥20")
-        );
+        String[] newCategories = {
+                "Food & Beverage", "Shopping", "Transportation",
+                "Entertainment", "Education", "Fitness", "Utilities & Transfer"
+        };
 
-        // Transportation
-        TreeItem<String> transport = new TreeItem<>("Transportation");
-        transport.getChildren().addAll(
-                new TreeItem<>("Bus Card - ¥100"),
-                new TreeItem<>("Taxi - ¥45"),
-                new TreeItem<>("Bike Sharing - ¥15")
-        );
+        for (String category : newCategories) {
+            TreeItem<String> categoryNode = new TreeItem<>(category);
+            root.getChildren().add(new TreeItem<>(category));      // 左侧支出分类结构
+            classRoot.getChildren().add(new TreeItem<>(category)); // 右侧分类系统结构
+        }
+    }
 
-        // Entertainment
-        TreeItem<String> entertainment = new TreeItem<>("Entertainment");
-        entertainment.getChildren().addAll(
-                new TreeItem<>("Movie - ¥80"),
-                new TreeItem<>("Game - ¥200"),
-                new TreeItem<>("Gym - ¥300")
-        );
 
-        // Daily Necessities
-        TreeItem<String> daily = new TreeItem<>("Daily Necessities");
-        daily.getChildren().addAll(
-                new TreeItem<>("Toiletries - ¥50"),
-                new TreeItem<>("Cleaning - ¥30"),
-                new TreeItem<>("Stationery - ¥25")
-        );
-
-        root.getChildren().addAll(food, transport, entertainment, daily);
-
-        // Add categories to classification system
-        classRoot.getChildren().addAll(
-                new TreeItem<>("Food & Beverages"),
-                new TreeItem<>("Transportation"),
-                new TreeItem<>("Entertainment"),
-                new TreeItem<>("Daily Necessities")
-        );
+    private void clearExistingSubcategories(TreeItem<String> root) {
+        if (root != null) {
+            root.getChildren().clear(); // 清空所有子节点
+        }
     }
 
     private void addSampleDataForProjectExpenses() {
@@ -306,10 +278,11 @@ public class Free_Design_Classification extends Application {
                                 updateTotalExpenditure();
                             }
                         } else {
-                            showAddTransactionDialog(treeItem);
+                            showAddTransactionDialog(treeItem); // 弹出条目选择窗口
                         }
                     }
                 });
+
             }
 
             @Override
@@ -363,46 +336,95 @@ public class Free_Design_Classification extends Application {
     private void showAddTransactionDialog(TreeItem<String> parentItem) {
         if (parentItem == null) return;
 
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
-        dialog.setTitle("Add New Transaction");
-        dialog.setHeaderText("Please enter transaction details");
+        Dialog<String[]> dialog = new Dialog<>();
+        dialog.setTitle("Select Transaction from Deals");
+        dialog.setHeaderText("Choose a transaction to add");
 
-        ButtonType confirmButtonType = new ButtonType("Confirm", ButtonBar.ButtonData.OK_DONE);
+        ButtonType confirmButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
 
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
+        ListView<String[]> listView = new ListView<>();
+        List<String[]> deals = loadDealsFromCSV("deals.csv");
+        listView.getItems().addAll(deals);
 
-        TextField nameField = new TextField();
-        nameField.setPromptText("Transaction Name");
-        TextField amountField = new TextField();
-        amountField.setPromptText("Amount");
+        listView.setCellFactory(param -> new ListCell<>() {
+            @Override
+            protected void updateItem(String[] item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.join(" | ", item));
+                }
+            }
+        });
 
-        grid.add(new Label("Name:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Amount:"), 0, 1);
-        grid.add(amountField, 1, 1);
+        listView.setPrefWidth(600);
+        listView.setPrefHeight(300);
 
-        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().setContent(listView);
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == confirmButtonType) {
-                return new Pair<>(nameField.getText(), amountField.getText());
+                return listView.getSelectionModel().getSelectedItem();
             }
             return null;
         });
 
-        dialog.showAndWait().ifPresent(result -> {
-            if (!result.getKey().isEmpty() && !result.getValue().isEmpty() && result.getValue().matches("\\d+")) {
-                TreeItem<String> newItem = new TreeItem<>(result.getKey() + " - ¥" + result.getValue());
+        dialog.showAndWait().ifPresent(selected -> {
+            if (selected != null) {
+                // 原始带引号的字符串，例如："早饭"
+                String rawName = selected.length >= 4 ? selected[3] : "Unnamed";
+                String rawAmount = selected.length >= 6 ? selected[5] : "0";
+
+                // 去除前后引号
+                String cleanName = rawName.replaceAll("^\"|\"$", "").trim();
+
+                // 去除￥符号和引号，保留数字及小数点
+                String cleanAmount = rawAmount.replaceAll("[^0-9.]", "").trim();
+
+                // 添加到树结构显示
+                TreeItem<String> newItem = new TreeItem<>(cleanName + " - ¥" + cleanAmount);
                 parentItem.getChildren().add(newItem);
                 parentItem.setExpanded(true);
                 updateTotalExpenditure();
+
+                // 保存到列表中
+                addedNames.add(cleanName);
+                addedAmounts.add(cleanAmount);
+
+                System.out.println("Added Name: " + cleanName);
+                System.out.println("Added Amount: " + cleanAmount);
             }
         });
     }
+
+
+    private List<String[]> loadDealsFromCSV(String filename) {
+        List<String[]> deals = new ArrayList<>();
+        try (Scanner scanner = new Scanner(new File(filename))) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split(",");
+                if (parts.length >= 4) {
+                    String fourth = parts[3].replaceAll("\"", "").trim();
+                    String third = parts[2].replaceAll("\"", "").trim();
+
+                    // 如果第四列是 "/" 或者是全数字（纯数字字符串）
+                    if (fourth.equals("/") || fourth.matches("\\d+")) {
+                        parts[3] = parts[2];  // 用第三列内容替换第四列
+                    }
+                    deals.add(parts);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return deals;
+    }
+
+
+
 
     private void showEditDialog(TreeItem<String> item) {
         if (item == null || !item.getValue().contains("¥")) return;
@@ -442,11 +464,28 @@ public class Free_Design_Classification extends Application {
         });
 
         dialog.showAndWait().ifPresent(result -> {
-            if (!result.getKey().isEmpty() && !result.getValue().isEmpty() && result.getValue().matches("\\d+")) {
-                item.setValue(result.getKey() + " - ¥" + result.getValue());
+            String newName = result.getKey().trim();
+            String newAmountStr = result.getValue().trim();
+
+            if (newName.isEmpty() || newAmountStr.isEmpty()) {
+                // 名称或金额为空，不更新
+                return;
+            }
+
+            try {
+                double newAmount = Double.parseDouble(newAmountStr);
+                item.setValue(newName + " - ¥" + String.format("%.2f", newAmount));
                 updateTotalExpenditure();
+            } catch (NumberFormatException e) {
+                // 金额输入非法，忽略修改或提示
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Invalid Input");
+                alert.setHeaderText(null);
+                alert.setContentText("Please enter a valid number for the amount.");
+                alert.showAndWait();
             }
         });
+
     }
 
     private void updateTotalExpenditure() {
@@ -461,9 +500,14 @@ public class Free_Design_Classification extends Application {
         String itemValue = item.getValue();
         if (itemValue != null && itemValue.contains("¥")) {
             try {
-                sum += Double.parseDouble(itemValue.replaceAll("[^0-9]", ""));
+                // 用正则匹配 ¥后面的数字（允许小数）
+                java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("¥([0-9]+(\\.[0-9]+)?)").matcher(itemValue);
+                while (matcher.find()) {
+                    String numberStr = matcher.group(1);
+                    sum += Double.parseDouble(numberStr);
+                }
             } catch (NumberFormatException e) {
-                // Skip invalid numbers
+                // 跳过格式错误
             }
         }
 
@@ -472,6 +516,7 @@ public class Free_Design_Classification extends Application {
         }
         return sum;
     }
+
 
     private VBox createRightPanel() {
         VBox panel = new VBox(10);

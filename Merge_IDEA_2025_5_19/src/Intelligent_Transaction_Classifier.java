@@ -111,8 +111,9 @@ public class Intelligent_Transaction_Classifier extends Application {
         settingsBtn.setOnAction(e -> {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
+        navBar.getChildren().addAll(homeBtn,discoverBtn,settingsBtn  );
 
-        navBar.getChildren().addAll(settingsBtn, discoverBtn, homeBtn); // 从右到左
+
         mainLayout.getChildren().add(navBar);
     }
 
@@ -121,7 +122,6 @@ public class Intelligent_Transaction_Classifier extends Application {
         totalAmount = 0.0;
 
         try {
-//            Path path = Paths.get("src/deals.csv");
             Path path = Paths.get("deals.csv");
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(new FileInputStream(path.toFile()), StandardCharsets.UTF_8)
@@ -196,18 +196,22 @@ public class Intelligent_Transaction_Classifier extends Application {
         TableColumn<Transaction, String> dateCol = new TableColumn<>("Date");
         dateCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDate()));
         dateCol.setStyle("-fx-alignment: CENTER;");
+        dateCol.setMinWidth(120);
 
         TableColumn<Transaction, String> descCol = new TableColumn<>("Description");
         descCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDescription()));
         descCol.setStyle("-fx-alignment: CENTER-LEFT;");
+        descCol.setMinWidth(250);
 
         TableColumn<Transaction, String> amountCol = new TableColumn<>("Amount");
         amountCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getAmount()));
         amountCol.setStyle("-fx-alignment: CENTER-RIGHT;");
+        amountCol.setMaxWidth(90);
 
         TableColumn<Transaction, String> categoryCol = new TableColumn<>("Category");
         categoryCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getCategory()));
         categoryCol.setStyle("-fx-alignment: CENTER;");
+        categoryCol.setMinWidth(140);
         categoryCol.setCellFactory(col -> new TableCell<Transaction, String>() {
             private final ComboBox<String> comboBox = new ComboBox<>(FXCollections.observableArrayList(
                     "Food & Beverage", "Shopping", "Transportation",
@@ -232,7 +236,6 @@ public class Intelligent_Transaction_Classifier extends Application {
                 }
             }
         });
-
 
         table.getColumns().addAll(dateCol, descCol, amountCol, categoryCol);
         return table;

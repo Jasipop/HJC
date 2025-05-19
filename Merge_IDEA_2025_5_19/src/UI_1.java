@@ -19,9 +19,15 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class UI_1 extends Application {
 
@@ -29,7 +35,7 @@ public class UI_1 extends Application {
     private BarChart<String, Number> barChart1;
     private BarChart<Number, String> barChart2;
     private final List<BudgetData> dataList = new ArrayList<>();
-    private static final String CSV_FILE = "budget_data.csv";
+    private static final String CSV_FILE = "deals1.csv";
 
     @Override
     public void start(Stage primaryStage) {
@@ -75,7 +81,7 @@ public class UI_1 extends Application {
         mainLayout.setBottom(navBar);
         mainLayout.setCenter(scrollPane);
 
-        initializeData();
+//        initializeData();
 
         Scene scene = new Scene(mainLayout, 1366, 768);
         primaryStage.setTitle("Localized Budgeting");
@@ -297,67 +303,73 @@ public class UI_1 extends Application {
     }
 
     private void loadDataFromCSV() {
-        File file = new File(CSV_FILE);
-        if (!file.exists()) return;
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            dataList.clear();
+        try (BufferedReader reader = new BufferedReader(new FileReader(CSV_FILE))) {
             String line;
             boolean isHeader = true;
+
             while ((line = reader.readLine()) != null) {
                 if (isHeader) {
                     isHeader = false;
-                    continue;
+                    continue; // 跳过表头
                 }
-                String[] parts = parseCSVLine(line);
-                if (parts.length == 6) {
-                    String festival = parts[0];
-                    int income = Integer.parseInt(parts[1]);
-                    int expenses = Integer.parseInt(parts[2]);
-                    String startDate = parts[3];
-                    String endDate = parts[4];
-                    String notes = parts[5].replace("\"\"", "\"");
-                    dataList.add(new BudgetData(festival, income, expenses, startDate, endDate, notes));
+
+                // 解析 CSV 行（兼容微信账单格式）
+                String[] values = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1); // 处理带逗号的字段
+
+                if (values.length >= 6) {
+                    String tradeTime = values[0].replace("\"", "").trim();
+                    String tradeType = values[1].replace("\"", "").trim();
+                    String tradeTarget = values[2].replace("\"", "").trim();
+                    String amountStr = values[5].replace("¥", "").replace("\"", "").trim();
+
+                    try {
+                        // 解析金额（兼容 "¥100.00" 或 "100.00" 格式）
+                        double amount = Double.parseDouble(amountStr);
+                        boolean isIncome = values[4].contains("收入"); // 判断是收入还是支出
+
+                        // 转换为 BudgetData（示例逻辑，按需调整）
+                        BudgetData data = new BudgetData(
+                                tradeTarget, // 交易对方作为 Festival
+                                isIncome ? (int) amount : 0, // 收入
+                                !isIncome ? (int) amount : 0, // 支出
+                                tradeTime,  // 交易时间作为 StartDate
+                                tradeTime,  // 同一天作为 EndDate
+                                tradeType   // 交易类型作为 Notes
+                        );
+
+                        dataList.add(data); // 增量添加，不覆盖旧数据
+                    } catch (NumberFormatException e) {
+                        System.err.println("金额格式错误: " + amountStr);
+                    }
                 }
             }
-        } catch (IOException | NumberFormatException e) {
-            showAlert("Error loading data from CSV file!");
+
+            refreshDataDisplay(); // 更新表格和图表
+        } catch (IOException e) {
+            showAlert("加载 CSV 失败: " + e.getMessage());
         }
     }
+    private void updateCharts() {
+        // 清除现有数据
+        barChart1.getData().clear();
+        barChart2.getData().clear();
 
-    private String[] parseCSVLine(String line) {
-        List<String> fields = new ArrayList<>();
-        StringBuilder sb = new StringBuilder();
-        boolean inQuotes = false;
+        // 按节日分组统计收入
+        Map<String, Double> festivalIncome = dataList.stream()
+                .collect(Collectors.groupingBy(
+                        BudgetData::getFestival,
+                        Collectors.summingDouble(BudgetData::getIncome)
+                ));
 
-        for (char c : line.toCharArray()) {
-            if (c == '"') {
-                inQuotes = !inQuotes;
-            } else if (c == ',' && !inQuotes) {
-                fields.add(sb.toString());
-                sb.setLength(0);
-            } else {
-                sb.append(c);
-            }
-        }
-        fields.add(sb.toString());
-        return fields.toArray(new String[0]);
-    }
+        // 创建收入柱状图数据
+        XYChart.Series<String, Number> incomeSeries = new XYChart.Series<>();
+        incomeSeries.setName("节日预算收入");
 
-    // 数据初始化
-    private void initializeData() {
-        loadDataFromCSV();
-        if (dataList.isEmpty()) {
-            dataList.addAll(Arrays.asList(
-                    new BudgetData("Spring Festival", 3000, 1900, "2024-02-10", "2024-02-17", ""),
-                    new BudgetData("Dragon Boat Festival", 500, 800, "2024-06-10", "2024-06-12", ""),
-                    new BudgetData("Mid-Autumn Festival", 700, 750, "2024-09-15", "2024-09-17", ""),
-                    new BudgetData("Christmas", 1000, 700, "2024-12-25", "2024-12-26", ""),
-                    new BudgetData("Harvest Day", 500, 800, "2024-10-01", "2024-10-07", "")
-            ));
-            saveDataToCSV();
-        }
-        refreshDataDisplay();
+        festivalIncome.forEach((festival, income) ->
+                incomeSeries.getData().add(new XYChart.Data<>(festival, income))
+        );
+
+        barChart1.getData().add(incomeSeries);
     }
 
     private void handleSave(ComboBox<String> festivalComboBox,
@@ -514,55 +526,45 @@ public class UI_1 extends Application {
     // 账单导入处理
     private void handleImportBill() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("选择账单CSV文件");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        fileChooser.setTitle("选择微信支付账单");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV 文件", "*.csv"));
+
         File file = fileChooser.showOpenDialog(null);
-        if (file == null) return;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
-            String header = reader.readLine();
-            if (header == null) {
-                showAlert("账单文件为空！");
-                return;
-            }
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-                if (parts.length < 10) continue; // 字段数不足
-                // 字段映射
-                String tradeTime = parts[0]; // 交易时间
-                String tradeType = parts[1]; // 交易类型
-                String tradeTarget = parts[2]; // 交易对方
-                String product = parts[3]; // 商品
-                String incomeOrExpense = parts[5]; // 收/支
-                String amountStr = parts[6].replace("¥", "").replace("元", "").trim();
-                String notes = parts.length > 11 ? parts[11] : ""; // 备注
-                int income = 0, expenses = 0;
-                try {
-                    double amount = Double.parseDouble(amountStr);
-                    if (incomeOrExpense.contains("支出")) {
-                        expenses = (int) Math.round(amount);
-                    } else if (incomeOrExpense.contains("收入")) {
-                        income = (int) Math.round(amount);
+        if (file != null) {
+            try {
+                // 读取导入的文件内容
+                List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+
+                // 追加写入到 deals.csv（不覆盖旧数据）
+                try (BufferedWriter writer = Files.newBufferedWriter(
+                        Path.of(CSV_FILE),
+                        StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND)) {
+
+                    // 如果是空文件，先写入表头
+                    if (Files.size(Path.of(CSV_FILE)) == 0) {
+                        writer.write("交易时间,交易类型,交易对方,商品,收/支,金额(元),支付方式,当前状态,交易单号,商户单号,备注\n");
                     }
-                } catch (NumberFormatException ex) {
-                    continue;
+
+                    // 跳过导入文件的表头（微信账单可能有自己的表头）
+                    for (int i = 1; i < lines.size(); i++) {
+                        writer.write(lines.get(i) + "\n");
+                    }
                 }
-                // 以交易时间为日期
-                String date = tradeTime.split(" ")[0].replace("/", "-");
-                String festival = tradeType + "-" + product;
-                BudgetData newData = new BudgetData(festival, income, expenses, date, date, notes);
-                dataList.add(newData);
+
+                // 重新加载数据（增量）
+                loadDataFromCSV();
+                showAlert("账单导入成功！");
+            } catch (IOException e) {
+                showAlert("导入失败: " + e.getMessage());
             }
-            refreshDataDisplay();
-            saveDataToCSV();
-        } catch (Exception ex) {
-            showAlert("账单导入失败：" + ex.getMessage());
         }
     }
 
     // 账单导出处理
     private void handleExportBill() {
-        String dealsFile = "deals.csv";
+        String dealsFile = "deals1.csv";
         boolean fileExists = new File(dealsFile).exists();
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(dealsFile, true), "UTF-8"))) {
             // 如果文件不存在，写表头

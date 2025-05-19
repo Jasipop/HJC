@@ -1,6 +1,7 @@
-//package Merge;
-
+//package myapp;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -20,17 +22,23 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.Stop;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 public class Transaction_Management_System extends Application {
-
+    private HBox chartContent;
     public static class Transaction {
         private final String date;
         private final String name;
         private final String amount;
-        private final String type;
+        private String type; // 改为非final以便修改
 
         public Transaction(String date, String name, String amount, String type) {
             this.date = date;
@@ -39,10 +47,13 @@ public class Transaction_Management_System extends Application {
             this.type = type;
         }
 
+        // 新增setter方法
+        public void setType(String type) { this.type = type; }
         public String getDate() { return date; }
         public String getName() { return name; }
         public String getAmount() { return amount; }
         public String getType() { return type; }
+
     }
 
     private ObservableList<Transaction> transactions;
@@ -52,9 +63,6 @@ public class Transaction_Management_System extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        BorderPane root = new BorderPane();
-
-
         initializeData();
         setupTypeChart();
 
@@ -66,7 +74,7 @@ public class Transaction_Management_System extends Application {
         // Set background color for the entire scene
         mainLayout.setStyle("-fx-background-color: #f8f0ff;");
 
-        Scene scene = new Scene(root, 1366, 768);
+        Scene scene = new Scene(mainLayout, 1366, 768);
         primaryStage.setTitle("Transaction Management");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -91,34 +99,58 @@ public class Transaction_Management_System extends Application {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
+        navBar.getChildren().addAll(homeBtn,discoverBtn,settingsBtn  );
 
-        root.setCenter(mainLayout);
-        root.setBottom(navBar);
+        mainLayout.getChildren().add(navBar);
     }
 
     private void initializeData() {
-        transactions = FXCollections.observableArrayList(
-                new Transaction("2024-03-15", "Amazon Purchase", "299.99", "Online"),
-                new Transaction("2024-03-14", "Starbucks Coffee", "5.50", "Offline"),
-                new Transaction("2024-03-13", "Netflix Subscription", "15.99", "Online"),
-                new Transaction("2024-03-12", "Grocery Shopping", "85.75", "Offline"),
-                new Transaction("2024-03-11", "Uber Ride", "25.00", "Online"),
-                new Transaction("2024-03-10", "Restaurant Dinner", "45.80", "Offline"),
-                new Transaction("2024-03-09", "Spotify Premium", "9.99", "Online"),
-                new Transaction("2024-03-08", "Gas Station", "35.20", "Offline"),
-                new Transaction("2024-03-07", "Apple Store", "1299.00", "Online"),
-                new Transaction("2024-03-06", "Movie Theater", "28.50", "Offline"),
-                new Transaction("2024-03-05", "Amazon Prime", "12.99", "Online"),
-                new Transaction("2024-03-04", "Gym Membership", "49.99", "Offline"),
-                new Transaction("2024-03-03", "Online Course", "199.00", "Online"),
-                new Transaction("2024-03-02", "Book Store", "35.75", "Offline"),
-                new Transaction("2024-03-01", "Microsoft Office", "99.99", "Online")
-        );
-    }
+        transactions = FXCollections.observableArrayList();
+        String csvFile = "deals.csv";
+        String line;
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+            br.readLine(); // 跳过前三行
+            br.readLine();
+            br.readLine();
 
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                String[] fields = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+                for (int i = 0; i < fields.length; i++) {
+                    fields[i] = fields[i].replaceAll("^\"|\"$", "").trim();
+                }
+
+                if (fields.length < 11) continue;
+
+                String fullDate = fields[0];
+                String altDesc = fields[1];
+                String desc = fields[2];
+                String amountWithSymbol = fields[5];
+
+                if (desc.equals("/") || desc.matches("\\d+")) {
+                    desc = altDesc;
+                }
+
+                String date = fullDate.split(" ")[0];
+                String amount = amountWithSymbol.replaceAll("[¥¥,]", "").trim();
+
+                try {
+                    Double.parseDouble(amount);
+                    // 初始类型设为Online
+                    transactions.add(new Transaction(date, desc, amount, "Online"));
+                } catch (NumberFormatException e) {
+                    System.err.println("无效金额格式: " + amount);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     private VBox createLeftPanel() {
         TableView<Transaction> table = new TableView<>(transactions);
+        table.setEditable(true);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         table.setStyle(
                 "-fx-font-size: 14px;" +
@@ -136,6 +168,24 @@ public class Transaction_Management_System extends Application {
         // Add hover effect to table rows
         table.setRowFactory(tv -> {
             TableRow<Transaction> row = new TableRow<>();
+            ContextMenu contextMenu = new ContextMenu();
+            MenuItem deleteItem = new MenuItem("删除");
+            deleteItem.setStyle("-fx-font-family: 'Microsoft YaHei';");
+            deleteItem.setOnAction(event -> {
+                Transaction selected = row.getItem();
+                if (selected != null) {
+                    transactions.remove(selected);
+                    updateStatsAndChart();
+                }
+            });
+
+            contextMenu.getItems().add(deleteItem);
+            row.contextMenuProperty().bind(
+                    Bindings.when(row.emptyProperty())
+                            .then((ContextMenu) null)
+                            .otherwise(contextMenu)
+            );
+
             row.setStyle("-fx-background-color: transparent;");
             row.setOnMouseEntered(event -> {
                 if (!row.isEmpty()) {
@@ -147,6 +197,7 @@ public class Transaction_Management_System extends Application {
                     row.setStyle("-fx-background-color: transparent;");
                 }
             });
+
             return row;
         });
 
@@ -184,7 +235,15 @@ public class Transaction_Management_System extends Application {
                 }
             };
         });
+        typeCol.setCellFactory(ComboBoxTableCell.forTableColumn("Online", "Offline"));
 
+        typeCol.setOnEditCommit(event -> {
+            Transaction transaction = event.getRowValue();
+            transaction.setType(event.getNewValue());
+            updateStatsAndChart(); // 改为调用综合更新方法
+        });
+
+        typeCol.setStyle("-fx-alignment: CENTER;");
         table.getColumns().addAll(dateCol, nameCol, amountCol, typeCol);
 
         Label title = new Label("Transaction Entry");
@@ -255,7 +314,23 @@ public class Transaction_Management_System extends Application {
 
         return wrapper;
     }
+    private void updateStatsAndChart() {
+        updateTypeChart();
+        refreshStatsBox();
+    }
 
+    private void refreshStatsBox() {
+        VBox newStatsBox = createStatsBox();
+        newStatsBox.setMaxWidth(220);
+        newStatsBox.setPrefWidth(220);
+
+        // 强制刷新UI组件
+        Platform.runLater(() -> {
+            chartContent.getChildren().set(1, newStatsBox);
+            typeChart.getData().clear();
+            updateTypeChart();
+        });
+    }
     private VBox createRightPanel() {
         Label chartTitle = new Label("Transaction Analysis");
         chartTitle.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 24));
@@ -269,9 +344,9 @@ public class Transaction_Management_System extends Application {
         typeChart.setMinSize(300, 300);
         typeChart.setMaxSize(300, 300);
 
-        HBox chartContent = new HBox(20);
+        chartContent = new HBox(20);  // 初始化成员变量
         chartContent.setAlignment(Pos.CENTER);
-        chartContent.getChildren().addAll(typeChart, statsBox);
+        chartContent.getChildren().addAll(typeChart, createStatsBox());
 
         HBox buttonBox = createActionButtons();
         buttonBox.setPadding(new Insets(10, 0, 10, 0));
@@ -333,12 +408,18 @@ public class Transaction_Management_System extends Application {
                         "-fx-text-fill: #4a4a4a;"
         );
 
-        VBox totalBox = createStatsItemBox("Total Amount", String.format("¥%.2f", totalAmount), "💰");
-        VBox onlineBox = createStatsItemBox("Online Total", String.format("¥%.2f", onlineAmount), "🌐");
-        VBox offlineBox = createStatsItemBox("Offline Total", String.format("¥%.2f", offlineAmount), "🏪");
-        VBox avgBox = createStatsItemBox("Average Amount", String.format("¥%.2f", totalAmount / transactions.size()), "📊");
+        // 添加异常处理
+        double avg = transactions.isEmpty() ? 0 : totalAmount / transactions.size();
+
+        // 使用更精确的货币格式化
+        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.CHINA);
+        VBox totalBox = createStatsItemBox("Total Amount", fmt.format(totalAmount), "💰");
+        VBox onlineBox = createStatsItemBox("Online Total", fmt.format(onlineAmount), "🌐");
+        VBox offlineBox = createStatsItemBox("Offline Total", fmt.format(offlineAmount), "🏪");
+        VBox avgBox = createStatsItemBox("Average Amount", fmt.format(avg), "📊");
 
         statsBox.getChildren().addAll(titleLabel, totalBox, onlineBox, offlineBox, avgBox);
+
         return statsBox;
     }
 
@@ -594,7 +675,7 @@ public class Transaction_Management_System extends Application {
 
         // 更新表格和图表
         transactions = filteredList;
-        updateTypeChart();
+        updateStatsAndChart();
     }
 
     private void showAddTransactionDialog() {
@@ -667,6 +748,7 @@ public class Transaction_Management_System extends Application {
             String name = nameField.getText();
             String amount = amountField.getText();
             String type = onlineRadio.isSelected() ? "Online" : "Offline";
+            updateStatsAndChart();
 
             if (!date.isEmpty() && !name.isEmpty() && !amount.isEmpty()) {
                 transactions.add(new Transaction(date, name, amount, type));

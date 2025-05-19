@@ -1,5 +1,3 @@
-//package Merge;
-
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -58,30 +56,62 @@ public class InternationalList extends Application {
         searchBox.setPrefWidth(800);
         searchBox.setAlignment(Pos.CENTER);
 
-        itemsContainer = new VBox();  // 去掉前面的VBox类型声明
+        itemsContainer = new VBox();
         itemsContainer.setSpacing(10);
         itemsContainer.setPadding(new Insets(10));
         itemsContainer.setAlignment(Pos.CENTER);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("international.csv"))) {
+        // 修改读取deals.csv的逻辑
+        try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
             String line;
+            boolean isDataSection = false;
+            int index = 0;
+
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-                if (parts.length >= 4) {
-                    csvData.add(parts); // 存储CSV数据
-                    String foreignCurrency = parts[0];
-                    Double foreignAmount = Double.valueOf(parts[1]);
-                    Double localAmount = Double.valueOf(parts[2]);
-                    String date = parts[3];
-                    HBox item = createItem(foreignCurrency, foreignAmount, localAmount, date, csvData.size() - 1);
-                    allItems.add(item);
-                    itemsContainer.getChildren().add(item);
+                if (line.startsWith("----------------------")) {
+                    isDataSection = true;
+                    continue;
+                }
+
+                if (isDataSection && line.startsWith("\"")) {
+                    String[] parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+                    if (parts.length >= 6 && parts[1].contains("国际交易")) {
+                        String date = parts[0].replace("\"", "").split(" ")[0]; // 只取日期部分
+                        String currency = parts[3].replace("兑换", "").replace("\"", "");
+
+                        // 处理本地金额 - 移除¥和引号
+                        String localAmountStr = parts[5].replace("\"", "").replace("¥", "").trim();
+                        double localAmount = Double.parseDouble(localAmountStr);
+
+                        // 从商品字段提取外币金额
+                        double foreignAmount = 1.0; // 默认值
+                        if (parts[3].contains("(")) { // 如果有括号包含外币金额
+                            String[] split = parts[3].split("\\(");
+                            if (split.length > 1) {
+                                String foreignAmountStr = split[1].replace(")", "").trim();
+                                try {
+                                    foreignAmount = Double.parseDouble(foreignAmountStr);
+                                } catch (NumberFormatException e) {
+                                    foreignAmount = 1.0; // 如果解析失败，使用默认值
+                                }
+                            }
+                        }
+
+                        // 创建国际交易条目
+                        String[] newData = {currency, String.valueOf(foreignAmount), String.valueOf(localAmount), date};
+                        csvData.add(newData);
+
+                        HBox item = createItem(currency, foreignAmount, localAmount, date, index);
+                        allItems.add(item);
+                        itemsContainer.getChildren().add(item);
+                        index++;
+                    }
                 }
             }
         } catch (IOException ex) {
             ex.printStackTrace();
+            //showAlert("Error", "Failed to load transactions: " + ex.getMessage());
         }
-
 
         ScrollPane scrollPane = new ScrollPane(itemsContainer);
         scrollPane.setFitToWidth(true);
@@ -107,7 +137,6 @@ public class InternationalList extends Application {
                 }
             }
         });
-
 
         mainLayout.getChildren().addAll(titleBox, searchBox, scrollPane);
 
@@ -143,7 +172,7 @@ public class InternationalList extends Application {
         });
 
         root.getChildren().addAll(mainLayout, addButton);
-        rootplus.setCenter(mainLayout); // 不再是 root，直接是 mainLayout
+        rootplus.setCenter(root);
 
         // Bottom Navigation Bar
         HBox navBar = new HBox();
@@ -152,9 +181,9 @@ public class InternationalList extends Application {
         navBar.setPrefHeight(80);
         navBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
 
-        Button homeBtn = createNavButtonWithEmoji("Home", "🏠"); // 🏠
-        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍"); // 🔍
-        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙️
+        Button homeBtn = createNavButtonWithEmoji("Home", "🏠");
+        Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍");
+        Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙");
 
         homeBtn.setOnAction(e -> {
             try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
@@ -166,26 +195,16 @@ public class InternationalList extends Application {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn); // 从右到左
+        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
         rootplus.setBottom(navBar);
-        // 用一个 StackPane 包住 rootplus 和 addButton，使按钮浮动
-        StackPane outerStack = new StackPane();
 
-// 把 rootplus 放进去（它含 mainLayout 和底部导航）
-        outerStack.getChildren().addAll(rootplus, addButton);
-
-// 设置按钮对齐在右下角，并适当边距
-        StackPane.setAlignment(addButton, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(addButton, new Insets(0, 50, 100, 0)); // 距离右边30px，底部30px
-
-        Scene scene = new Scene(outerStack, 1366, 768);
-
-        primaryStage.setTitle("Reimbursements");
+        Scene scene = new Scene(rootplus, 1366, 768);
+        primaryStage.setTitle("InternationalList");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    // Helper method with emoji
+    // 其余辅助方法保持不变...
     private Button createNavButtonWithEmoji(String label, String emoji) {
         VBox btnContainer = new VBox();
         btnContainer.setAlignment(Pos.CENTER);
@@ -207,21 +226,8 @@ public class InternationalList extends Application {
 
         return button;
     }
-    private Button createNavButton(String label) {
-        Button button = new Button(label);
-        button.setPrefWidth(456); // 1366 / 3
-        button.setPrefHeight(60);
-        button.setStyle(
-                "-fx-background-color: white;" +
-                        "-fx-font-size: 16px;" +
-                        "-fx-text-fill: #7f8c8d;" +
-                        "-fx-border-color: transparent;"
-        );
-        return button;
-    }
 
     private void deleteItem(int index) {
-        // 创建确认对话框
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Delete");
         alert.setHeaderText("Sure you want to delete this transaction?");
@@ -233,22 +239,56 @@ public class InternationalList extends Application {
 
         alert.showAndWait().ifPresent(response -> {
             if (response == buttonTypeYes) {
-                // 3. 先更新CSV文件再刷新界面
-                csvData.remove(index);
+                // 获取要删除的交易数据（包含货币、外币金额、本地金额和日期）
+                String[] deletedData = csvData.get(index);
+                String deletedLine = findMatchingLineInCSV(deletedData);
 
-                try (FileWriter writer = new FileWriter("international.csv")) {
-                    for (String[] parts : csvData) {
-                        writer.write(String.join(",", parts) + "\n");
+                if (deletedLine.isEmpty()) {
+                    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    errorAlert.setTitle("Error");
+                    errorAlert.setHeaderText("Transaction not found");
+                    errorAlert.setContentText("Could not find matching transaction in CSV file");
+                    errorAlert.showAndWait();
+                    return;
+                }
+
+                // 从内存中删除数据
+                csvData.remove(index);
+                allItems.remove(index);
+                itemsContainer.getChildren().remove(index);
+
+                // 更新CSV文件
+                try {
+                    // 读取原始文件
+                    List<String> lines = new ArrayList<>();
+                    boolean isDataSection = false;
+                    try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            if (line.startsWith("----------------------")) {
+                                isDataSection = true;
+                                lines.add(line);
+                                continue;
+                            }
+
+                            // 跳过要删除的行
+                            if (isDataSection && line.equals(deletedLine)) {
+                                continue;
+                            }
+                            lines.add(line);
+                        }
                     }
 
-                    // 4. 直接更新界面而不重新读取文件
-                    allItems.remove(index);
-                    itemsContainer.getChildren().remove(index);
+                    // 写入更新后的文件
+                    try (FileWriter writer = new FileWriter("deals.csv")) {
+                        for (String line : lines) {
+                            writer.write(line + "\n");
+                        }
+                    }
 
-                    // 5. 重新设置所有条目的索引
+                    // 更新剩余项的索引
                     for (int i = 0; i < allItems.size(); i++) {
                         HBox item = allItems.get(i);
-                        // 找到删除按钮并更新其事件处理
                         for (javafx.scene.Node node : item.getChildren()) {
                             if (node instanceof HBox) {
                                 for (javafx.scene.Node btnNode : ((HBox) node).getChildren()) {
@@ -269,9 +309,67 @@ public class InternationalList extends Application {
                     successAlert.showAndWait();
                 } catch (IOException ex) {
                     ex.printStackTrace();
+                    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    errorAlert.setTitle("Error");
+                    errorAlert.setHeaderText("Failed to delete transaction");
+                    errorAlert.setContentText(ex.getMessage());
+                    errorAlert.showAndWait();
                 }
             }
         });
+    }
+
+    // 辅助方法：根据内存中的数据找到CSV文件中对应的行
+    private String findMatchingLineInCSV(String[] data) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
+            String line;
+            boolean isDataSection = false;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("----------------------")) {
+                    isDataSection = true;
+                    continue;
+                }
+
+                if (isDataSection && line.startsWith("\"")) {
+                    String[] parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+                    if (parts.length >= 6 && parts[1].contains("国际交易")) {
+                        // 检查是否匹配
+                        String date = parts[0].replace("\"", "").split(" ")[0];
+                        String currency = parts[3].replace("兑换", "").replace("\"", "");
+
+                        // 获取本地金额
+                        String localAmountStr = parts[5].replace("\"", "").replace("¥", "").trim();
+                        double localAmount = Double.parseDouble(localAmountStr);
+
+                        // 获取外币金额
+                        double foreignAmount = 1.0;
+                        if (parts[3].contains("(")) {
+                            String[] split = parts[3].split("\\(");
+                            if (split.length > 1) {
+                                String foreignAmountStr = split[1].replace(")", "").trim();
+                                try {
+                                    foreignAmount = Double.parseDouble(foreignAmountStr);
+                                } catch (NumberFormatException e) {
+                                    foreignAmount = 1.0;
+                                }
+                            }
+                        }
+
+                        // 比较日期、货币类型、外币金额和本地金额
+                        if (date.equals(data[3]) &&
+                                currency.contains(data[0]) &&
+                                Math.abs(foreignAmount - Double.parseDouble(data[1])) < 0.001 &&
+                                Math.abs(localAmount - Double.parseDouble(data[2])) < 0.001) {
+                            return line;
+                        }
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return "";
     }
 
     private HBox createItem(String foreignCurrency, Double foreignAmount, Double localAmount, String date, int index) {
@@ -293,15 +391,13 @@ public class InternationalList extends Application {
         foreignAmountBox.setSpacing(5);
         foreignAmountBox.setAlignment(Pos.CENTER_LEFT);
 
+        // 修改这里：只显示货币类型
         Text currencyLabel = new Text(foreignCurrency);
         currencyLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         currencyLabel.setFill(Color.web("#2c3e50"));
 
-        Text amountLabel = new Text(String.valueOf(foreignAmount));
-        amountLabel.setFont(Font.font("Arial", 16));
-        amountLabel.setFill(Color.web("#2c3e50"));
-
-        foreignCurrencyBox.getChildren().addAll(currencyLabel, amountLabel);
+        // 修改这里：移除外币金额显示
+        foreignCurrencyBox.getChildren().add(currencyLabel);  // 只添加货币类型，不添加金额
 
         Text dateLabel = new Text(date);
         dateLabel.setFont(Font.font("Arial", 14));
@@ -311,7 +407,6 @@ public class InternationalList extends Application {
 
         ToggleButton starButton = createStarToggleButton();
 
-        // 添加删除按钮
         Button deleteButton = new Button("×");
         deleteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-font-size: 20px; -fx-font-weight: bold;");
         deleteButton.setOnAction(e -> deleteItem(index));
@@ -358,10 +453,5 @@ public class InternationalList extends Application {
             }
         }
         return false;
-    }
-
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }
