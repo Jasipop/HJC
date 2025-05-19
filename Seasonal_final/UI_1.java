@@ -78,7 +78,7 @@ public class UI_1 extends Application {
         mainLayout.setBottom(navBar);
         mainLayout.setCenter(scrollPane);
 
-        initializeData();
+        loadDataFromCSV(); // 启动时自动加载deals.csv
 
         Scene scene = new Scene(mainLayout, 1366, 768);
         primaryStage.setTitle("Localized Budgeting");
@@ -98,7 +98,7 @@ public class UI_1 extends Application {
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙");
 
 
-        homeBtn.setOnAction(e -> {
+        /*homeBtn.setOnAction(e -> {
             try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverBtn.setOnAction(e -> {
@@ -106,7 +106,7 @@ public class UI_1 extends Application {
         });
         settingsBtn.setOnAction(e -> {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
-        });
+        });*/
 
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
         return navBar;
@@ -303,25 +303,30 @@ public class UI_1 extends Application {
         dataList.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(CSV_FILE))) {
             String line;
-            boolean isHeader = true;
+            boolean inData = false;
             while ((line = reader.readLine()) != null) {
-                if (isHeader) {
-                    isHeader = false;
+                // 跳过无关行，直到遇到节日预算或表头
+                if (!inData) {
+                    if (line.contains("节日预算") || line.contains("Festival")) {
+                        inData = true;
+                    }
                     continue;
                 }
-                
+                // 处理节日预算数据
                 String[] values = line.split(",");
-                if (values.length >= 6 && "节日预算".equals(values[1])) {
+                // 兼容deals.csv和导出的格式
+                if (values.length >= 6 && ("节日预算".equals(values[1]) || values[0].matches("\\d{4}-\\d{2}-\\d{2}"))) {
                     String festival = values[2];
                     String date = values[0];
-                    int amount = Integer.parseInt(values[4]);
-                    String notes = values[values.length - 1];
-                    
-                    // 创建节日预算数据
+                    int amount = 0;
+                    try {
+                        amount = Integer.parseInt(values[5].replaceAll("[^\\d]", ""));
+                    } catch (Exception ignore) {}
+                    String notes = values.length > 10 ? values[10] : (values.length > 5 ? values[5] : "");
                     BudgetData data = new BudgetData(
                         festival,
-                        amount,
-                        0,
+                        "收入".equals(values[4]) ? amount : 0,
+                        "支出".equals(values[4]) ? amount : 0,
                         date,
                         date,
                         notes
@@ -329,8 +334,6 @@ public class UI_1 extends Application {
                     dataList.add(data);
                 }
             }
-            
-            // 更新表格和图表
             refreshDataDisplay();
             updateCharts();
         } catch (IOException e) {
@@ -527,10 +530,9 @@ public class UI_1 extends Application {
                 // 复制文件到程序目录
                 Files.copy(file.toPath(), new File(CSV_FILE).toPath(), 
                     StandardCopyOption.REPLACE_EXISTING);
-                
                 // 重新加载数据
                 loadDataFromCSV();
-                showAlert("账单导入成功！");
+                showInfo("账单导入成功！");
             } catch (IOException e) {
                 e.printStackTrace();
                 showAlert("导入失败：" + e.getMessage());
@@ -571,6 +573,14 @@ public class UI_1 extends Application {
         alert.setTitle("导出成功");
         alert.setHeaderText(null);
         alert.setContentText("已成功导出");
+        alert.showAndWait();
+    }
+
+    private void showInfo(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("提示");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
         alert.showAndWait();
     }
 
