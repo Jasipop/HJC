@@ -185,6 +185,16 @@ public class InternationalList extends Application {
         Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍");
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙");
 
+//        homeBtn.setOnAction(e -> {
+//            try { new Nutllet.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+//        });
+//        discoverBtn.setOnAction(e -> {
+//            try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+//        });
+//        settingsBtn.setOnAction(e -> {
+//            try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+//        });
+
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
         rootplus.setBottom(navBar);
 
@@ -229,16 +239,54 @@ public class InternationalList extends Application {
 
         alert.showAndWait().ifPresent(response -> {
             if (response == buttonTypeYes) {
+                // 获取要删除的交易数据（包含货币、外币金额、本地金额和日期）
+                String[] deletedData = csvData.get(index);
+                String deletedLine = findMatchingLineInCSV(deletedData);
+
+                if (deletedLine.isEmpty()) {
+                    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    errorAlert.setTitle("Error");
+                    errorAlert.setHeaderText("Transaction not found");
+                    errorAlert.setContentText("Could not find matching transaction in CSV file");
+                    errorAlert.showAndWait();
+                    return;
+                }
+
+                // 从内存中删除数据
                 csvData.remove(index);
+                allItems.remove(index);
+                itemsContainer.getChildren().remove(index);
 
-                try (FileWriter writer = new FileWriter("deals.csv")) {
-                    // 这里需要实现从deals.csv中删除对应行的逻辑
-                    // 由于deals.csv格式更复杂，可能需要更复杂的处理
-                    // 这里简化为只更新内存中的数据
-                    
-                    allItems.remove(index);
-                    itemsContainer.getChildren().remove(index);
+                // 更新CSV文件
+                try {
+                    // 读取原始文件
+                    List<String> lines = new ArrayList<>();
+                    boolean isDataSection = false;
+                    try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            if (line.startsWith("----------------------")) {
+                                isDataSection = true;
+                                lines.add(line);
+                                continue;
+                            }
 
+                            // 跳过要删除的行
+                            if (isDataSection && line.equals(deletedLine)) {
+                                continue;
+                            }
+                            lines.add(line);
+                        }
+                    }
+
+                    // 写入更新后的文件
+                    try (FileWriter writer = new FileWriter("deals.csv")) {
+                        for (String line : lines) {
+                            writer.write(line + "\n");
+                        }
+                    }
+
+                    // 更新剩余项的索引
                     for (int i = 0; i < allItems.size(); i++) {
                         HBox item = allItems.get(i);
                         for (javafx.scene.Node node : item.getChildren()) {
@@ -261,9 +309,67 @@ public class InternationalList extends Application {
                     successAlert.showAndWait();
                 } catch (IOException ex) {
                     ex.printStackTrace();
+                    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    errorAlert.setTitle("Error");
+                    errorAlert.setHeaderText("Failed to delete transaction");
+                    errorAlert.setContentText(ex.getMessage());
+                    errorAlert.showAndWait();
                 }
             }
         });
+    }
+
+    // 辅助方法：根据内存中的数据找到CSV文件中对应的行
+    private String findMatchingLineInCSV(String[] data) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
+            String line;
+            boolean isDataSection = false;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("----------------------")) {
+                    isDataSection = true;
+                    continue;
+                }
+
+                if (isDataSection && line.startsWith("\"")) {
+                    String[] parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+                    if (parts.length >= 6 && parts[1].contains("国际交易")) {
+                        // 检查是否匹配
+                        String date = parts[0].replace("\"", "").split(" ")[0];
+                        String currency = parts[3].replace("兑换", "").replace("\"", "");
+
+                        // 获取本地金额
+                        String localAmountStr = parts[5].replace("\"", "").replace("¥", "").trim();
+                        double localAmount = Double.parseDouble(localAmountStr);
+
+                        // 获取外币金额
+                        double foreignAmount = 1.0;
+                        if (parts[3].contains("(")) {
+                            String[] split = parts[3].split("\\(");
+                            if (split.length > 1) {
+                                String foreignAmountStr = split[1].replace(")", "").trim();
+                                try {
+                                    foreignAmount = Double.parseDouble(foreignAmountStr);
+                                } catch (NumberFormatException e) {
+                                    foreignAmount = 1.0;
+                                }
+                            }
+                        }
+
+                        // 比较日期、货币类型、外币金额和本地金额
+                        if (date.equals(data[3]) &&
+                                currency.contains(data[0]) &&
+                                Math.abs(foreignAmount - Double.parseDouble(data[1])) < 0.001 &&
+                                Math.abs(localAmount - Double.parseDouble(data[2])) < 0.001) {
+                            return line;
+                        }
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return "";
     }
 
     private HBox createItem(String foreignCurrency, Double foreignAmount, Double localAmount, String date, int index) {
