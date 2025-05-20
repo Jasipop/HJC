@@ -13,6 +13,7 @@ import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -103,7 +104,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙
 
         homeBtn.setOnAction(e -> {
-            try { new Nutllet.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverBtn.setOnAction(e -> {
             try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
@@ -111,8 +112,9 @@ public class Intelligent_Transaction_Classifier extends Application {
         settingsBtn.setOnAction(e -> {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
+        navBar.getChildren().addAll(homeBtn,discoverBtn,settingsBtn  );
 
-        navBar.getChildren().addAll(settingsBtn, discoverBtn, homeBtn); // 从右到左
+
         mainLayout.getChildren().add(navBar);
     }
 
@@ -266,27 +268,41 @@ public class Intelligent_Transaction_Classifier extends Application {
 
         tableCard.getChildren().addAll(tableTitle, tableScrollPane, summaryBox);
         tableCard.setPadding(new Insets(15));
+        tableCard.setPadding(new Insets(20));
         tableCard.setStyle(
-                "-fx-background-color: rgba(255,255,255,0.95);" +
-                        "-fx-background-radius: 16;" +
-                        "-fx-border-radius: 16;" +
-                        "-fx-border-color: #e0e0e0;" +
+                "-fx-background-color: #ffffff;" +
+                        "-fx-background-radius: 20;" +
+                        "-fx-border-radius: 20;" +
+                        "-fx-border-color: #ced4da;" +
                         "-fx-border-width: 1;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0.5, 0, 2);" +
-                        "-fx-max-width: 780;" +
-                        "-fx-pref-width: 780;"
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 4);"
         );
+
+        tableTitle.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 18));
+        tableTitle.setTextFill(Color.web("#495057"));
+
+        totalAmountLabel.setFont(Font.font("Microsoft YaHei", FontWeight.SEMI_BOLD, 14));
+        totalAmountLabel.setTextFill(Color.web("#212529"));
+
+        instruction.setFont(Font.font("Microsoft YaHei", FontWeight.NORMAL, 12));
+        instruction.setTextFill(Color.web("#6c757d"));
+
         return tableCard;
     }
 
     private void setupPieChart() {
         pieChart = new PieChart();
-        pieChart.setStyle("-fx-title-fill: #4a148c; -fx-font-weight: bold;");
         pieChart.setTitle("Spending Breakdown");
-        pieChart.setLegendSide(Side.BOTTOM);
+        pieChart.setLegendSide(Side.RIGHT);
         pieChart.setLabelsVisible(true);
-        pieChart.setPrefSize(400, 300);
+        pieChart.setStyle("-fx-font-family: 'Microsoft YaHei'; -fx-font-weight: bold; -fx-font-size: 14px;");
+
+        // 强制尺寸保持一致
+        pieChart.setMinSize(400, 400);
+        pieChart.setPrefSize(400, 400);
+        pieChart.setMaxSize(400, 400);
     }
+
 
     private void setupSliceEffects(PieChart.Data slice) {
         Timeline blinkTimeline = new Timeline(
@@ -327,15 +343,26 @@ public class Intelligent_Transaction_Classifier extends Application {
 
     private VBox createPieCard() {
         VBox pieCard = new VBox(pieChart);
-        pieCard.setPadding(new Insets(15));
+        pieCard.setPadding(new Insets(20));
+
+// 同样给 pieCard 强制尺寸
+        pieCard.setMinSize(400, 400);
+        pieCard.setPrefSize(400, 400);
+        pieCard.setMaxSize(400, 400);
+
         pieCard.setStyle(
-                "-fx-background-color: rgba(255,255,255,0.95);" +
-                        "-fx-background-radius: 16;" +
-                        "-fx-border-radius: 16;" +
-                        "-fx-border-color: #e0e0e0;" +
+                "-fx-background-color: #ffffff;" +
+                        "-fx-background-radius: 20;" +
+                        "-fx-border-radius: 20;" +
+                        "-fx-border-color: #ced4da;" +
                         "-fx-border-width: 1;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0.5, 0, 2);"
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 4);"
         );
+
+        pieChart.setLabelsVisible(true);
+        pieChart.setLegendSide(Side.RIGHT);
+        pieChart.setStyle("-fx-font-family: 'Microsoft YaHei'; -fx-font-weight: bold; -fx-font-size: 14px;");
+
         return pieCard;
     }
 
@@ -349,7 +376,27 @@ public class Intelligent_Transaction_Classifier extends Application {
         suggestionTitle.setTextFill(Color.web("#6c757d"));
 
         Button updateBtn = new Button("Update");
-        updateBtn.setStyle("-fx-background-color: #cab6f4; -fx-text-fill: white; -fx-font-weight: bold;");
+        updateBtn.setStyle(
+                "-fx-background-color: linear-gradient(to right, #6f42c1, #b886f1);" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 15;" +
+                        "-fx-padding: 6 20 6 20;"
+        );
+        updateBtn.setOnMouseEntered(e -> updateBtn.setStyle(
+                "-fx-background-color: linear-gradient(to right, #8a54c1, #d1a6f5);" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 15;" +
+                        "-fx-padding: 6 20 6 20;"
+        ));
+        updateBtn.setOnMouseExited(e -> updateBtn.setStyle(
+                "-fx-background-color: linear-gradient(to right, #6f42c1, #b886f1);" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 15;" +
+                        "-fx-padding: 6 20 6 20;"
+        ));
         updateBtn.setOnAction(e -> {
             StringBuilder params = new StringBuilder();
             for (Transaction t : data) {
@@ -366,11 +413,11 @@ public class Intelligent_Transaction_Classifier extends Application {
         Label insight3 = new Label("• You may set weekly limits or enable alerts to manage spending better.");
 
         for (Label label : new Label[]{insight1, insight2, insight3}) {
-            label.setFont(Font.font("Microsoft YaHei", 14));
-            label.setTextFill(Color.web("#63b006"));
+            label.setFont(Font.font("Microsoft YaHei", FontWeight.NORMAL, 14));
+            label.setTextFill(Color.web("#495057"));
             label.setWrapText(true);
-            label.setMaxWidth(400);
-            label.setPadding(new Insets(2, 0, 2, 0));
+            label.setMaxWidth(420);
+            label.setPadding(new Insets(4, 0, 4, 0));
         }
 
         VBox suggestionContent = new VBox(8, titleBox, insight1, insight2, insight3);
@@ -403,8 +450,9 @@ public class Intelligent_Transaction_Classifier extends Application {
 
     private VBox createMainLayout(ScrollPane scrollPane) {
         Label pageTitle = new Label("Intelligent Transaction Classification");
-        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 32));
+        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.EXTRA_BOLD, 36));
         pageTitle.setTextFill(Color.WHITE);
+        pageTitle.setEffect(new DropShadow(10, Color.web("#4a148c")));
 
         Label subtitle = new Label("AI-powered transaction analysis and classification");
         subtitle.setFont(Font.font("Microsoft YaHei", 16));
