@@ -619,26 +619,43 @@ public class UI_1 extends Application {
     // 账单导出处理
     private void handleExportBill() {
         try {
-            // 检查文件是否存在，避免重复添加表头
-            boolean fileExists = new File(CSV_FILE).exists();
+            // 1. 先读取deals.csv中已有的节日预算数据，构建唯一标识集合
+            Set<String> existingKeys = new HashSet<>();
+            File csvFile = new File(CSV_FILE);
+            if (csvFile.exists()) {
+                try (BufferedReader reader = new BufferedReader(new FileReader(csvFile))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.contains("节日预算")) {
+                            String[] values = line.split(",");
+                            if (values.length >= 6) {
+                                String festival = values[2];
+                                String date = values[0];
+                                String amount = values[5].replaceAll("[^0-9]", "");
+                                String key = festival + "|" + date + "|" + amount;
+                                existingKeys.add(key);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 2. 检查文件是否存在，避免重复添加表头
+            boolean fileExists = csvFile.exists();
             
-            // 使用追加模式写入文件
+            // 3. 使用追加模式写入文件
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
                     new FileOutputStream(CSV_FILE, true), "UTF-8"))) {
-                
                 // 如果文件不存在，添加表头
                 if (!fileExists) {
                     writer.write("交易时间,交易类型,交易对方,商品,收/支,金额(元),支付方式,当前状态,交易单号,商户单号,备注\n");
                 }
-                
-                // 逐个写入当前数据列表中的数据
+                int exportCount = 0;
                 for (BudgetData data : dataList) {
                     String tradeTime = data.getStartDate();
                     String tradeType = "节日预算";
                     String tradeTarget = data.getFestival();
                     String product = "";
-                    
-                    // 根据income和expenses决定收支类型
                     String incomeOrExpense;
                     int amount;
                     if (data.getIncome() > 0) {
@@ -648,23 +665,28 @@ public class UI_1 extends Application {
                         incomeOrExpense = "支出";
                         amount = data.getExpenses();
                     }
-                    
                     String payType = "其他";
                     String status = "已导出";
                     String tradeNo = "";
                     String merchantNo = "";
                     String notes = data.getNotes() == null || data.getNotes().equals("None.") ? "" : data.getNotes();
-                    
-                    // 构建CSV行并写入
+                    // 构建唯一key
+                    String key = tradeTarget + "|" + tradeTime + "|" + amount;
+                    if (existingKeys.contains(key)) {
+                        continue; // 已存在，跳过
+                    }
                     writer.write(String.format("%s,%s,%s,%s,%s,%d,%s,%s,%s,%s,%s\n",
                             tradeTime, tradeType, tradeTarget, product, incomeOrExpense, 
                             amount, payType, status, tradeNo, merchantNo, 
                             notes.replace(",", " ")));
+                    exportCount++;
+                }
+                if (exportCount == 0) {
+                    showInfo("没有新数据需要导出，deals.csv中已存在所有数据。");
+                } else {
+                    showInfo("账单导出成功！新数据已追加到文件末尾。");
                 }
             }
-            
-            // 导出成功提示
-            showInfo("账单导出成功！数据已追加到文件末尾。");
         } catch (Exception ex) {
             ex.printStackTrace();
             showAlert("账单导出失败：" + ex.getMessage());
