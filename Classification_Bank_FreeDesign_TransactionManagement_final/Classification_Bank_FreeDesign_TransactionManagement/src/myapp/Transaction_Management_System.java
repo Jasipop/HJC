@@ -1,4 +1,4 @@
-package myapp;
+package myapp;//package myapp;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -7,15 +7,20 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.ComboBoxTableCell;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.effect.DropShadow;
@@ -31,6 +36,7 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+
 
 public class Transaction_Management_System extends Application {
     private HBox chartContent;
@@ -90,7 +96,7 @@ public class Transaction_Management_System extends Application {
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙"); // ⚙
 
         homeBtn.setOnAction(e -> {
-            try { new Nutllet.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverBtn.setOnAction(e -> {
             try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
@@ -99,7 +105,8 @@ public class Transaction_Management_System extends Application {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        navBar.getChildren().addAll(settingsBtn, discoverBtn, homeBtn); // 从右到左
+        navBar.getChildren().addAll(homeBtn,discoverBtn,settingsBtn  );
+
         mainLayout.getChildren().add(navBar);
     }
 
@@ -153,12 +160,13 @@ public class Transaction_Management_System extends Application {
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         table.setStyle(
                 "-fx-font-size: 14px;" +
-                        "-fx-background-color: transparent;" +
+                        "-fx-background-color: #fff;" +
                         "-fx-table-cell-border-color: transparent;" +
                         "-fx-table-header-border-color: transparent;" +
                         "-fx-border-color: #e0e0e0;" +
                         "-fx-border-width: 1px;" +
-                        "-fx-border-radius: 8px;"
+                        "-fx-border-radius: 12px;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2);"
         );
         table.setPrefHeight(350);
         table.setFixedCellSize(40);
@@ -202,7 +210,7 @@ public class Transaction_Management_System extends Application {
 
         TableColumn<Transaction, String> dateCol = new TableColumn<>("Date");
         dateCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDate()));
-        dateCol.setStyle("-fx-alignment: CENTER; -fx-font-weight: bold;");
+        dateCol.setStyle("-fx-background-color: #f5f5f5; -fx-font-weight: bold; -fx-text-fill: #616161;");
 
         TableColumn<Transaction, String> nameCol = new TableColumn<>("Transaction Name");
         nameCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
@@ -422,31 +430,39 @@ public class Transaction_Management_System extends Application {
         return statsBox;
     }
 
-    private VBox createStatsItemBox(String title, String value, String emoji) {
-        VBox itemBox = new VBox(3);  // 减小间距
-        itemBox.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 8;");  // 减小内边距
+    // 修改后的createStatsItemBox方法
+    private VBox createStatsItemBox(String title, String value, String iconCode) {
+        VBox itemBox = new VBox(8);
+        itemBox.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;");
 
-        HBox emojiBox = new HBox(5);
-        emojiBox.setAlignment(Pos.CENTER_LEFT);
-        Label emojiLabel = new Label(emoji);
+        HBox header = new HBox(10);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        // 使用FontAwesome图标
+        Text icon = new Text(iconCode);
+        icon.setFont(Font.font("FontAwesome", 20));
+        icon.setFill(Color.web("#7b1fa2"));
+
         Label titleLabel = new Label(title);
-        emojiLabel.setStyle("-fx-font-size: 16px;");  // 减小emoji大小
-        titleLabel.setStyle(
-                "-fx-font-family: 'Microsoft YaHei';" +
-                        "-fx-font-size: 12px;" +
-                        "-fx-text-fill: #6c757d;"
-        );
-        emojiBox.getChildren().addAll(emojiLabel, titleLabel);
+        titleLabel.setStyle("-fx-font-family: 'Microsoft YaHei'; -fx-text-fill: #757575; -fx-font-size: 14;");
+
+        header.getChildren().addAll(icon, titleLabel);
 
         Label valueLabel = new Label(value);
-        valueLabel.setStyle(
-                "-fx-font-family: 'Microsoft YaHei';" +
-                        "-fx-font-size: 14px;" +  // 减小字体大小
-                        "-fx-font-weight: bold;" +
-                        "-fx-text-fill: #4a4a4a;"
-        );
+        valueLabel.setStyle("-fx-font-family: 'Microsoft YaHei'; -fx-font-size: 18; -fx-text-fill: #212121; -fx-font-weight: bold;");
 
-        itemBox.getChildren().addAll(emojiBox, valueLabel);
+        // 添加动态效果
+        itemBox.setOnMouseEntered(e -> {
+            itemBox.setStyle("-fx-background-color: #f3e5f5; -fx-background-radius: 12; -fx-padding: 15;");
+            itemBox.setCursor(Cursor.HAND);
+            itemBox.setEffect(new DropShadow(10, Color.web("#d1c4e940")));
+        });
+        itemBox.setOnMouseExited(e -> {
+            itemBox.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;");
+            itemBox.setEffect(null);
+        });
+
+        itemBox.getChildren().addAll(header, valueLabel);
         return itemBox;
     }
 
@@ -503,9 +519,22 @@ public class Transaction_Management_System extends Application {
         Button pdfButton = new Button("Export as PDF");
 
         // 设置按钮样式和事件处理
-        String buttonStyle = "-fx-background-color: #e6d5ff; -fx-text-fill: #4a4a4a; -fx-font-size: 14px; " +
-                "-fx-padding: 8 20; -fx-background-radius: 8; -fx-min-width: 200;";
-        
+        // 通用按钮样式
+        String buttonStyle =
+                "-fx-background-color: linear-gradient(to right, #7b1fa2, #9c27b0);" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-family: 'Microsoft YaHei';" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-padding: 12 30;" +
+                        "-fx-background-radius: 25;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);";
+
+// 悬停效果
+        String buttonHoverStyle =
+                "-fx-background-color: linear-gradient(to right, #9c27b0, #ab47bc);" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 12, 0, 0, 4);";
+
         csvButton.setStyle(buttonStyle);
         excelButton.setStyle(buttonStyle);
         pdfButton.setStyle(buttonStyle);
@@ -539,15 +568,15 @@ public class Transaction_Management_System extends Application {
         // 实现CSV导出逻辑
         StringBuilder csv = new StringBuilder();
         csv.append("Date,Transaction Name,Amount,Type\n");
-        
+
         for (Transaction t : transactions) {
             csv.append(String.format("%s,%s,%s,%s\n",
-                t.getDate(),
-                t.getName(),
-                t.getAmount(),
-                t.getType()));
+                    t.getDate(),
+                    t.getName(),
+                    t.getAmount(),
+                    t.getType()));
         }
-        
+
         // 这里应该添加文件保存对话框和实际的文件写入操作
         System.out.println("Exporting to CSV...");
         System.out.println(csv.toString());
@@ -624,11 +653,11 @@ public class Transaction_Management_System extends Application {
         applyButton.setOnAction(e -> {
             // 实现过滤逻辑
             filterTransactions(
-                startDate.getValue(),
-                endDate.getValue(),
-                minAmount.getText(),
-                maxAmount.getText(),
-                getSelectedType(typeGroup)
+                    startDate.getValue(),
+                    endDate.getValue(),
+                    minAmount.getText(),
+                    maxAmount.getText(),
+                    getSelectedType(typeGroup)
             );
             dialog.close();
         });
@@ -651,9 +680,9 @@ public class Transaction_Management_System extends Application {
     }
 
     private void filterTransactions(LocalDate startDate, LocalDate endDate,
-                                  String minAmount, String maxAmount, String type) {
+                                    String minAmount, String maxAmount, String type) {
         ObservableList<Transaction> filteredList = FXCollections.observableArrayList();
-        
+
         // 转换金额范围
         double min = minAmount.isEmpty() ? Double.MIN_VALUE : Double.parseDouble(minAmount);
         double max = maxAmount.isEmpty() ? Double.MAX_VALUE : Double.parseDouble(maxAmount);
@@ -661,9 +690,9 @@ public class Transaction_Management_System extends Application {
         for (Transaction t : transactions) {
             LocalDate transDate = LocalDate.parse(t.getDate());
             double amount = Double.parseDouble(t.getAmount());
-            
+
             boolean dateInRange = (startDate == null || !transDate.isBefore(startDate)) &&
-                                (endDate == null || !transDate.isAfter(endDate));
+                    (endDate == null || !transDate.isAfter(endDate));
             boolean amountInRange = amount >= min && amount <= max;
             boolean typeMatches = type.equals("All") || t.getType().equals(type);
 
@@ -769,20 +798,20 @@ public class Transaction_Management_System extends Application {
         typeChart = new PieChart();
         typeChart.setStyle(
                 "-fx-font-family: 'Microsoft YaHei';" +
-                        "-fx-title-fill: #4a148c;" +
-                        "-fx-font-weight: bold;" +
+                        "-fx-pie-color: #7b1fa2 #ab47bc #d1c4e9 #ede7f6;" +
                         "-fx-pie-label-visible: true;" +
-                        "-fx-pie-label-line-length: 20;" +
-                        "-fx-pie-label-line-color: #cab6f4;" +
-                        "-fx-pie-label-line-style: solid;" +
-                        "-fx-pie-label-line-width: 2;" +
-                        "-fx-background-color: transparent;"
+                        "-fx-pie-label-line-length: 10;" +
+                        "-fx-label-line-length: 10;" +
+                        "-fx-pie-label-font-size: 12px;"
         );
         typeChart.setLegendSide(javafx.geometry.Side.BOTTOM);
         typeChart.setLabelsVisible(true);
         typeChart.setPrefSize(400, 400);
         typeChart.setMinSize(400, 400);
         typeChart.setMaxSize(400, 400);
+        typeChart.lookupAll(".chart-legend-item").forEach(node ->
+                ((Labeled) node).setTextFill(Color.web("#616161"))
+        );
 
         // Add animation to the chart
         typeChart.setAnimated(true);
@@ -822,9 +851,9 @@ public class Transaction_Management_System extends Application {
                 double percentage = (onlineCount * 100.0) / totalCount;
                 Tooltip tooltip = new Tooltip(String.format(
                         "Online Transactions\n" +
-                        "Count: %d (%.1f%%)\n" +
-                        "Total Amount: ¥%.2f (%.1f%%)\n" +
-                        "Average Amount: ¥%.2f",
+                                "Count: %d (%.1f%%)\n" +
+                                "Total Amount: ¥%.2f (%.1f%%)\n" +
+                                "Average Amount: ¥%.2f",
                         onlineCount,
                         percentage,
                         onlineAmount,
@@ -833,12 +862,12 @@ public class Transaction_Management_System extends Application {
                 ));
                 tooltip.setStyle(
                         "-fx-font-size: 14px;" +
-                        "-fx-font-family: 'Microsoft YaHei';" +
-                        "-fx-background-color: white;" +
-                        "-fx-text-fill: #4a4a4a;" +
-                        "-fx-padding: 10px;" +
-                        "-fx-background-radius: 5px;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0.5, 0, 2);"
+                                "-fx-font-family: 'Microsoft YaHei';" +
+                                "-fx-background-color: white;" +
+                                "-fx-text-fill: #4a4a4a;" +
+                                "-fx-padding: 10px;" +
+                                "-fx-background-radius: 5px;" +
+                                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0.5, 0, 2);"
                 );
                 Tooltip.install(node, tooltip);
             });
@@ -864,9 +893,9 @@ public class Transaction_Management_System extends Application {
                 double percentage = (offlineCount * 100.0) / totalCount;
                 Tooltip tooltip = new Tooltip(String.format(
                         "Offline Transactions\n" +
-                        "Count: %d (%.1f%%)\n" +
-                        "Total Amount: ¥%.2f (%.1f%%)\n" +
-                        "Average Amount: ¥%.2f",
+                                "Count: %d (%.1f%%)\n" +
+                                "Total Amount: ¥%.2f (%.1f%%)\n" +
+                                "Average Amount: ¥%.2f",
                         offlineCount,
                         percentage,
                         offlineAmount,
@@ -875,12 +904,12 @@ public class Transaction_Management_System extends Application {
                 ));
                 tooltip.setStyle(
                         "-fx-font-size: 14px;" +
-                        "-fx-font-family: 'Microsoft YaHei';" +
-                        "-fx-background-color: white;" +
-                        "-fx-text-fill: #4a4a4a;" +
-                        "-fx-padding: 10px;" +
-                        "-fx-background-radius: 5px;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0.5, 0, 2);"
+                                "-fx-font-family: 'Microsoft YaHei';" +
+                                "-fx-background-color: white;" +
+                                "-fx-text-fill: #4a4a4a;" +
+                                "-fx-padding: 10px;" +
+                                "-fx-background-radius: 5px;" +
+                                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0.5, 0, 2);"
                 );
                 Tooltip.install(node, tooltip);
             });
@@ -895,8 +924,8 @@ public class Transaction_Management_System extends Application {
         // Set consistent colors for pie chart segments
         typeChart.setStyle(
                 "-fx-font-family: 'Microsoft YaHei';" +
-                "-fx-pie-color: #cab6f4, #a0a0a0;" +  // 固定紫色和灰色
-                "-fx-background-color: transparent;"
+                        "-fx-pie-color: #cab6f4, #a0a0a0;" +  // 固定紫色和灰色
+                        "-fx-background-color: transparent;"
         );
     }
 
@@ -915,12 +944,20 @@ public class Transaction_Management_System extends Application {
 
     private VBox createMainLayout(HBox content) {
         Label pageTitle = new Label("Transaction Management");
-        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 32));
+        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.EXTRA_BOLD, 36));
         pageTitle.setTextFill(Color.WHITE);
+        pageTitle.setEffect(new DropShadow(10, Color.web("#4a148c")));
 
         Label subtitle = new Label("Manage your transaction records, support categorized viewing and visual display");
-        subtitle.setFont(Font.font("Microsoft YaHei", 16));
-        subtitle.setTextFill(Color.WHITE);
+        subtitle.setFont(Font.font("Microsoft YaHei", FontWeight.MEDIUM, 18));
+        subtitle.setTextFill(Color.web("#f3e5f5"));
+
+        HBox titleContent = new HBox(15);
+        titleContent.setAlignment(Pos.CENTER);
+        ImageView logo = new ImageView(new Image("resources/expenses.png")); // 添加插图
+        logo.setFitHeight(48);
+        logo.setFitWidth(48);
+        titleContent.getChildren().addAll(logo, new VBox(5, pageTitle, subtitle));
 
         VBox titleBox = new VBox(5, pageTitle, subtitle);
         titleBox.setAlignment(Pos.CENTER);
