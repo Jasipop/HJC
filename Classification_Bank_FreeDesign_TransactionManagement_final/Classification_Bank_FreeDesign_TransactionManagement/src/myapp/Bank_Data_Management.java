@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -66,46 +67,52 @@ public class Bank_Data_Management extends Application {
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
-        // 主标题样式
+
+        // 主标题样式，渐变背景
         Label pageTitle = new Label("Bank Data Management");
-        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 32));
+        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.EXTRA_BOLD, 36));
         pageTitle.setTextFill(Color.WHITE);
+        pageTitle.setEffect(new DropShadow(10, Color.web("#4a148c")));
 
         Label subtitle = new Label("Manage your bank accounts and transactions");
-        subtitle.setFont(Font.font("Microsoft YaHei", 16));
-        subtitle.setTextFill(Color.WHITE);
+        subtitle.setFont(Font.font("Microsoft YaHei", FontWeight.MEDIUM, 18));
+        subtitle.setTextFill(Color.web("#f3e5f5"));
 
-        VBox titleBox = new VBox(5, pageTitle, subtitle);
+
+        VBox titleBox = new VBox(6, pageTitle, subtitle);
         titleBox.setAlignment(Pos.CENTER);
-        titleBox.setStyle("-fx-background-color: #e6d5ff;");
-        titleBox.setPadding(new Insets(25, 0, 25, 0));
+        titleBox.setPadding(new Insets(30));
+        titleBox.setStyle(
+                "-fx-background-color: linear-gradient(to right, #ede7f6, #d1c4e9);" +
+                        "-fx-border-radius: 0 0 20 20;" +
+                        "-fx-background-radius: 0 0 20 20;"
+        );
 
         TableView<BankTransaction> table = createTransactionTable();
         VBox tableCard = createStyledCard(table, "Transaction Records");
 
         VBox accountCard = createAccountCard();
 
-        // 左侧交易列表，右侧账户列表
-        HBox mainContent = new HBox(20, tableCard, accountCard);
-        mainContent.setPadding(new Insets(20, 40, 20, 40));
+        HBox mainContent = new HBox(30, tableCard, accountCard);
+        mainContent.setPadding(new Insets(25, 50, 25, 50));
         mainContent.setAlignment(Pos.TOP_CENTER);
 
         ScrollPane scrollPane = new ScrollPane(mainContent);
         scrollPane.setFitToHeight(true);
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setStyle("-fx-background-color: transparent; -fx-padding: 20 0;");
+        scrollPane.setStyle("-fx-background-color: #fafafa; -fx-padding: 20 0;");
 
         VBox contentWrapper = new VBox(scrollPane);
         contentWrapper.setAlignment(Pos.TOP_CENTER);
         contentWrapper.setPadding(new Insets(0));
-        contentWrapper.setStyle("-fx-background-color: white;");
+        contentWrapper.setStyle("-fx-background-color: #fafafa;");
 
         // Bottom Navigation Bar
         HBox navBar = new HBox();
-        navBar.setSpacing(0);
+        navBar.setSpacing(50);
         navBar.setAlignment(Pos.CENTER);
-        navBar.setPrefHeight(80);
+        navBar.setPrefHeight(70);
         navBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
 
         Button homeBtn = createNavButtonWithEmoji("Home", "🏠");
@@ -113,7 +120,7 @@ public class Bank_Data_Management extends Application {
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙");
 
         homeBtn.setOnAction(e -> {
-            try { new Nutllet.Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverBtn.setOnAction(e -> {
             try { new Discover().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
@@ -122,10 +129,10 @@ public class Bank_Data_Management extends Application {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        navBar.getChildren().addAll(settingsBtn, discoverBtn, homeBtn);
+        navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
 
         VBox mainLayout = new VBox(0, titleBox, contentWrapper, navBar);
-        mainLayout.setStyle("-fx-background-color: white; -fx-spacing: 0;");
+        mainLayout.setStyle("-fx-background-color: #fafafa;");
         mainLayout.setAlignment(Pos.TOP_CENTER);
 
         Scene scene = new Scene(mainLayout, 1366, 768);
@@ -137,18 +144,31 @@ public class Bank_Data_Management extends Application {
     }
 
 
+
     private TableView<BankTransaction> createTransactionTable() {
         TableView<BankTransaction> table = new TableView<>(transactions);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        table.setStyle("-fx-font-size: 14px; -fx-table-cell-size: 40px;");
+        table.setStyle(
+                "-fx-font-size: 15px; " +
+                        "-fx-table-cell-size: 40px; " +
+                        "-fx-selection-bar: #d1c4e9; " +
+                        "-fx-selection-bar-non-focused: #b39ddb;"
+        );
 
-        // 创建表格列
         table.getColumns().addAll(
                 createStyledColumn("Date", BankTransaction::getDate),
                 createStyledColumn("Description", BankTransaction::getDescription),
                 createStyledColumn("Amount", BankTransaction::getAmount),
                 createStyledColumn("Type", BankTransaction::getType)
         );
+
+        // 表头样式
+        table.widthProperty().addListener((obs, oldVal, newVal) -> {
+            Node header = table.lookup("TableHeaderRow");
+            if (header != null && header.isVisible()) {
+                header.setStyle("-fx-background-color: #d1c4e9;");
+            }
+        });
 
         return table;
     }
@@ -157,7 +177,7 @@ public class Bank_Data_Management extends Application {
                                                                     java.util.function.Function<BankTransaction, String> prop) {
         TableColumn<BankTransaction, String> col = new TableColumn<>(title);
         col.setCellValueFactory(cell -> new SimpleStringProperty(prop.apply(cell.getValue())));
-        col.setStyle("-fx-alignment: CENTER;");
+        col.setStyle("-fx-alignment: CENTER; -fx-font-weight: bold; -fx-text-fill: #4a148c;");
         return col;
     }
 
@@ -474,9 +494,6 @@ public class Bank_Data_Management extends Application {
             new Alert(Alert.AlertType.ERROR, "读取CSV文件失败: " + path).showAndWait();
         }
     }
-
-
-
 
 
     // Helper method with emoji
