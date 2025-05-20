@@ -4,8 +4,10 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -34,7 +36,14 @@ public class NutlletReminder extends Application {
         BorderPane root = new BorderPane();
 
         root.setTop(createHeader());
-        root.setCenter(createMainContent(primaryStage));
+        
+        // 创建ScrollPane包装主内容
+        ScrollPane scrollPane = new ScrollPane(createMainContent(primaryStage));
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        root.setCenter(scrollPane);
+        
         root.setBottom(createBottomNav(primaryStage));
 
         Scene scene = new Scene(root, 1366, 768);
@@ -142,6 +151,7 @@ public class NutlletReminder extends Application {
         mainContent.setBackground(new Background(new BackgroundFill(
                 BACKGROUND_COLOR, CornerRadii.EMPTY, Insets.EMPTY)));
         mainContent.setAlignment(Pos.TOP_CENTER);
+        mainContent.setMinWidth(400); // 设置最小宽度，确保内容不会被压缩
 
         for (Reminder reminder : reminders) {
             Button reminderButton = createReminderButton(reminder, primaryStage);
@@ -154,7 +164,7 @@ public class NutlletReminder extends Application {
         addReminderButton.setOnAction(e -> {
             try {
                 new NutlletAddNewReminder().start(new Stage());
-                primaryStage.close(); // 关闭当前页面
+                primaryStage.close();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -165,6 +175,9 @@ public class NutlletReminder extends Application {
     }
 
     private Button createReminderButton(Reminder reminder, Stage primaryStage) {
+        HBox mainContainer = new HBox(10);
+        mainContainer.setAlignment(Pos.CENTER_LEFT);
+
         VBox content = new VBox(10);
         content.setAlignment(Pos.CENTER_LEFT);
         content.setPadding(new Insets(15));
@@ -175,6 +188,16 @@ public class NutlletReminder extends Application {
         Label title = new Label(reminder.name);
         title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
         title.setTextFill(TEXT_COLOR);
+
+        // 添加金额范围
+        Label amountRange = new Label(String.format("Quota：¥%.0f-%.0f", reminder.minAmount, reminder.maxAmount));
+        amountRange.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
+        amountRange.setTextFill(TEXT_COLOR);
+
+        // 添加备注
+        Label remark = new Label("Remark：" + reminder.remark);
+        remark.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
+        remark.setTextFill(TEXT_COLOR);
 
         HBox progressBarContainer = new HBox();
         progressBarContainer.setBackground(new Background(new BackgroundFill(
@@ -192,25 +215,77 @@ public class NutlletReminder extends Application {
         Label description = new Label(reminder.progressText);
         description.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
         description.setTextFill(TEXT_COLOR);
-        content.getChildren().addAll(title, progressBarContainer, description);
+        content.getChildren().addAll(title, amountRange, remark, progressBarContainer, description);
 
-        Button button = new Button();
-        button.setGraphic(content);
-        button.setBackground(Background.EMPTY);
-        button.setPrefWidth(400);
-        button.setStyle("-fx-cursor: pointer;");
+        // 创建删除按钮
+        Button deleteButton = new Button("×");
+        deleteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff4d4d; -fx-font-size: 24px; -fx-font-weight: bold; -fx-cursor: hand;");
+        deleteButton.setOnMouseEntered(e -> deleteButton.setStyle("-fx-background-color: #ffebeb; -fx-text-fill: #ff4d4d; -fx-font-size: 24px; -fx-font-weight: bold; -fx-cursor: hand;"));
+        deleteButton.setOnMouseExited(e -> deleteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff4d4d; -fx-font-size: 24px; -fx-font-weight: bold; -fx-cursor: hand;"));
 
-        button.setOnAction(e -> {
+        // 设置删除按钮事件
+        deleteButton.setOnAction(e -> {
             try {
-                NutlletAddNewReminder addNewReminder = new NutlletAddNewReminder();
-                addNewReminder.setReminderData(reminder);
-                addNewReminder.start(new Stage());
+                deleteReminder(reminder.name);
+                // 重新加载页面
+                new NutlletReminder().start(new Stage());
                 primaryStage.close();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         });
-        return button;
+
+        mainContainer.getChildren().addAll(content, deleteButton);
+        return new Button("", mainContainer);
+    }
+
+    private void deleteReminder(String reminderName) {
+        try {
+            File file = new File("deals.csv");
+            StringBuilder content = new StringBuilder();
+            boolean isReminderSection = false;
+            boolean foundReminder = false;
+
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("类型,提醒名字,提醒类别,金额范围,备注")) {
+                        isReminderSection = true;
+                        content.append(line).append("\n");
+                        continue;
+                    }
+                    if (line.contains("----------------------微信支付账单明细列表--------------------")) {
+                        isReminderSection = false;
+                        content.append(line).append("\n");
+                        continue;
+                    }
+
+                    if (isReminderSection) {
+                        // 检查是否是要删除的提醒事项
+                        if (line.contains("\"" + reminderName + "\"")) {
+                            foundReminder = true;
+                            continue; // 跳过这一行，不添加到新内容中
+                        }
+                    }
+                    content.append(line).append("\n");
+                }
+            }
+
+            if (foundReminder) {
+                // 写入更新后的内容
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                    writer.write(content.toString());
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Delete failed");
+            alert.setContentText("Failed to delete reminder: " + e.getMessage());
+            alert.showAndWait();
+        }
     }
 
     private HBox createBottomNav(Stage primaryStage) {

@@ -1,9 +1,8 @@
 微信支付账单明细 微信昵称：[Q·ð 起始时间：[2025-04-10 09:40:16] 终止时间：[2025-04-18 19:55:33]
 ----------------------提醒事项明细列表----------------------
 类型,提醒名字,提醒类别,金额范围,备注
-"提醒事项","pension planning 500-700","For expense monitoring","¥500-700","better spend less than 500-700"
-"提醒事项","loan repayment 30-50","For savings","¥30-50","save money for loan"
-
+"提醒事项","pension planning","For expense monitoring","¥500-700","better spend less than 500-700"
+"提醒事项","loan repayment","For savings","¥30-50","save money for loan"
 ----------------------微信支付账单明细列表--------------------
 交易时间,交易类型,交易对方,商品,收/支,金额(元),支付方式,当前状态,交易单号,商户单号,备注
 "2025-04-18 18:35:22","商户消费","Apple","apple.com/bill/MXKYB51LHJa0","支出","¥45.00","零钱","支付成功","","",""

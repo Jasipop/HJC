@@ -80,10 +80,10 @@ public class NutlletAddNewReminder extends Application {
 
         // Question 3: Month Quota Range
         VBox question3 = createQuestionWithNumberRange(
-                "3. What do you want your reminder's month quota to be?"
+                "3. What do you want your reminder's quota to be?"
         );
 
-        // Question 4: Remark with "Delete" and "Done" Buttons
+        // Question 4: Remark with "Done" Button
         VBox question4 = createQuestionWithTextAreaAndButtons("4. Remark", primaryStage);
 
         formContent.getChildren().addAll(question1, question2, question3, question4);
@@ -159,18 +159,21 @@ public class NutlletAddNewReminder extends Application {
         remarkArea.setPrefWidth(400);
         remarkArea.setPrefHeight(100);
 
-        // "Delete" and "Done" Buttons
+        // Buttons Container
         VBox buttonsContainer = new VBox(10);
         buttonsContainer.setAlignment(Pos.CENTER);
 
-        Button deleteButton = new Button("Delete");
-        stylePrimaryButton(deleteButton);
+        // Return Button
+        Button returnButton = new Button("Return");
+        stylePrimaryButton(returnButton);
+        returnButton.setStyle("-fx-background-color: #95a5a6; " + returnButton.getStyle());
 
+        // Done Button
         Button doneButton = new Button("Done");
         stylePrimaryButton(doneButton);
 
-        // 设置 "Done" 按钮事件
-        deleteButton.setOnAction(e -> {
+        // 设置 Return 按钮事件
+        returnButton.setOnAction(e -> {
             try {
                 new NutlletReminder().start(new Stage());
                 primaryStage.close();
@@ -178,6 +181,8 @@ public class NutlletAddNewReminder extends Application {
                 ex.printStackTrace();
             }
         });
+
+        // 设置 Done 按钮事件
         doneButton.setOnAction(e -> {
             saveReminderData();
             try {
@@ -188,7 +193,7 @@ public class NutlletAddNewReminder extends Application {
             }
         });
 
-        buttonsContainer.getChildren().addAll(deleteButton, doneButton);
+        buttonsContainer.getChildren().addAll(returnButton, doneButton);
         questionBox.getChildren().addAll(questionLabel, remarkArea, buttonsContainer);
         return questionBox;
     }
@@ -250,9 +255,9 @@ public class NutlletAddNewReminder extends Application {
             e.printStackTrace();
             // 显示错误提示
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("错误");
-            alert.setHeaderText("保存失败");
-            alert.setContentText("无法保存提醒事项数据：" + e.getMessage());
+            alert.setTitle("Erro");
+            alert.setHeaderText("Save failed");
+            alert.setContentText("The reminder data cannot be saved：" + e.getMessage());
             alert.showAndWait();
         }
     }
