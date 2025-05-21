@@ -595,31 +595,61 @@ public class Free_Design_Classification extends Application {
         return panel;
     }
     private void exportToMarkdown() {
-        TreeItem<String> root = classificationTreeView.getRoot();
-        if (root == null) {
-            showAlert("Export Failed", "No classification structure to export");
+        TreeItem<String> root = groupData.get(currentGroup); // 改为从实际数据源获取
+        if (root == null || root.getChildren().isEmpty()) {
+            showAlert("Export Failed", "No data available to export");
             return;
         }
 
         StringBuilder mdContent = new StringBuilder();
         mdContent.append("# ").append(currentGroup).append("\n\n");
-        buildMarkdownContent(root, mdContent, 0);
+        mdContent.append("**Total Expenditure: ¥").append(String.format("%.2f", totalExpenditure)).append("**\n\n");
+        buildDataMarkdownContent(root, mdContent, 0);
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Markdown File");
+        fileChooser.setInitialFileName(currentGroup.replace(" ", "_") + "_Report.md");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Markdown Files", "*.md"));
+
         File file = fileChooser.showSaveDialog(exportButton.getScene().getWindow());
 
         if (file != null) {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
                 writer.write(mdContent.toString());
                 showAlert("Export Successful",
-                        "File saved to:\n" + file.getAbsolutePath());
+                        "Report saved to:\n" + file.getAbsolutePath());
             } catch (IOException ex) {
                 showAlert("Export Failed", "Error writing file:\n" + ex.getMessage());
             }
         }
+    }
+    // 新的递归构建方法
+    private void buildDataMarkdownContent(TreeItem<String> node, StringBuilder content, int level) {
+        for (TreeItem<String> item : node.getChildren()) {
+            String indent = "  ".repeat(level);
+            String[] parts = parseNodeWithAmount(item.getValue());
+
+            String line = indent + "- " + parts[0];
+            if (!parts[1].isEmpty()) {
+                line += " `¥" + parts[1] + "`";
+            }
+
+            content.append(line).append("\n");
+
+            if (!item.getChildren().isEmpty()) {
+                buildDataMarkdownContent(item, content, level + 1);
+            }
+        }
+    }
+    // 增强的节点解析方法
+    private String[] parseNodeWithAmount(String text) {
+        // 分割节点名称和金额
+        String[] parts = text.split(" - ¥");
+        if (parts.length == 2) {
+            return new String[]{parts[0].trim(), parts[1].trim()};
+        }
+        return new String[]{text.trim(), ""}; // 分类节点没有金额
     }
     // 递归生成Markdown内容
     private void buildMarkdownContent(TreeItem<String> node, StringBuilder content, int level) {
