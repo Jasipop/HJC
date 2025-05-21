@@ -287,8 +287,8 @@ public class Transaction_Management_System extends Application {
 
         Button addButton = new Button("Add Transaction");
         addButton.setStyle(
-                "-fx-background-color: linear-gradient(to right, #e6d5ff, #cab6f4);" +
-                        "-fx-text-fill: #4a4a4a;" +
+                "-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);" +
+                        "-fx-text-fill: white;" +
                         "-fx-font-family: 'Microsoft YaHei';" +
                         "-fx-font-size: 16px;" +
                         "-fx-padding: 12 30;" +
@@ -299,8 +299,8 @@ public class Transaction_Management_System extends Application {
 
         addButton.setOnMouseEntered(e ->
                 addButton.setStyle(
-                        "-fx-background-color: linear-gradient(to right, #cab6f4, #e6d5ff);" +
-                                "-fx-text-fill: #4a4a4a;" +
+                        "-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);" +
+                                "-fx-text-fill: white;" +
                                 "-fx-font-family: 'Microsoft YaHei';" +
                                 "-fx-font-size: 16px;" +
                                 "-fx-padding: 12 30;" +
@@ -312,8 +312,8 @@ public class Transaction_Management_System extends Application {
 
         addButton.setOnMouseExited(e ->
                 addButton.setStyle(
-                        "-fx-background-color: linear-gradient(to right, #e6d5ff, #cab6f4);" +
-                                "-fx-text-fill: #4a4a4a;" +
+                        "-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);" +
+                                "-fx-text-fill: white;" +
                                 "-fx-font-family: 'Microsoft YaHei';" +
                                 "-fx-font-size: 16px;" +
                                 "-fx-padding: 12 30;" +
@@ -420,7 +420,7 @@ public class Transaction_Management_System extends Application {
         VBox statsBox = new VBox(10);  // 减小间距
         statsBox.setStyle(
                 "-fx-padding: 15;" +  // 减小内边距
-                        "-fx-background-color: linear-gradient(to bottom right, #f8f0ff, #e6d5ff);" +
+                        "-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);" +
                         "-fx-background-radius: 12;" +
                         "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.5, 0, 2);"
         );
@@ -444,7 +444,7 @@ public class Transaction_Management_System extends Application {
                 "-fx-font-family: 'Microsoft YaHei';" +
                         "-fx-font-size: 18px;" +
                         "-fx-font-weight: bold;" +
-                        "-fx-text-fill: #4a4a4a;"
+                        "-fx-text-fill: white;"
         );
 
         // 添加异常处理
@@ -504,8 +504,8 @@ public class Transaction_Management_System extends Application {
 
         Button exportButton = new Button("Export Data");
         exportButton.setStyle(
-                "-fx-background-color: #e6d5ff;" +
-                        "-fx-text-fill: #4a4a4a;" +
+                "-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);" +
+                        "-fx-text-fill: white;" +
                         "-fx-font-family: 'Microsoft YaHei';" +
                         "-fx-font-size: 12px;" +
                         "-fx-padding: 6 15;" +
@@ -518,8 +518,8 @@ public class Transaction_Management_System extends Application {
 
         Button filterButton = new Button("Filter");
         filterButton.setStyle(
-                "-fx-background-color: #e6d5ff;" +
-                        "-fx-text-fill: #4a4a4a;" +
+                "-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);" +
+                        "-fx-text-fill: white;" +
                         "-fx-font-family: 'Microsoft YaHei';" +
                         "-fx-font-size: 12px;" +
                         "-fx-padding: 6 15;" +
@@ -1057,7 +1057,7 @@ public class Transaction_Management_System extends Application {
 
         Button applyButton = new Button("Apply Filter");
         applyButton.setStyle(
-                "-fx-background-color: #cab6f4;" +
+                "-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);" +
                         "-fx-text-fill: white;" +
                         "-fx-font-size: 14px;" +
                         "-fx-padding: 8 30;" +
@@ -1175,7 +1175,7 @@ public class Transaction_Management_System extends Application {
 
         Button submitButton = new Button("Submit");
         submitButton.setStyle(
-                "-fx-background-color: #cab6f4;" +
+                "-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);" +
                         "-fx-text-fill: white;" +
                         "-fx-font-family: 'Microsoft YaHei';" +
                         "-fx-font-size: 14px;" +
@@ -1301,13 +1301,13 @@ public class Transaction_Management_System extends Application {
 
     private VBox createMainLayout(HBox content) {
         Label pageTitle = new Label("Transaction Management");
-        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.EXTRA_BOLD, 36));
+        pageTitle.setFont(Font.font("Segoe UI", FontWeight.EXTRA_BOLD, 38));
         pageTitle.setTextFill(Color.WHITE);
-        pageTitle.setEffect(new DropShadow(10, Color.web("#4a148c")));
+        pageTitle.setEffect(new DropShadow(15, Color.web("#4c3092")));
 
         Label subtitle = new Label("Manage your transaction records, support categorized viewing and visual display");
-        subtitle.setFont(Font.font("Microsoft YaHei", FontWeight.MEDIUM, 18));
-        subtitle.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
+        subtitle.setFont(Font.font("Segoe UI", FontWeight.MEDIUM, 20));
+        subtitle.setTextFill(Color.web("#e6d5ff"));
 
 
         HBox titleContent = new HBox(15);
@@ -1317,9 +1317,9 @@ public class Transaction_Management_System extends Application {
         logo.setFitWidth(48);
         titleContent.getChildren().addAll(logo, new VBox(5, pageTitle, subtitle));
 
-        VBox titleBox = new VBox(5, pageTitle, subtitle);
+        VBox titleBox = new VBox(8, pageTitle, subtitle);
         titleBox.setAlignment(Pos.CENTER);
-        titleBox.setStyle("-fx-background-color: #e6d5ff;");
+        titleBox.setStyle("-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);");
         titleBox.setPadding(new Insets(30, 0, 30, 0));
 
         // 添加内容区域的包装器，确保内容居中且没有额外边距
