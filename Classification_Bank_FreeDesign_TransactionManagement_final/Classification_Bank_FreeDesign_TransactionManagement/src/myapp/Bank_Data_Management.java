@@ -70,23 +70,19 @@ public class Bank_Data_Management extends Application {
 
         // 主标题样式，渐变背景
         Label pageTitle = new Label("Bank Data Management");
-        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.EXTRA_BOLD, 36));
+        pageTitle.setFont(Font.font("Segoe UI", FontWeight.EXTRA_BOLD, 38));
         pageTitle.setTextFill(Color.WHITE);
-        pageTitle.setEffect(new DropShadow(10, Color.web("#4a148c")));
+        pageTitle.setEffect(new DropShadow(15, Color.web("#4c3092")));
 
         Label subtitle = new Label("Manage your bank accounts and transactions");
-        subtitle.setFont(Font.font("Microsoft YaHei", FontWeight.MEDIUM, 18));
-        subtitle.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
+        subtitle.setFont(Font.font("Segoe UI", FontWeight.MEDIUM, 20));
+        subtitle.setTextFill(Color.web("#e6d5ff"));
 
 
-        VBox titleBox = new VBox(6, pageTitle, subtitle);
+        VBox titleBox = new VBox(8, pageTitle, subtitle);
         titleBox.setAlignment(Pos.CENTER);
-        titleBox.setPadding(new Insets(30));
-        titleBox.setStyle(
-                "-fx-background-color: linear-gradient(to right, #ede7f6, #d1c4e9);" +
-                        "-fx-border-radius: 0 0 20 20;" +
-                        "-fx-background-radius: 0 0 20 20;"
-        );
+        titleBox.setStyle("-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);");
+        titleBox.setPadding(new Insets(30, 0, 30, 0));
 
         TableView<BankTransaction> table = createTransactionTable();
         VBox tableCard = createStyledCard(table, "Transaction Records");
@@ -152,7 +148,9 @@ public class Bank_Data_Management extends Application {
                 "-fx-font-size: 15px; " +
                         "-fx-table-cell-size: 40px; " +
                         "-fx-selection-bar: #d1c4e9; " +
-                        "-fx-selection-bar-non-focused: #b39ddb;"
+                        "-fx-selection-bar-non-focused: #b39ddb;" +
+                        "-fx-text-fill: black;" +  // 添加全局文本颜色
+                        "-fx-font-family: 'Microsoft YaHei';"  // 可选：统一字体
         );
 
         table.getColumns().addAll(
@@ -177,7 +175,7 @@ public class Bank_Data_Management extends Application {
                                                                     java.util.function.Function<BankTransaction, String> prop) {
         TableColumn<BankTransaction, String> col = new TableColumn<>(title);
         col.setCellValueFactory(cell -> new SimpleStringProperty(prop.apply(cell.getValue())));
-        col.setStyle("-fx-alignment: CENTER; -fx-font-weight: bold; -fx-text-fill: #4a148c;");
+        col.setStyle("-fx-alignment: CENTER; -fx-font-weight: bold; -fx-text-fill: black;");
         return col;
     }
 
