@@ -355,7 +355,6 @@ public class UI_1 extends Application {
                 }
             }
             refreshDataDisplay();
-            updateCharts();
         } catch (IOException e) {
             e.printStackTrace();
             // 读取失败不提示，因为首次运行文件可能不存在
@@ -416,7 +415,6 @@ public class UI_1 extends Application {
         }
         
         refreshDataDisplay();
-        updateCharts();
     }
 
     private void updateCharts(List<String> festivals) {
