@@ -30,7 +30,7 @@ public class UI_1 extends Application {
 
     private TableView<BudgetData> tableView;
     private BarChart<String, Number> barChart1;
-    private BarChart<Number, String> barChart2;
+    private BarChart<String, Number> barChart2;
     private final List<BudgetData> dataList = new ArrayList<>();
     private static final String CSV_FILE = "deals.csv";
 
@@ -171,17 +171,6 @@ public class UI_1 extends Application {
                 createToolbar(festivalComboBox, startDatePicker, endDatePicker, incomeField, expensesField, notesArea)
         );
 
-        // 添加导入账单按钮
-        Button importBtn = new Button("导入账单");
-        importBtn.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
-        importBtn.setOnAction(e -> handleImportBill());
-        box.getChildren().add(importBtn);
-
-        // 添加导出账单按钮
-        Button exportBtn = new Button("导出账单");
-        exportBtn.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white;");
-        exportBtn.setOnAction(e -> handleExportBill());
-        box.getChildren().add(exportBtn);
         return box;
     }
 
@@ -223,7 +212,7 @@ public class UI_1 extends Application {
 
         tableView.getColumns().addAll(festivalCol, dateCol, incomeCol, expensesCol, notesCol);
 
-        // 添加删除按钮 - 修改此处，删除后不再调用saveDataToCSV
+        // 删除按钮
         Button deleteBtn = new Button("Delete");
         deleteBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
         deleteBtn.setOnAction(e -> {
@@ -231,17 +220,29 @@ public class UI_1 extends Application {
             if (selected != null) {
                 dataList.remove(selected);
                 refreshDataDisplay(); 
-                // 删除了saveDataToCSV()调用，不再保存到deals.csv
             } else {
                 showAlert("Please select a row to delete!");
             }
         });
 
+        // 导入/导出按钮，放在删除按钮右边
+        Button importBtn = new Button("导入账单");
+        importBtn.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
+        importBtn.setOnAction(e -> handleImportBill());
+
+        Button exportBtn = new Button("导出账单");
+        exportBtn.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white;");
+        exportBtn.setOnAction(e -> handleExportBill());
+
+        HBox btnBox = new HBox(10);
+        btnBox.setAlignment(Pos.CENTER_LEFT);
+        btnBox.getChildren().addAll(deleteBtn, importBtn, exportBtn);
+
         VBox container = new VBox(10);
         container.getChildren().addAll(
                 createLabel("Budget Data", Color.PURPLE, 16),
                 tableView,
-                deleteBtn
+                btnBox
         );
 
         return container;
@@ -262,13 +263,13 @@ public class UI_1 extends Application {
         barChart1.setCategoryGap(20);
         barChart1.setPrefSize(600, 400);
 
-        // 收支比例图（横向）
-        NumberAxis xAxis2 = new NumberAxis();
-        CategoryAxis yAxis2 = new CategoryAxis();
+        // 收入-支出差值图（垂直）
+        CategoryAxis xAxis2 = new CategoryAxis();
+        NumberAxis yAxis2 = new NumberAxis();
         barChart2 = new BarChart<>(xAxis2, yAxis2);
-        barChart2.setTitle("Income/Expenses Ratio");
-        xAxis2.setLabel("Ratio");
-        yAxis2.setLabel("Festival");
+        barChart2.setTitle("Income - Expenses");
+        xAxis2.setLabel("Festival");
+        yAxis2.setLabel("Net Income");
         barChart2.setCategoryGap(20);
         barChart2.setPrefSize(600, 400);
 
@@ -306,6 +307,7 @@ public class UI_1 extends Application {
         dataList.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(CSV_FILE))) {
             String line;
+            Set<String> uniqueKeys = new HashSet<>(); // 用于去重
             while ((line = reader.readLine()) != null) {
                 // 只处理节日预算数据
                 if (line.contains("节日预算")) {
@@ -325,7 +327,6 @@ public class UI_1 extends Application {
                         } catch (NumberFormatException e) {
                             // 忽略无法解析的数字
                         }
-                        
                         // 根据收支类型决定income或expenses
                         int income = 0, expenses = 0;
                         if (values.length > 4) {
@@ -335,9 +336,11 @@ public class UI_1 extends Application {
                                 expenses = amount;
                             }
                         }
-                        
                         String notes = values.length > 10 ? values[10] : "None.";
-                        
+                        // 构建唯一key
+                        String key = festival + "|" + date + "|" + amount + "|" + income + "|" + expenses;
+                        if (uniqueKeys.contains(key)) continue; // 已存在，跳过
+                        uniqueKeys.add(key);
                         // 创建预算数据对象
                         BudgetData data = new BudgetData(
                             festival,
@@ -416,27 +419,64 @@ public class UI_1 extends Application {
         updateCharts();
     }
 
-    private void updateCharts() {
+    private void updateCharts(List<String> festivals) {
+        // 只统计当前表格中实际存在的节日
+        updateChartCategories(festivals);
+
         // 清除现有数据
         barChart1.getData().clear();
         barChart2.getData().clear();
 
-        // 按节日分组统计收入
+        // 按节日分组统计收入和支出
         Map<String, Double> festivalIncome = dataList.stream()
             .collect(Collectors.groupingBy(
                 BudgetData::getFestival,
                 Collectors.summingDouble(BudgetData::getIncome)
             ));
+        Map<String, Double> festivalExpenses = dataList.stream()
+            .collect(Collectors.groupingBy(
+                BudgetData::getFestival,
+                Collectors.summingDouble(BudgetData::getExpenses)
+            ));
 
         // 创建收入柱状图数据
         XYChart.Series<String, Number> incomeSeries = new XYChart.Series<>();
-        incomeSeries.setName("节日预算收入");
-        
-        festivalIncome.forEach((festival, income) -> 
-            incomeSeries.getData().add(new XYChart.Data<>(festival, income))
-        );
-
-        barChart1.getData().add(incomeSeries);
+        incomeSeries.setName("收入");
+        XYChart.Series<String, Number> expensesSeries = new XYChart.Series<>();
+        expensesSeries.setName("支出");
+        XYChart.Series<String, Number> netSeries = new XYChart.Series<>();
+        netSeries.setName("净收入");
+        for (String festival : festivals) {
+            double income = festivalIncome.getOrDefault(festival, 0.0);
+            double expenses = festivalExpenses.getOrDefault(festival, 0.0);
+            incomeSeries.getData().add(new XYChart.Data<>(festival, income));
+            expensesSeries.getData().add(new XYChart.Data<>(festival, expenses));
+            double net = income - expenses;
+            XYChart.Data<String, Number> netData = new XYChart.Data<>(festival, net);
+            netSeries.getData().add(netData);
+        }
+        barChart1.getData().addAll(incomeSeries, expensesSeries);
+        barChart2.getData().add(netSeries);
+        // 设置净收入柱状图颜色
+        for (XYChart.Data<String, Number> data : netSeries.getData()) {
+            double value = data.getYValue().doubleValue();
+            data.nodeProperty().addListener((obs, oldNode, newNode) -> {
+                if (newNode != null) {
+                    if (value >= 0) {
+                        newNode.setStyle("-fx-bar-fill: #2196F3;"); // 蓝色
+                    } else {
+                        newNode.setStyle("-fx-bar-fill: #e74c3c;"); // 红色
+                    }
+                }
+            });
+            if (data.getNode() != null) {
+                if (value >= 0) {
+                    data.getNode().setStyle("-fx-bar-fill: #2196F3;");
+                } else {
+                    data.getNode().setStyle("-fx-bar-fill: #e74c3c;");
+                }
+            }
+        }
     }
 
     private void handleSave(ComboBox<String> festivalComboBox,
@@ -503,42 +543,22 @@ public class UI_1 extends Application {
     private void refreshDataDisplay() {
         tableView.getItems().setAll(FXCollections.observableArrayList(dataList));
 
+        // 统一在此处计算festivals列表，确保是最新且唯一的来源
         List<String> festivals = dataList.stream()
                 .map(BudgetData::getFestival)
                 .distinct()
-                .sorted()
                 .collect(Collectors.toList());
 
-        updateChartCategories(festivals);
-
-        XYChart.Series<String, Number> incomeSeries = new XYChart.Series<>();
-        incomeSeries.setName("Income");
-        XYChart.Series<String, Number> expensesSeries = new XYChart.Series<>();
-        expensesSeries.setName("Expenses");
-        XYChart.Series<Number, String> ratioSeries = new XYChart.Series<>();
-        ratioSeries.setName("Ratio");
-
-        dataList.forEach(data -> {
-            String festival = data.getFestival();
-            incomeSeries.getData().add(new XYChart.Data<>(festival, data.getIncome()));
-            expensesSeries.getData().add(new XYChart.Data<>(festival, data.getExpenses()));
-            double ratio = data.getIncome() / (double) data.getExpenses();
-            ratioSeries.getData().add(new XYChart.Data<>(ratio, festival));
-        });
-
-        barChart1.getData().clear();
-        barChart1.getData().addAll(incomeSeries, expensesSeries);
-
-        barChart2.getData().clear();
-        barChart2.getData().add(ratioSeries);
+        updateChartCategories(festivals); // 用最新的festivals更新轴
+        updateCharts(festivals); // 将最新的festivals传递给updateCharts
     }
 
     private void updateChartCategories(List<String> festivals) {
         CategoryAxis xAxis1 = (CategoryAxis) barChart1.getXAxis();
         xAxis1.setCategories(FXCollections.observableArrayList(festivals));
 
-        CategoryAxis yAxis2 = (CategoryAxis) barChart2.getYAxis();
-        yAxis2.setCategories(FXCollections.observableArrayList(festivals));
+        CategoryAxis xAxis2 = (CategoryAxis) barChart2.getXAxis();
+        xAxis2.setCategories(FXCollections.observableArrayList(festivals));
     }
 
     private void showAlert(String message) {
