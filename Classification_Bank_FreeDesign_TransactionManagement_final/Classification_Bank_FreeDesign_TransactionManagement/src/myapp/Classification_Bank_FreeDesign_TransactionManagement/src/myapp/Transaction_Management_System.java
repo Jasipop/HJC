@@ -24,19 +24,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.stage.Modality;
-import javafx.stage.Screen;
-import javafx.stage.Stage;
+import javafx.stage.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.Stop;
-import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -627,49 +622,72 @@ public class Transaction_Management_System extends Application {
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle("Exported CSV Data");
 
-        // 使用系统内置图标
-        Node csvIcon = new Text("\uD83D\uDCC0"); // 📀 光盘图标
+        // 图标和标题
+        Node csvIcon = new Text("\uD83D\uDCC0"); // 📀
         csvIcon.setStyle("-fx-font-size: 24px;");
 
+        // 文本区域
         TextArea textArea = new TextArea(csvData);
         textArea.setEditable(false);
         textArea.setStyle("-fx-font-family: Consolas; -fx-font-size: 14px;");
 
+        // 滚动面板
         ScrollPane scrollPane = new ScrollPane(textArea);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
-        scrollPane.setPrefSize(800, 550);  // 调整高度
+        scrollPane.setPrefSize(800, 500);
 
-        // 创建提示信息（使用系统表情符号）
-        HBox hintBox = new HBox(5);
+        // 保存按钮
+        Button saveButton = new Button("Save to Local");
+        saveButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
+        saveButton.setGraphic(new Text("\uD83D\uDCBE")); // 💾 软盘图标
+        saveButton.setOnAction(e -> saveToLocal(csvData, dialog));
+
+        // 提示信息
+        HBox hintBox = new HBox(10);
         hintBox.setAlignment(Pos.CENTER_RIGHT);
-        Text warningIcon = new Text("\u2754"); // ❔ 问号图标
+        Text warningIcon = new Text("\u2754"); // ❔
         warningIcon.setStyle("-fx-font-family: 'Segoe UI Symbol'; -fx-font-size: 16px; -fx-fill: #666;");
         Label hintLabel = new Label("Any questions? Try again!");
         hintLabel.setStyle("-fx-text-fill: #666; -fx-font-style: italic; -fx-font-size: 12px;");
 
-        hintBox.getChildren().addAll(warningIcon, hintLabel);
+        // 组合底部控件
+        HBox bottomBox = new HBox(15);
+        bottomBox.setAlignment(Pos.CENTER_RIGHT);
+        bottomBox.getChildren().addAll(hintLabel, warningIcon, saveButton);
 
-        VBox layout = new VBox(10);
+        VBox layout = new VBox(15);
         layout.setPadding(new Insets(15));
         layout.getChildren().addAll(
                 new HBox(5, csvIcon, new Label("CSV Export Content:")),
                 scrollPane,
-                hintBox
+                bottomBox
         );
 
-        // 设置滚动区域自动扩展
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
         Scene scene = new Scene(layout);
         dialog.setScene(scene);
-
-        // 添加窗口图标
-        dialog.getIcons().add(new Image("https://img.icons8.com/fluency/48/csv.png")); // 使用公开图标
-
         dialog.showAndWait();
     }
+    private void saveToLocal(String csvData, Stage parentStage) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save CSV File");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv")
+        );
+        fileChooser.setInitialFileName("transactions_" + LocalDate.now() + ".csv");
 
+        File file = fileChooser.showSaveDialog(parentStage);
+        if (file != null) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write(csvData);
+                showSaveSuccessAlert();  // 显示保存成功提示
+            } catch (IOException ex) {
+                showErrorAlert("Save Failed", "Error saving file: " + ex.getMessage());
+            }
+        }
+    }
     // 显示成功提示
     private void showSuccessAlert() {
         Stage alertStage = new Stage();
@@ -710,7 +728,31 @@ public class Transaction_Management_System extends Application {
         ));
         timeline.play();
     }
+    private void showSaveSuccessAlert() {
+        Stage alertStage = new Stage();
+        alertStage.initStyle(StageStyle.UTILITY);
+        alertStage.initModality(Modality.NONE);
 
+        Label label = new Label("✅ File saved successfully!");
+        label.setStyle("-fx-font-size: 14px; -fx-text-fill: #4CAF50;");
+
+        Scene scene = new Scene(label);
+        alertStage.setScene(scene);
+        alertStage.setWidth(300);
+        alertStage.setHeight(100);
+        alertStage.show();
+
+        // 自动关闭
+        new Timeline(new KeyFrame(Duration.seconds(2), e -> alertStage.close())).play();
+    }
+
+    private void showErrorAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
     private void exportToExcel() {
         // 实现Excel导出逻辑
         System.out.println("Exporting to Excel...");
