@@ -37,6 +37,7 @@ public class Free_Design_Classification extends Application {
     private List<String> addedAmounts = new ArrayList<>();
     private Button exportButton;
 
+
     @Override
     public void start(Stage primaryStage) {
         initializeDataStructures();
