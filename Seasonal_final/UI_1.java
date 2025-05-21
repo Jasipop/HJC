@@ -234,9 +234,13 @@ public class UI_1 extends Application {
         exportBtn.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white;");
         exportBtn.setOnAction(e -> handleExportBill());
 
+        Button refreshBtn = new Button("刷新");
+        refreshBtn.setStyle("-fx-background-color: #009688; -fx-text-fill: white;");
+        refreshBtn.setOnAction(e -> refreshDataDisplay());
+
         HBox btnBox = new HBox(10);
         btnBox.setAlignment(Pos.CENTER_LEFT);
-        btnBox.getChildren().addAll(deleteBtn, importBtn, exportBtn);
+        btnBox.getChildren().addAll(deleteBtn, importBtn, exportBtn, refreshBtn);
 
         VBox container = new VBox(10);
         container.getChildren().addAll(
