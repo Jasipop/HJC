@@ -307,61 +307,71 @@ public class UI_1 extends Application {
     }
 
     private void loadDataFromCSV() {
-        // 读取deals.csv文件中的节日预算数据
         dataList.clear();
+        Map<String, BudgetData> aggregatedDataMap = new HashMap<>(); // 用于聚合数据
+
         try (BufferedReader reader = new BufferedReader(new FileReader(CSV_FILE))) {
             String line;
-            Set<String> uniqueKeys = new HashSet<>(); // 用于去重
+            boolean isFirstLine = true; 
             while ((line = reader.readLine()) != null) {
-                // 只处理节日预算数据
-                if (line.contains("节日预算")) {
-                    String[] values = line.split(",");
-                    if (values.length >= 6) {
-                        String festival = values[2];
-                        String date = values[0];
-                        int amount = 0;
+                if (isFirstLine) {
+                    isFirstLine = false; 
+                    continue;
+                }
+
+                String[] values = line.split(",", -1); 
+
+                if (values.length > 1 && "节日预算".equals(values[1])) {
+                    if (values.length > 5) { 
+                        String festivalName = values[2]; 
+                        String csvDate = values[0];     
+                        int csvAmount = 0;
                         try {
-                            // 从金额字段提取数字
-                            if (values.length > 5) {
-                                String amountStr = values[5].replaceAll("[^0-9]", "");
-                                if (!amountStr.isEmpty()) {
-                                    amount = Integer.parseInt(amountStr);
-                                }
+                            String amountStr = values[5].replaceAll("[^0-9]", "");
+                            if (!amountStr.isEmpty()) {
+                                csvAmount = Integer.parseInt(amountStr);
                             }
                         } catch (NumberFormatException e) {
-                            // 忽略无法解析的数字
+                            // 忽略解析错误
                         }
-                        // 根据收支类型决定income或expenses
-                        int income = 0, expenses = 0;
-                        if (values.length > 4) {
-                            if ("收入".equals(values[4])) {
-                                income = amount;
-                            } else if ("支出".equals(values[4])) {
-                                expenses = amount;
+                        
+                        String incomeOrExpenseType = values[4];
+                        String csvNotes = (values.length > 10 && values[10] != null) ? values[10] : "None.";
+
+                        BudgetData budgetEntry = aggregatedDataMap.get(festivalName);
+
+                        if (budgetEntry == null) {
+                            int currentIncome = 0;
+                            int currentExpenses = 0;
+                            if ("收入".equals(incomeOrExpenseType)) {
+                                currentIncome = csvAmount;
+                            } else if ("支出".equals(incomeOrExpenseType)) {
+                                currentExpenses = csvAmount;
                             }
+                            budgetEntry = new BudgetData(
+                                festivalName,
+                                currentIncome,
+                                currentExpenses,
+                                csvDate, // startDate
+                                csvDate, // endDate
+                                csvNotes
+                            );
+                            aggregatedDataMap.put(festivalName, budgetEntry);
+                        } else {
+                            if ("收入".equals(incomeOrExpenseType)) {
+                                budgetEntry.incomeProperty().set(budgetEntry.getIncome() + csvAmount);
+                            } else if ("支出".equals(incomeOrExpenseType)) {
+                                budgetEntry.expensesProperty().set(budgetEntry.getExpenses() + csvAmount);
+                            }
+                            // 注意：日期和备注采用首次遇到的信息，此处不更新
                         }
-                        String notes = values.length > 10 ? values[10] : "None.";
-                        // 构建唯一key
-                        String key = festival + "|" + date + "|" + amount + "|" + income + "|" + expenses;
-                        if (uniqueKeys.contains(key)) continue; // 已存在，跳过
-                        uniqueKeys.add(key);
-                        // 创建预算数据对象
-                        BudgetData data = new BudgetData(
-                            festival,
-                            income,
-                            expenses,
-                            date,
-                            date,
-                            notes
-                        );
-                        dataList.add(data);
                     }
                 }
             }
+            dataList.addAll(aggregatedDataMap.values());
             refreshDataDisplay();
         } catch (IOException e) {
             e.printStackTrace();
-            // 读取失败不提示，因为首次运行文件可能不存在
         }
     }
 
@@ -675,25 +685,33 @@ public class UI_1 extends Application {
                 String tradeTime = data.getStartDate();
                 String tradeType = "节日预算";
                 String tradeTarget = data.getFestival();
-                String product = "";
-                String incomeOrExpense;
-                int amount;
-                if (data.getIncome() > 0) {
-                    incomeOrExpense = "收入";
-                    amount = data.getIncome();
-                } else {
-                    incomeOrExpense = "支出";
-                    amount = data.getExpenses();
-                }
-                String payType = "其他";
-                String status = "已导出";
-                String tradeNo = "";
-                String merchantNo = "";
+                String product = ""; // 商品,默认为空
+                String payType = "其他"; // 支付方式,默认为其他
+                String status = "已导出"; // 当前状态,默认为已导出
+                String tradeNo = ""; // 交易单号,默认为空
+                String merchantNo = ""; // 商户单号,默认为空
                 String notes = data.getNotes() == null || data.getNotes().equals("None.") ? "" : data.getNotes();
-                exportLines.add(String.format("%s,%s,%s,%s,%s,%d,%s,%s,%s,%s,%s",
-                        tradeTime, tradeType, tradeTarget, product, incomeOrExpense, 
-                        amount, payType, status, tradeNo, merchantNo, 
-                        notes.replace(",", " ")));
+                String finalNotes = notes.replace(",", " "); // 替换备注中的逗号，避免CSV格式问题
+
+                // 如果有收入，则导出一行收入数据
+                if (data.getIncome() > 0) {
+                    String incomeOrExpense = "收入";
+                    int amount = data.getIncome();
+                    exportLines.add(String.format("%s,%s,%s,%s,%s,%d,%s,%s,%s,%s,%s",
+                            tradeTime, tradeType, tradeTarget, product, incomeOrExpense, 
+                            amount, payType, status, tradeNo, merchantNo, 
+                            finalNotes));
+                }
+
+                // 如果有支出，则导出一行支出数据
+                if (data.getExpenses() > 0) {
+                    String incomeOrExpense = "支出";
+                    int amount = data.getExpenses();
+                    exportLines.add(String.format("%s,%s,%s,%s,%s,%d,%s,%s,%s,%s,%s",
+                            tradeTime, tradeType, tradeTarget, product, incomeOrExpense, 
+                            amount, payType, status, tradeNo, merchantNo, 
+                            finalNotes));
+                }
             }
             // 3. 合并表头+非节日预算数据+当前UI节日预算数据，整体写回deals.csv
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
