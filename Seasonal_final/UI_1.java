@@ -553,10 +553,18 @@ public class UI_1 extends Application {
 
     private void updateChartCategories(List<String> festivals) {
         CategoryAxis xAxis1 = (CategoryAxis) barChart1.getXAxis();
-        xAxis1.setCategories(FXCollections.observableArrayList(festivals));
+        if (xAxis1.getCategories() != null) {
+            xAxis1.getCategories().setAll(festivals);
+        } else {
+            xAxis1.setCategories(FXCollections.observableArrayList(festivals));
+        }
 
         CategoryAxis xAxis2 = (CategoryAxis) barChart2.getXAxis();
-        xAxis2.setCategories(FXCollections.observableArrayList(festivals));
+        if (xAxis2.getCategories() != null) {
+            xAxis2.getCategories().setAll(festivals);
+        } else {
+            xAxis2.setCategories(FXCollections.observableArrayList(festivals));
+        }
     }
 
     private void showAlert(String message) {
