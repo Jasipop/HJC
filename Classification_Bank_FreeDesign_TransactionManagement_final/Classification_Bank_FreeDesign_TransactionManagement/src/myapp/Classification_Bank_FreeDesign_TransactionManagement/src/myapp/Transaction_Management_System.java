@@ -32,10 +32,13 @@ import javafx.scene.paint.Stop;
 import javafx.util.Duration;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 
@@ -531,6 +534,7 @@ public class Transaction_Management_System extends Application {
         return buttonBox;
     }
 
+    // 修改后的exportData方法（移除了Excel选项）
     private void exportData() {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -544,55 +548,294 @@ public class Transaction_Management_System extends Application {
         titleLabel.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 16));
 
         Button csvButton = new Button("Export as CSV");
-        Button excelButton = new Button("Export as Excel");
         Button pdfButton = new Button("Export as PDF");
 
-        // 设置按钮样式和事件处理
-        // 通用按钮样式
-        String buttonStyle =
-                "-fx-background-color: linear-gradient(to right, #7b1fa2, #9c27b0);" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-family: 'Microsoft YaHei';" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-padding: 12 30;" +
-                        "-fx-background-radius: 25;" +
-                        "-fx-cursor: hand;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);";
-
-// 悬停效果
-        String buttonHoverStyle =
-                "-fx-background-color: linear-gradient(to right, #9c27b0, #ab47bc);" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 12, 0, 0, 4);";
+        // 统一按钮样式
+        String buttonStyle = "-fx-background-color: linear-gradient(to right, #7b1fa2, #9c27b0);"
+                + "-fx-text-fill: white;"
+                + "-fx-font-family: 'Microsoft YaHei';"
+                + "-fx-font-size: 14px;"
+                + "-fx-padding: 12 30;"
+                + "-fx-background-radius: 25;"
+                + "-fx-cursor: hand;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);";
 
         csvButton.setStyle(buttonStyle);
-        excelButton.setStyle(buttonStyle);
         pdfButton.setStyle(buttonStyle);
 
         csvButton.setOnAction(e -> {
-            // 导出CSV逻辑
             exportToCSV();
             dialog.close();
         });
 
-        excelButton.setOnAction(e -> {
-            // 导出Excel逻辑
-            exportToExcel();
-            dialog.close();
-        });
-
         pdfButton.setOnAction(e -> {
-            // 导出PDF逻辑
-            exportToPDF();
             dialog.close();
+            showPDFPreviewDialog();
         });
 
-        content.getChildren().addAll(titleLabel, csvButton, excelButton, pdfButton);
+        content.getChildren().addAll(titleLabel, csvButton, pdfButton);
 
-        Scene dialogScene = new Scene(content, 300, 250);
+        Scene dialogScene = new Scene(content, 300, 150);
         dialog.setScene(dialogScene);
         dialog.showAndWait();
     }
+    // 新增PDF预览对话框
+    // 增强的PDF预览对话框
+    private void showPDFPreviewDialog() {
+        Stage previewStage = new Stage();
+        previewStage.initModality(Modality.APPLICATION_MODAL);
+        previewStage.setTitle("Preview Exporting PDF");
 
+        VBox previewContent = new VBox(10);
+        previewContent.setPadding(new Insets(15));
+
+        // 预览标题
+        Label previewTitle = new Label("Transaction Summary Report");
+        previewTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+
+        // 创建模拟PDF样式的表格
+        TableView<Transaction> previewTable = createPDFStyleTable();
+
+        // 统计信息
+        Label totalLabel = new Label("Total Transactions: " + transactions.size());
+        Label amountLabel = new Label("Total Amount: ¥" + calculateTotalAmount());
+
+        // 确认按钮
+        Button confirmButton = new Button("Generate PDF");
+        confirmButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
+        confirmButton.setOnAction(e -> {
+            previewStage.close();
+            savePDFToLocal();
+        });
+
+        previewContent.getChildren().addAll(
+                previewTitle,
+                previewTable,
+                new VBox(5, totalLabel, amountLabel),
+                confirmButton
+        );
+
+        ScrollPane scrollPane = new ScrollPane(previewContent);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefSize(600, 400);
+
+        Scene scene = new Scene(scrollPane);
+        previewStage.setScene(scene);
+        previewStage.show();
+    }
+    // 创建PDF样式表格
+    private TableView<Transaction> createPDFStyleTable() {
+        TableView<Transaction> table = new TableView<>();
+        table.setStyle("-fx-font-family: 'Courier New'; -fx-font-size: 12px;");
+
+        // 列定义
+        TableColumn<Transaction, String> dateCol = new TableColumn<>("Date");
+        dateCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDate()));
+        dateCol.setPrefWidth(100);
+
+        TableColumn<Transaction, String> nameCol = new TableColumn<>("Description");
+        nameCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
+        nameCol.setPrefWidth(200);
+
+        TableColumn<Transaction, String> amountCol = new TableColumn<>("Amount");
+        amountCol.setCellValueFactory(cell -> new SimpleStringProperty("¥" + cell.getValue().getAmount()));
+        amountCol.setPrefWidth(100);
+
+        TableColumn<Transaction, String> typeCol = new TableColumn<>("Type");
+        typeCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getType()));
+        typeCol.setPrefWidth(100);
+
+        table.getColumns().addAll(dateCol, nameCol, amountCol, typeCol);
+        table.setItems(transactions);
+        table.setPrefHeight(300);
+
+        return table;
+    }
+
+    private TableView<Transaction> createPreviewTable() {
+        TableView<Transaction> table = new TableView<>();
+
+        // 列定义（复用原有列样式）
+        TableColumn<Transaction, String> dateCol = new TableColumn<>("Date");
+        dateCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDate()));
+
+        TableColumn<Transaction, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
+
+        TableColumn<Transaction, String> amountCol = new TableColumn<>("Amount");
+        amountCol.setCellValueFactory(cell -> new SimpleStringProperty("¥" + cell.getValue().getAmount()));
+
+        TableColumn<Transaction, String> typeCol = new TableColumn<>("Type");
+        typeCol.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getType()));
+
+        table.getColumns().addAll(dateCol, nameCol, amountCol, typeCol);
+        table.setItems(transactions);
+        table.setPrefHeight(300);
+
+        return table;
+    }
+    // 保存PDF到本地
+    private void savePDFToLocal() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save PDF File");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("PDF Files", "*.pdf")
+        );
+        fileChooser.setInitialFileName("transactions_" + LocalDate.now() + ".pdf");
+
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            try {
+                generateSimplePDF(file);
+                showSaveSuccessAlert();
+            } catch (IOException ex) {
+                showErrorAlert("PDF Export Failed", "Error generating PDF: " + ex.getMessage());
+            }
+        }
+    }
+    private void generateSimplePDF(File file) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(file);
+             ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+
+            PrintWriter writer = new PrintWriter(buffer);
+
+            // 生成PDF内容
+            String content = createPDFContent();
+            int contentLength = content.getBytes(StandardCharsets.ISO_8859_1).length;
+
+            // 定义对象ID（按写入顺序）
+            int catalogId = 1;
+            int pagesId = 2;
+            int pageId = 3;
+            int contentId = 4;
+            int fontId = 5;
+
+            // 1. 写入Header
+            writer.println("%PDF-1.4");
+            writer.println("%%EOF"); // 简化Header，避免二进制标识问题
+
+            // 2. 写入Catalog对象
+            writer.println(catalogId + " 0 obj");
+            writer.println("<< /Type /Catalog /Pages " + pagesId + " 0 R >>");
+            writer.println("endobj");
+
+            // 3. 写入Pages对象
+            writer.println(pagesId + " 0 obj");
+            writer.println("<< /Type /Pages /Kids [" + pageId + " 0 R] /Count 1 >>");
+            writer.println("endobj");
+
+            // 4. 写入Page对象
+            writer.println(pageId + " 0 obj");
+            writer.println("<< /Type /Page /Parent " + pagesId + " 0 R");
+            writer.println("   /Resources << /Font << /F1 " + fontId + " 0 R >> >>");
+            writer.println("   /Contents " + contentId + " 0 R");
+            writer.println("   /MediaBox [0 0 612 792] >>");
+            writer.println("endobj");
+
+            // 5. 写入Content流
+            writer.println(contentId + " 0 obj");
+            writer.println("<< /Length " + contentLength + " >>");
+            writer.println("stream");
+            writer.print(content);
+            writer.println("\nendstream");
+            writer.println("endobj");
+
+            // 6. 写入Font对象
+            writer.println(fontId + " 0 obj");
+            writer.println("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+            writer.println("endobj");
+
+            writer.flush();
+
+            // 计算交叉引用表偏移量
+            byte[] pdfBytes = buffer.toByteArray();
+            long xrefOffset = pdfBytes.length;
+
+            // 7. 写入交叉引用表
+            writer.println("xref");
+            writer.println("0 6"); // 总共有5个对象 + 1个保留项
+            writer.println("0000000000 65535 f "); // 0号对象保留
+
+            // 手动计算每个对象的偏移量
+            String fullText = buffer.toString("ISO-8859-1");
+            List<Integer> offsets = new ArrayList<>();
+            offsets.add(fullText.indexOf("1 0 obj")); // Catalog
+            offsets.add(fullText.indexOf("2 0 obj")); // Pages
+            offsets.add(fullText.indexOf("3 0 obj")); // Page
+            offsets.add(fullText.indexOf("4 0 obj")); // Content
+            offsets.add(fullText.indexOf("5 0 obj")); // Font
+
+            for (int offset : offsets) {
+                writer.printf("%010d 00000 n \n", offset);
+            }
+
+            // 8. 写入Trailer
+            writer.println("trailer");
+            writer.println("<< /Size 6 /Root " + catalogId + " 0 R >>");
+            writer.println("startxref");
+            writer.println(xrefOffset);
+            writer.println("%%EOF");
+
+            writer.flush();
+
+            // 写入最终文件
+            fos.write(buffer.toByteArray());
+        }
+    }
+    // 创建PDF文本内容
+    private String createPDFContent() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("BT\n");
+        sb.append("/F1 12 Tf\n");
+
+        // 标题
+        sb.append("100 750 Td\n");
+        sb.append("(Transaction Report - ").append(LocalDate.now()).append(") Tj\n");
+
+        // 表格头
+        float y = 700;
+        sb.append("100 ").append(y).append(" Td\n");
+        sb.append("(Date       Description              Amount    Type) Tj\n");
+
+        // 数据行
+        for (Transaction t : transactions) {
+            y -= 20;
+            String line = String.format("%-10s %-20s ¥%-8s %-6s",
+                    t.getDate(),
+                    t.getName(),
+                    t.getAmount(),
+                    t.getType());
+            sb.append("100 ").append(y).append(" Td\n");
+            sb.append("(").append(escapePDFString(line)).append(") Tj\n");
+        }
+
+        // 统计信息
+        y -= 40;
+        sb.append("100 ").append(y).append(" Td\n");
+        sb.append("(Total Transactions: ").append(transactions.size()).append(") Tj\n");
+
+        y -= 20;
+        sb.append("100 ").append(y).append(" Td\n");
+        sb.append("(Total Amount: ¥").append(calculateTotalAmount()).append(") Tj\n");
+
+        sb.append("ET\n");
+        return sb.toString();
+    }
+
+    // 处理PDF特殊字符
+    private String escapePDFString(String input) {
+        return input.replace("\\", "\\\\")
+                .replace("(", "\\(")
+                .replace(")", "\\)");
+    }
+
+    // 计算总金额
+    private String calculateTotalAmount() {
+        double total = transactions.stream()
+                .mapToDouble(t -> Double.parseDouble(t.getAmount()))
+                .sum();
+        return String.format("%.2f", total);
+    }
     private void exportToCSV() {
         // 生成CSV数据
         StringBuilder csv = new StringBuilder();
