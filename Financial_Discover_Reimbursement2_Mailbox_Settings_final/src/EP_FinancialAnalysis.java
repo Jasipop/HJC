@@ -44,12 +44,12 @@ import java.io.OutputStream;
 import java.util.stream.Collectors;
 
 
-public class FinancialAnalysis extends Application {
+public class EP_FinancialAnalysis extends Application {
 
-    private final String lineColor = "#855FAF";
-    private final String barColor = "#855FAF";
-    private final String[] pieColors = {"#855FAF", "#CEA3ED", "#7D4B79", "#F05865", "#36344C"};
-    private final String backgroundColor = "#FFD4EC54";
+    private final String lineColor = "#11659A";
+    private final String barColor = "#11659A";
+    private final String[] pieColors = {"#11659A", "#3498db", "#1a252f", "#F05865", "#34495e"};
+    private final String backgroundColor = "#EBF5FB";
 
     private List<Transaction> transactions = new ArrayList<>();
 
@@ -64,18 +64,18 @@ public class FinancialAnalysis extends Application {
         mainContainer.setSpacing(20);
         mainContainer.setStyle("-fx-background-color: " + backgroundColor + ";");
 
-        Text title = new Text("Financial Analysis -- Personal");
+        Text title = new Text("Financial Analysis -- Enterprise");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
-        title.setFill(Color.web("#855FAF"));
+        title.setFill(Color.web("#11659A"));
         title.setOpacity(0);
         title.setScaleX(0.5);
         title.setScaleY(0.5);
 
-        Button pageButton = new Button("Go to Enterprise Edition");
+        Button pageButton = new Button("Go to Personal Edition");
         pageButton.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         pageButton.setStyle("-fx-background-color: " + lineColor + "; -fx-text-fill: white; -fx-font-size: 18px;");
         pageButton.setOnAction(e -> {
-            try { new EP_FinancialAnalysis().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            try { new FinancialAnalysis().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
         ParallelTransition titleAnimation = new ParallelTransition(
@@ -93,15 +93,15 @@ public class FinancialAnalysis extends Application {
 
         Label trendTitle = new Label("Monthly Spending Trend");
         trendTitle.setFont(Font.font("Arial", FontWeight.BOLD, 24));
-        trendTitle.setTextFill(Color.web("#855FAF"));
+        trendTitle.setTextFill(Color.web("#11659A"));
 
         Label categoryTitle = new Label("Spending by Category");
         categoryTitle.setFont(Font.font("Arial", FontWeight.BOLD, 24));
-        categoryTitle.setTextFill(Color.web("#855FAF"));
+        categoryTitle.setTextFill(Color.web("#11659A"));
 
         Label methodTitle = new Label("Payment Methods");
         methodTitle.setFont(Font.font("Arial", FontWeight.BOLD, 24));
-        methodTitle.setTextFill(Color.web("#855FAF"));
+        methodTitle.setTextFill(Color.web("#11659A"));
 
         WebView webView = new WebView();
         webView.getEngine().loadContent(generateFinancialAnalysis());
@@ -223,7 +223,7 @@ public class FinancialAnalysis extends Application {
     private void loadTransactionData() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("EnterpriseDeals.csv"))) {
             String line;
             boolean headerSkipped = false;
 
@@ -281,16 +281,16 @@ public class FinancialAnalysis extends Application {
     }
 
     private LineChart<Number, Number> buildSpendingTrendChart() {
-        NumberAxis xAxis = new NumberAxis(9, 19, 1);
+        NumberAxis xAxis = new NumberAxis(7, 20, 1);
         xAxis.setLabel("Date");
-        xAxis.setTickLabelFill(Color.web("#855FAF"));
+        xAxis.setTickLabelFill(Color.web("#11659A"));
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel("Amount (¥)");
-        yAxis.setTickLabelFill(Color.web("#855FAF"));
+        yAxis.setTickLabelFill(Color.web("#11659A"));
 
         LineChart<Number, Number> chart = new LineChart<>(xAxis, yAxis);
-        chart.setTitle("Daily Spending Trend - APRIL (4.10-4.19)");
+        chart.setTitle("Daily Spending Trend - APRIL (2024.2-2025.04)");
         chart.setLegendVisible(false);
         chart.setPrefWidth(1000);
         chart.setAlternativeRowFillVisible(false);
@@ -301,7 +301,7 @@ public class FinancialAnalysis extends Application {
         for (Transaction t : transactions) {
             if ("支出".equals(t.direction)) {
                 int day = t.date.getDayOfMonth();
-                if (t.date.isBefore(LocalDate.of(2025, 4, 9)) || t.date.isAfter(LocalDate.of(2025, 4, 19))) continue;
+                if (t.date.isBefore(LocalDate.of(2024, 2, 9)) || t.date.isAfter(LocalDate.of(2025, 4, 22))) continue;
                 dailySpending.put(day, dailySpending.getOrDefault(day, 0.0) + t.amount);
             }
         }
@@ -337,11 +337,11 @@ public class FinancialAnalysis extends Application {
     private BarChart<String, Number> buildCategorySpendingChart() {
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Category");
-        xAxis.setTickLabelFill(Color.web("#855FAF"));
+        xAxis.setTickLabelFill(Color.web("#11659A"));
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel("Amount (¥)");
-        yAxis.setTickLabelFill(Color.web("#855FAF"));
+        yAxis.setTickLabelFill(Color.web("#11659A"));
 
         BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
         chart.setTitle("Spending by Category");
@@ -445,7 +445,7 @@ public class FinancialAnalysis extends Application {
     }
 
     private void getAIRecommendations(TextArea aiContent, ProgressIndicator progress) {
-        aiContent.setText("Analying data...");
+        aiContent.setText("Analyzing data...");
         progress.setVisible(true);
 
         Task<String> aiTask = new Task<>() {
@@ -518,13 +518,13 @@ public class FinancialAnalysis extends Application {
             <style>
                 body {
                     font-family: 'Arial', sans-serif;
-                    background-color: #FFD4EC54;
-                    color: #855FAF;
+                    background-color: #EBF5FB;
+                    color: #11659A;
                     padding: 20px;
                     line-height: 1.6;
                 }
-                h1 { color: #855FAF; border-bottom: 2px solid #CEA3ED; padding-bottom: 10px; }
-                h2 { color: #6a3093; margin-top: 20px; }
+                h1 { color: #11659A; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+                h2 { color: #126E82; margin-top: 20px; }
                 ul { padding-left: 20px; }
                 li { margin-bottom: 8px; }
                 strong { color: #d14; }
@@ -588,6 +588,7 @@ public class FinancialAnalysis extends Application {
                 });
         html.append("</ul>");
 
+        // 添加建议
         html.append("""
         <h2>AI Recommendations</h2>
         <div id="aiRecommendations" style="background-color: white; padding: 15px; border-radius: 8px;">
@@ -672,7 +673,7 @@ public class FinancialAnalysis extends Application {
             scaleNavBtn.play();
 
             emojiLabel.setStyle("-fx-font-size: 18px;");
-            textLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #855FAF;");
+            textLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #11659A;");
         });
 
         navigationButton.setOnMouseExited(e -> {
