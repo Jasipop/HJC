@@ -5,6 +5,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -344,7 +345,7 @@ public class Free_Design_Classification extends Application {
         dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
 
         ListView<String[]> listView = new ListView<>();
-        List<String[]> deals = loadDealsFromCSV("deals.csv");
+        List<String[]> deals = loadDealsFromCSV("src/deals.csv");
         listView.getItems().addAll(deals);
 
         listView.setCellFactory(param -> new ListCell<>() {
@@ -696,12 +697,13 @@ public class Free_Design_Classification extends Application {
 
     private VBox createMainLayout(HBox content) {
         Label pageTitle = new Label("Free Definition");
-        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 32));
+        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.EXTRA_BOLD, 36));
         pageTitle.setTextFill(Color.WHITE);
+        pageTitle.setEffect(new DropShadow(10, Color.web("#4a148c")));
 
         Label subtitle = new Label("Create an exclusive Classification System for you");
-        subtitle.setFont(Font.font("Microsoft YaHei", 16));
-        subtitle.setTextFill(Color.WHITE);
+        subtitle.setFont(Font.font("Microsoft YaHei", FontWeight.MEDIUM, 18));
+        subtitle.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
 
         VBox titleBox = new VBox(5, pageTitle, subtitle);
         titleBox.setAlignment(Pos.CENTER);
