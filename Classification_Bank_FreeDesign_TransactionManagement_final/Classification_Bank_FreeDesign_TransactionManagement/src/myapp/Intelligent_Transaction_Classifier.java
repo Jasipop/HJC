@@ -19,13 +19,17 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -407,7 +411,9 @@ public class Intelligent_Transaction_Classifier extends Application {
         aiSuggestionArea.setWrapText(true);
         aiSuggestionArea.setStyle("-fx-font-family: 'Microsoft YaHei'; -fx-font-size: 14px;");
 
+
         VBox suggestionContent = new VBox(8, titleBox, aiSuggestionArea);
+        addExportButton(suggestionContent); // 添加导出按钮
         suggestionContent.setPadding(new Insets(15));
         suggestionContent.setStyle(pieCard.getStyle());
         suggestionContent.setMinHeight(180);
@@ -415,6 +421,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         VBox rightPanel = new VBox(15, pieCard, suggestionContent);
         rightPanel.setMinWidth(450);
         rightPanel.setPrefWidth(450);
+
         return rightPanel;
     }
     // 添加本地AI调用方法
@@ -476,7 +483,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         // 写入prompt并关闭输入流
         try (BufferedWriter writer = new BufferedWriter(
                 new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8))) {
-            writer.write(prompt + "\n请用中文回答，保持建议简洁实用。\n");
+            writer.write(prompt + "\n请一定用英文回答，保持建议简洁实用。\n");
             writer.flush();
         }
 
@@ -531,10 +538,163 @@ public class Intelligent_Transaction_Classifier extends Application {
             prompt.append(String.format("- %s: ¥%.2f (%.1f%%)\n", category, amount, percentage));
         });
 
-        prompt.append("\n请：1.指出消费模式 2.提供3条优化建议 3.使用口语化中文");
+        prompt.append("\n请：1.使用英文2.指出消费模式 3.提供3条优化建议");
         return prompt.toString();
     }
+    // 在类中添加导出按钮和相关方法
+    private void addExportButton(VBox suggestionContent) {
+        Button exportBtn = new Button("Export Report");
+        exportBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
+        exportBtn.setOnAction(e -> exportReport());
 
+        HBox buttonBox = new HBox(10, exportBtn);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        suggestionContent.getChildren().add(buttonBox);
+    }
+    private void exportReport() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Report");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("PDF Files", "*.pdf")
+        );
+        fileChooser.setInitialFileName("Transaction_Report_" + LocalDate.now() + ".pdf");
+
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            try {
+                String pdfContent = buildPdfContent();
+                generatePdfFile(file, pdfContent);
+                showAlert("Export Successful", "Report saved to:\n" + file.getAbsolutePath());
+            } catch (Exception e) {
+                showErrorAlert("Export Failed", e.getMessage());
+            }
+        }
+    }
+    // 构建PDF内容
+    private String buildPdfContent() {
+        StringBuilder sb = new StringBuilder();
+
+        // 添加建议
+        sb.append("AI Recommendations\n===================\n")
+                .append(aiSuggestionArea.getText()).append("\n\n");
+
+        return sb.toString();
+    }
+    // 生成PDF文件
+    public static void generatePdfFile(File file, String content) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        OutputStreamWriter osw = new OutputStreamWriter(baos, StandardCharsets.ISO_8859_1);
+        BufferedWriter writer = new BufferedWriter(osw);
+
+        // PDF Header
+        writer.write("%PDF-1.4\n");
+        writer.write("%\u00E2\u00E3\u00CF\u00D3\n");
+
+        // Object 1: Catalog
+        writer.write("1 0 obj\n");
+        writer.write("<< /Type /Catalog /Pages 2 0 R >>\n");
+        writer.write("endobj\n");
+
+        // Object 2: Pages
+        writer.write("2 0 obj\n");
+        writer.write("<< /Type /Pages /Kids [3 0 R] /Count 1 >>\n");
+        writer.write("endobj\n");
+
+        // Object 3: Page
+        writer.write("3 0 obj\n");
+        writer.write("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\n");
+        writer.write("endobj\n");
+
+        // Object 4: Content Stream
+        int maxLineLength = 80; // 每行限制字符数
+        int startY = 750; // 起始高度
+        int lineHeight = 15; // 行间距
+        List<String> lines = splitTextToLines(content, maxLineLength);
+
+        StringBuilder stream = new StringBuilder();
+        stream.append("BT\n");
+        stream.append("/F1 12 Tf\n");
+
+        int y = startY;
+        for (String line : lines) {
+            stream.append("1 0 0 1 50 ").append(y).append(" Tm\n"); // 每行坐标
+            stream.append("(").append(escapePdfString(line)).append(") Tj\n");
+            y -= lineHeight;
+        }
+
+        stream.append("ET\n");
+
+        byte[] contentBytes = stream.toString().getBytes(StandardCharsets.ISO_8859_1);
+
+        writer.write("4 0 obj\n");
+        writer.write("<< /Length " + contentBytes.length + " >>\n");
+        writer.write("stream\n");
+        writer.flush();
+        baos.write(contentBytes);
+        baos.flush();
+        writer.write("endstream\n");
+        writer.write("endobj\n");
+
+        // Object 5: Font
+        writer.write("5 0 obj\n");
+        writer.write("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\n");
+        writer.write("endobj\n");
+
+        writer.flush();
+
+        // Prepare full PDF content
+        byte[] body = baos.toByteArray();
+        int xrefOffset = body.length;
+
+        ByteArrayOutputStream finalBaos = new ByteArrayOutputStream();
+        finalBaos.write(body);
+
+        BufferedWriter finalWriter = new BufferedWriter(new OutputStreamWriter(finalBaos, StandardCharsets.ISO_8859_1));
+        finalWriter.write("xref\n");
+        finalWriter.write("0 6\n");
+        finalWriter.write("0000000000 65535 f \n");
+        finalWriter.write("0000000010 00000 n \n");
+        finalWriter.write("0000000060 00000 n \n");
+        finalWriter.write("0000000115 00000 n \n");
+        finalWriter.write("0000000200 00000 n \n");
+        finalWriter.write("0000000350 00000 n \n");
+        finalWriter.write("trailer\n");
+        finalWriter.write("<< /Size 6 /Root 1 0 R >>\n");
+        finalWriter.write("startxref\n");
+        finalWriter.write(xrefOffset + "\n");
+        finalWriter.write("%%EOF\n");
+        finalWriter.flush();
+
+        // Save to file
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            fos.write(finalBaos.toByteArray());
+        }
+    }
+
+    private static List<String> splitTextToLines(String text, int maxLen) {
+        List<String> lines = new ArrayList<>();
+        int index = 0;
+        while (index < text.length()) {
+            int end = Math.min(index + maxLen, text.length());
+            lines.add(text.substring(index, end));
+            index = end;
+        }
+        return lines;
+    }
+
+    private static String escapePdfString(String s) {
+        return s.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)");
+    }
+    // 添加成功提示
+    private void showAlert(String title, String message) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
+    }
     private HBox createMainContent(VBox tableCard, VBox rightPanel) {
         HBox content = new HBox(20, tableCard, rightPanel);
         content.setPadding(new Insets(20));
