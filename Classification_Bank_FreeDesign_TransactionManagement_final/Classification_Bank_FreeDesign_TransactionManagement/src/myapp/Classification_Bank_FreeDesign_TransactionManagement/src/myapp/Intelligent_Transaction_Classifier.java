@@ -4,6 +4,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.HostServices;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,6 +14,7 @@ import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -70,6 +72,9 @@ public class Intelligent_Transaction_Classifier extends Application {
     private final DecimalFormat df = new DecimalFormat("#.##");
     private double totalAmount;
     private HostServices hostServices;
+    private TextArea aiSuggestionArea;
+    private ProgressIndicator loadingSpinner;
+    private Button updateBtn;
 
     @Override
     public void start(Stage primaryStage) {
@@ -122,7 +127,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         totalAmount = 0.0;
 
         try {
-            Path path = Paths.get("deals.csv");
+            Path path = Paths.get("src/deals.csv");
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(new FileInputStream(path.toFile()), StandardCharsets.UTF_8)
             );
@@ -267,27 +272,41 @@ public class Intelligent_Transaction_Classifier extends Application {
 
         tableCard.getChildren().addAll(tableTitle, tableScrollPane, summaryBox);
         tableCard.setPadding(new Insets(15));
+        tableCard.setPadding(new Insets(20));
         tableCard.setStyle(
-                "-fx-background-color: rgba(255,255,255,0.95);" +
-                        "-fx-background-radius: 16;" +
-                        "-fx-border-radius: 16;" +
-                        "-fx-border-color: #e0e0e0;" +
+                "-fx-background-color: #ffffff;" +
+                        "-fx-background-radius: 20;" +
+                        "-fx-border-radius: 20;" +
+                        "-fx-border-color: #ced4da;" +
                         "-fx-border-width: 1;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0.5, 0, 2);" +
-                        "-fx-max-width: 780;" +
-                        "-fx-pref-width: 780;"
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 4);"
         );
+
+        tableTitle.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 18));
+        tableTitle.setTextFill(Color.web("#495057"));
+
+        totalAmountLabel.setFont(Font.font("Microsoft YaHei", FontWeight.SEMI_BOLD, 14));
+        totalAmountLabel.setTextFill(Color.web("#212529"));
+
+        instruction.setFont(Font.font("Microsoft YaHei", FontWeight.NORMAL, 12));
+        instruction.setTextFill(Color.web("#6c757d"));
+
         return tableCard;
     }
 
     private void setupPieChart() {
         pieChart = new PieChart();
-        pieChart.setStyle("-fx-title-fill: #4a148c; -fx-font-weight: bold;");
         pieChart.setTitle("Spending Breakdown");
-        pieChart.setLegendSide(Side.BOTTOM);
+        pieChart.setLegendSide(Side.RIGHT);
         pieChart.setLabelsVisible(true);
-        pieChart.setPrefSize(400, 300);
+        pieChart.setStyle("-fx-font-family: 'Microsoft YaHei'; -fx-font-weight: bold; -fx-font-size: 14px;");
+
+        // 强制尺寸保持一致
+        pieChart.setMinSize(400, 400);
+        pieChart.setPrefSize(400, 400);
+        pieChart.setMaxSize(400, 400);
     }
+
 
     private void setupSliceEffects(PieChart.Data slice) {
         Timeline blinkTimeline = new Timeline(
@@ -328,18 +347,30 @@ public class Intelligent_Transaction_Classifier extends Application {
 
     private VBox createPieCard() {
         VBox pieCard = new VBox(pieChart);
-        pieCard.setPadding(new Insets(15));
+        pieCard.setPadding(new Insets(20));
+
+// 同样给 pieCard 强制尺寸
+        pieCard.setMinSize(400, 400);
+        pieCard.setPrefSize(400, 400);
+        pieCard.setMaxSize(400, 400);
+
         pieCard.setStyle(
-                "-fx-background-color: rgba(255,255,255,0.95);" +
-                        "-fx-background-radius: 16;" +
-                        "-fx-border-radius: 16;" +
-                        "-fx-border-color: #e0e0e0;" +
+                "-fx-background-color: #ffffff;" +
+                        "-fx-background-radius: 20;" +
+                        "-fx-border-radius: 20;" +
+                        "-fx-border-color: #ced4da;" +
                         "-fx-border-width: 1;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0.5, 0, 2);"
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 4);"
         );
+
+        pieChart.setLabelsVisible(true);
+        pieChart.setLegendSide(Side.RIGHT);
+        pieChart.setStyle("-fx-font-family: 'Microsoft YaHei'; -fx-font-weight: bold; -fx-font-size: 14px;");
+
         return pieCard;
     }
 
+    // 修改createRightPanel方法
     private VBox createRightPanel(VBox pieCard) {
         HBox titleBox = new HBox();
         titleBox.setAlignment(Pos.CENTER_LEFT);
@@ -349,32 +380,34 @@ public class Intelligent_Transaction_Classifier extends Application {
         suggestionTitle.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 18));
         suggestionTitle.setTextFill(Color.web("#6c757d"));
 
-        Button updateBtn = new Button("Update");
-        updateBtn.setStyle("-fx-background-color: #cab6f4; -fx-text-fill: white; -fx-font-weight: bold;");
+        // 加载动画
+        loadingSpinner = new ProgressIndicator();
+        loadingSpinner.setVisible(false);
+        loadingSpinner.setPrefSize(20, 20);
+
+        updateBtn = new Button("Update");
+        updateBtn.setStyle("-fx-background-color: linear-gradient(to right, #6f42c1, #b886f1);"
+                + "-fx-text-fill: white;"
+                + "-fx-font-weight: bold;"
+                + "-fx-background-radius: 15;"
+                + "-fx-padding: 6 20 6 20;");
+
+        // 按钮点击事件
         updateBtn.setOnAction(e -> {
-            StringBuilder params = new StringBuilder();
-            for (Transaction t : data) {
-                params.append(String.format("date=%s&desc=%s&amount=%s&category=%s&",
-                        t.getDate(), t.getDescription(), t.getAmount(), t.getCategory()));
-            }
-            hostServices.showDocument("https://www.deepseek.com/analysis?" + params.toString());
+            updateBtn.setDisable(true);
+            loadingSpinner.setVisible(true);
+            generateLocalAISuggestion();
         });
 
-        titleBox.getChildren().addAll(suggestionTitle, updateBtn);
+        titleBox.getChildren().addAll(suggestionTitle, updateBtn, loadingSpinner);
 
-        Label insight1 = new Label("• Food & Beverage expenses account for ~34% of your total spending.");
-        Label insight2 = new Label("• Shopping is the largest expense. Consider reviewing your purchases.");
-        Label insight3 = new Label("• You may set weekly limits or enable alerts to manage spending better.");
+        // 建议显示区域
+        aiSuggestionArea = new TextArea();
+        aiSuggestionArea.setEditable(false);
+        aiSuggestionArea.setWrapText(true);
+        aiSuggestionArea.setStyle("-fx-font-family: 'Microsoft YaHei'; -fx-font-size: 14px;");
 
-        for (Label label : new Label[]{insight1, insight2, insight3}) {
-            label.setFont(Font.font("Microsoft YaHei", 14));
-            label.setTextFill(Color.web("#63b006"));
-            label.setWrapText(true);
-            label.setMaxWidth(400);
-            label.setPadding(new Insets(2, 0, 2, 0));
-        }
-
-        VBox suggestionContent = new VBox(8, titleBox, insight1, insight2, insight3);
+        VBox suggestionContent = new VBox(8, titleBox, aiSuggestionArea);
         suggestionContent.setPadding(new Insets(15));
         suggestionContent.setStyle(pieCard.getStyle());
         suggestionContent.setMinHeight(180);
@@ -383,6 +416,96 @@ public class Intelligent_Transaction_Classifier extends Application {
         rightPanel.setMinWidth(450);
         rightPanel.setPrefWidth(450);
         return rightPanel;
+    }
+    // 添加本地AI调用方法
+    private void generateLocalAISuggestion() {
+        new Thread(() -> {
+            try {
+                String prompt = buildAnalysisPrompt();
+                String suggestion = executeOllamaCommand(prompt);
+
+                Platform.runLater(() -> {
+                    aiSuggestionArea.setText(formatSuggestion(suggestion));
+                    loadingSpinner.setVisible(false);
+                    updateBtn.setDisable(false);
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    showErrorAlert("生成失败", "错误信息: " + e.getMessage());
+                    loadingSpinner.setVisible(false);
+                    updateBtn.setDisable(false);
+                });
+            }
+        }).start();
+    }
+    // 格式化建议（保持原样）
+    private String formatSuggestion(String rawSuggestion) {
+        return rawSuggestion.replaceAll("\\*\\*", "")
+                .replaceAll("\\n{2,}", "\n")
+                .replaceAll("\\d\\.\\s*", "• ");
+    }
+
+    // 错误提示（保持原样）
+    private void showErrorAlert(String title, String message) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
+    }
+    // 执行本地命令
+    private String executeOllamaCommand(String prompt) throws IOException, InterruptedException {
+        String ollamaPath = "\"C:\\Users\\Linda\\AppData\\Local\\Programs\\Ollama\\ollama.exe\"";
+        ProcessBuilder pb = new ProcessBuilder(
+                "cmd.exe", "/c", ollamaPath, "run", "qwen2:1.5b",
+                prompt + "\n请用中文回答，保持建议简洁实用"
+        );
+
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+
+        // 读取输出
+        StringBuilder output = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+        }
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            throw new RuntimeException("AI模型执行失败，退出码: " + exitCode);
+        }
+
+        return output.toString();
+    }
+
+    // 构建分析提示（保持原样）
+    private String buildAnalysisPrompt() {
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("基于以下消费数据生成简洁的财务建议：\n");
+
+        Map<String, Double> categoryTotals = new HashMap<>();
+        for (Transaction t : data) {
+            String category = t.getCategory();
+            double amount = Double.parseDouble(t.getAmount());
+            categoryTotals.put(category, categoryTotals.getOrDefault(category, 0.0) + amount);
+        }
+
+        double total = categoryTotals.values().stream().mapToDouble(Double::doubleValue).sum();
+
+        prompt.append("消费分类统计：\n");
+        categoryTotals.forEach((category, amount) -> {
+            double percentage = (amount / total) * 100;
+            prompt.append(String.format("- %s: ¥%.2f (%.1f%%)\n", category, amount, percentage));
+        });
+
+        prompt.append("\n请：1.指出消费模式 2.提供3条优化建议 3.使用口语化中文");
+        return prompt.toString();
     }
 
     private HBox createMainContent(VBox tableCard, VBox rightPanel) {
@@ -404,12 +527,13 @@ public class Intelligent_Transaction_Classifier extends Application {
 
     private VBox createMainLayout(ScrollPane scrollPane) {
         Label pageTitle = new Label("Intelligent Transaction Classification");
-        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 32));
+        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.EXTRA_BOLD, 36));
         pageTitle.setTextFill(Color.WHITE);
+        pageTitle.setEffect(new DropShadow(10, Color.web("#4a148c")));
 
         Label subtitle = new Label("AI-powered transaction analysis and classification");
-        subtitle.setFont(Font.font("Microsoft YaHei", 16));
-        subtitle.setTextFill(Color.WHITE);
+        subtitle.setFont(Font.font("Microsoft YaHei", FontWeight.MEDIUM, 18));
+        subtitle.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
 
         VBox titleBox = new VBox(5, pageTitle, subtitle);
         titleBox.setAlignment(Pos.CENTER);
