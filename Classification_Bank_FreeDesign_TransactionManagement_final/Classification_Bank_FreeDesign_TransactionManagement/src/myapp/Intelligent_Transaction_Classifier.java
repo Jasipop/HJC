@@ -469,7 +469,7 @@ public class Intelligent_Transaction_Classifier extends Application {
     }
     // 执行本地命令
     private String executeOllamaCommand(String prompt) throws IOException, InterruptedException {
-        String ollamaPath = "C:\\Users\\Linda\\AppData\\Local\\Programs\\Ollama\\ollama.exe";
+        String ollamaPath = "src/resources/ollama.exe";
 
         // 设置环境变量禁用ANSI颜色
         ProcessBuilder pb = new ProcessBuilder(
@@ -483,7 +483,7 @@ public class Intelligent_Transaction_Classifier extends Application {
         // 写入prompt并关闭输入流
         try (BufferedWriter writer = new BufferedWriter(
                 new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8))) {
-            writer.write(prompt + "\n请一定用英文回答，保持建议简洁实用。\n");
+            writer.write(prompt + "\nPlease answer only in English and keep the suggestion concise and practical.\n");
             writer.flush();
         }
 
@@ -521,7 +521,7 @@ public class Intelligent_Transaction_Classifier extends Application {
     // 构建分析提示（保持原样）
     private String buildAnalysisPrompt() {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("基于以下消费数据生成简洁的财务建议：\n");
+        prompt.append("Generate concise financial recommendations based on the following consumption data:\n");
 
         Map<String, Double> categoryTotals = new HashMap<>();
         for (Transaction t : data) {
@@ -532,13 +532,13 @@ public class Intelligent_Transaction_Classifier extends Application {
 
         double total = categoryTotals.values().stream().mapToDouble(Double::doubleValue).sum();
 
-        prompt.append("消费分类统计：\n");
+        prompt.append("Consumption classification statistics:\n");
         categoryTotals.forEach((category, amount) -> {
             double percentage = (amount / total) * 100;
             prompt.append(String.format("- %s: ¥%.2f (%.1f%%)\n", category, amount, percentage));
         });
 
-        prompt.append("\n请：1.使用英文2.指出消费模式 3.提供3条优化建议");
+        prompt.append("\nPlease: 1. Use only English and avoid Chinese. 2. Identify consumption patterns. 3. Provide 3 optimization suggestions");
         return prompt.toString();
     }
     // 在类中添加导出按钮和相关方法
