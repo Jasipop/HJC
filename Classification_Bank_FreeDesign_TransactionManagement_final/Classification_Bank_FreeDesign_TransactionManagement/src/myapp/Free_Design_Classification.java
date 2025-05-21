@@ -10,12 +10,18 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.control.cell.TextFieldTreeCell;
 import javafx.util.Pair;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Free_Design_Classification extends Application {
 
@@ -29,6 +35,7 @@ public class Free_Design_Classification extends Application {
     private String currentGroup;
     private List<String> addedNames = new ArrayList<>();
     private List<String> addedAmounts = new ArrayList<>();
+    private Button exportButton;
 
     @Override
     public void start(Stage primaryStage) {
@@ -544,10 +551,21 @@ public class Free_Design_Classification extends Application {
                         "-fx-padding: 5;"
         );
 
-        Button addCategoryButton = new Button("Add Category");
-        Button addSubcategoryButton = new Button("Add Subcategory");
-        Button deleteCategoryButton = new Button("Delete Category");
-        Button saveButton = new Button("Save Changes");
+        Button addCategoryButton = createStyledButton("Add Category", "#9c36b5");
+        Button addSubcategoryButton = createStyledButton("Add Subcategory", "#6741d9");
+        Button deleteCategoryButton = createStyledButton("Delete", "#c2255c");
+        Button saveButton = createStyledButton("Save", "#2f9e44");
+        exportButton = createStyledButton("Export MD", "#1971c2"); // 新增导出按钮
+
+        addCategoryButton.setOnAction(e -> addCategory());
+        addSubcategoryButton.setOnAction(e -> addSubcategory());
+        deleteCategoryButton.setOnAction(e -> deleteCategory());
+        saveButton.setOnAction(e -> saveClassificationChanges());
+        exportButton.setOnAction(e -> exportToMarkdown()); // 绑定导出方法
+
+        HBox buttonBox = new HBox(10);
+        buttonBox.getChildren().addAll(addCategoryButton, addSubcategoryButton,
+                deleteCategoryButton, saveButton, exportButton); // 添加导出按钮
 
         String buttonStyle =
                 "-fx-background-color: #9c36b5;" +
@@ -569,14 +587,110 @@ public class Free_Design_Classification extends Application {
         deleteCategoryButton.setOnAction(e -> deleteCategory());
         saveButton.setOnAction(e -> saveClassificationChanges());
 
-        HBox buttonBox = new HBox(10);
-        buttonBox.getChildren().addAll(addCategoryButton, addSubcategoryButton, deleteCategoryButton, saveButton);
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setPadding(new Insets(10, 0, 0, 0));
 
         panel.getChildren().addAll(title, classificationTreeView, buttonBox);
 
         return panel;
+    }
+    private void exportToMarkdown() {
+        TreeItem<String> root = classificationTreeView.getRoot();
+        if (root == null) {
+            showAlert("Export Failed", "No classification structure to export");
+            return;
+        }
+
+        StringBuilder mdContent = new StringBuilder();
+        mdContent.append("# ").append(currentGroup).append("\n\n");
+        buildMarkdownContent(root, mdContent, 0);
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Markdown File");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Markdown Files", "*.md"));
+        File file = fileChooser.showSaveDialog(exportButton.getScene().getWindow());
+
+        if (file != null) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write(mdContent.toString());
+                showAlert("Export Successful",
+                        "File saved to:\n" + file.getAbsolutePath());
+            } catch (IOException ex) {
+                showAlert("Export Failed", "Error writing file:\n" + ex.getMessage());
+            }
+        }
+    }
+    // 递归生成Markdown内容
+    private void buildMarkdownContent(TreeItem<String> node, StringBuilder content, int level) {
+        for (TreeItem<String> item : node.getChildren()) {
+            String indent = "  ".repeat(level);
+            String line = indent + "- " + parseNodeText(item.getValue());
+
+            // 添加金额信息（如果存在）
+            if (item.getValue().contains("¥")) {
+                String amount = extractAmount(item.getValue());
+                line += " `¥" + amount + "`";
+            }
+
+            content.append(line).append("\n");
+
+            if (!item.isLeaf()) {
+                buildMarkdownContent(item, content, level + 1);
+            }
+        }
+    }
+
+    // 辅助方法：提取金额
+    private String extractAmount(String text) {
+        Matcher matcher = Pattern.compile("¥([0-9.]+)").matcher(text);
+        return matcher.find() ? matcher.group(1) : "0.00";
+    }
+
+    // 辅助方法：解析节点文本
+    private String parseNodeText(String text) {
+        return text.split(" - ¥")[0].trim();
+    }
+
+    // 新增样式化按钮方法
+    private Button createStyledButton(String text, String color) {
+        Button button = new Button(text);
+        button.setStyle(
+                "-fx-background-color: " + color + ";" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-font-size: 13px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-padding: 8 15;" +
+                        "-fx-background-radius: 6;" +
+                        "-fx-cursor: hand;"
+        );
+
+        // 悬停效果
+        button.setOnMouseEntered(e -> button.setStyle(
+                button.getStyle() + "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 1);"));
+        button.setOnMouseExited(e -> button.setStyle(
+                button.getStyle().replace("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 1);", "")));
+
+        return button;
+    }
+
+    // 新增提示框方法
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        // 美化对话框
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setStyle(
+                "-fx-background-color: #f8f9fa;" +
+                        "-fx-border-color: #dee2e6;" +
+                        "-fx-border-width: 1px;" +
+                        "-fx-border-radius: 5px;"
+        );
+        alert.showAndWait();
     }
 
     private void updateTrees() {
@@ -696,19 +810,19 @@ public class Free_Design_Classification extends Application {
     }
 
     private VBox createMainLayout(HBox content) {
-        Label pageTitle = new Label("Free Definition");
-        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.EXTRA_BOLD, 36));
+        Label pageTitle = new Label("Free Classification Designer");
+        pageTitle.setFont(Font.font("Segoe UI", FontWeight.EXTRA_BOLD, 38));
         pageTitle.setTextFill(Color.WHITE);
-        pageTitle.setEffect(new DropShadow(10, Color.web("#4a148c")));
+        pageTitle.setEffect(new DropShadow(15, Color.web("#4c3092")));
 
-        Label subtitle = new Label("Create an exclusive Classification System for you");
-        subtitle.setFont(Font.font("Microsoft YaHei", FontWeight.MEDIUM, 18));
-        subtitle.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
+        Label subtitle = new Label("Craft Your Custom Financial Taxonomy");
+        subtitle.setFont(Font.font("Segoe UI", FontWeight.MEDIUM, 20));
+        subtitle.setTextFill(Color.web("#e6d5ff"));
 
-        VBox titleBox = new VBox(5, pageTitle, subtitle);
+        VBox titleBox = new VBox(8, pageTitle, subtitle);
         titleBox.setAlignment(Pos.CENTER);
-        titleBox.setStyle("-fx-background-color: #e6d5ff;");
-        titleBox.setPadding(new Insets(25, 0, 25, 0));
+        titleBox.setStyle("-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);");
+        titleBox.setPadding(new Insets(30, 0, 30, 0));
 
         VBox contentWrapper = new VBox(content);
         contentWrapper.setAlignment(Pos.TOP_CENTER);
