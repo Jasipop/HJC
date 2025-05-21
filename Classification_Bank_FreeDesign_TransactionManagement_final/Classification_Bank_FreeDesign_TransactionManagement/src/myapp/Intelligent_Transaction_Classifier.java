@@ -714,18 +714,18 @@ public class Intelligent_Transaction_Classifier extends Application {
 
     private VBox createMainLayout(ScrollPane scrollPane) {
         Label pageTitle = new Label("Intelligent Transaction Classification");
-        pageTitle.setFont(Font.font("Microsoft YaHei", FontWeight.EXTRA_BOLD, 36));
+        pageTitle.setFont(Font.font("Segoe UI", FontWeight.EXTRA_BOLD, 38));
         pageTitle.setTextFill(Color.WHITE);
-        pageTitle.setEffect(new DropShadow(10, Color.web("#4a148c")));
+        pageTitle.setEffect(new DropShadow(15, Color.web("#4c3092")));
 
         Label subtitle = new Label("AI-powered transaction analysis and classification");
-        subtitle.setFont(Font.font("Microsoft YaHei", FontWeight.MEDIUM, 18));
-        subtitle.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
+        subtitle.setFont(Font.font("Segoe UI", FontWeight.MEDIUM, 20));
+        subtitle.setTextFill(Color.web("#e6d5ff"));
 
-        VBox titleBox = new VBox(5, pageTitle, subtitle);
+        VBox titleBox = new VBox(8, pageTitle, subtitle);
         titleBox.setAlignment(Pos.CENTER);
-        titleBox.setStyle("-fx-background-color: #e6d5ff;");
-        titleBox.setPadding(new Insets(25, 0, 25, 0));
+        titleBox.setStyle("-fx-background-color: linear-gradient(to right, #6c5ce7, #8e7dff);");
+        titleBox.setPadding(new Insets(30, 0, 30, 0));
 
         VBox contentWrapper = new VBox(scrollPane);
         contentWrapper.setAlignment(Pos.TOP_CENTER);
