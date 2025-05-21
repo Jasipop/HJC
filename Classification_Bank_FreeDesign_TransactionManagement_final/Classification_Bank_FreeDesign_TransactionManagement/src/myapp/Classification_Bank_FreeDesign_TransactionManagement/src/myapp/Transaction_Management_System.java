@@ -1,4 +1,6 @@
 package myapp;//package myapp;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -7,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.geometry.Side;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -22,11 +25,14 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.Stop;
+import javafx.stage.StageStyle;
+import javafx.util.Duration;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -81,6 +87,30 @@ public class Transaction_Management_System extends Application {
         mainLayout.setStyle("-fx-background-color: #f8f0ff;");
 
         Scene scene = new Scene(mainLayout, 1366, 768);
+        String scrollBarCss =
+                ".scroll-bar:vertical {" +
+                        "    -fx-background-color: transparent;" +
+                        "    -fx-pref-width: 8px;" +
+                        "}" +
+                        ".scroll-bar:vertical .track {" +
+                        "    -fx-background-color: transparent;" +
+                        "}" +
+                        ".scroll-bar:vertical .thumb {" +
+                        "    -fx-background-color: rgba(150,150,150,0.5);" +
+                        "    -fx-background-radius: 4px;" +
+                        "}" +
+                        ".scroll-bar:vertical .thumb:hover {" +
+                        "    -fx-background-color: rgba(150,150,150,0.7);" +
+                        "}" +
+                        ".scroll-bar .increment-button, .scroll-bar .decrement-button {" +
+                        "    -fx-background-color: transparent;" +
+                        "    -fx-padding: 0;" +
+                        "}" +
+                        ".scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {" +
+                        "    -fx-shape: \" \";" +
+                        "}";
+
+        scene.getRoot().setStyle(scrollBarCss);
         primaryStage.setTitle("Transaction Management");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -345,18 +375,15 @@ public class Transaction_Management_System extends Application {
         statsBox.setMaxWidth(220);
         statsBox.setPrefWidth(220);
 
-        // 初始化图表包装容器
         StackPane chartWrapper = new StackPane(typeChart);
         chartWrapper.setPrefSize(420, 420);
         chartWrapper.setMinSize(420, 420);
         chartWrapper.setMaxSize(420, 420);
         chartWrapper.setAlignment(Pos.CENTER);
 
-// 初始化 HBox 并添加图表包装容器
         chartContent = new HBox(20);
         chartContent.setAlignment(Pos.CENTER);
         chartContent.getChildren().addAll(chartWrapper, statsBox);
-
 
         HBox buttonBox = createActionButtons();
         buttonBox.setPadding(new Insets(10, 0, 10, 0));
@@ -376,13 +403,16 @@ public class Transaction_Management_System extends Application {
         chartBox.setMinWidth(700);
         chartBox.setMaxWidth(700);
 
-        chartBox.setPrefHeight(480);
-        chartBox.setMinHeight(480);
-        chartBox.setMaxHeight(480);
-        chartBox.setAlignment(Pos.TOP_CENTER);
+        // 创建滚动面板并设置样式
+        ScrollPane scrollPane = new ScrollPane(chartBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+        scrollPane.setPadding(new Insets(0));
 
         VBox rightPanel = new VBox(0);
-        rightPanel.getChildren().add(chartBox);
+        rightPanel.getChildren().add(scrollPane);
         rightPanel.setAlignment(Pos.TOP_CENTER);
 
         return rightPanel;
@@ -569,10 +599,9 @@ public class Transaction_Management_System extends Application {
     }
 
     private void exportToCSV() {
-        // 实现CSV导出逻辑
+        // 生成CSV数据
         StringBuilder csv = new StringBuilder();
         csv.append("Date,Transaction Name,Amount,Type\n");
-
         for (Transaction t : transactions) {
             csv.append(String.format("%s,%s,%s,%s\n",
                     t.getDate(),
@@ -580,10 +609,106 @@ public class Transaction_Management_System extends Application {
                     t.getAmount(),
                     t.getType()));
         }
+        String csvData = csv.toString();
 
-        // 这里应该添加文件保存对话框和实际的文件写入操作
+        // 控制台输出
         System.out.println("Exporting to CSV...");
-        System.out.println(csv.toString());
+        System.out.println(csvData);
+
+        // 在UI线程显示弹窗
+        Platform.runLater(() -> {
+            showExportDataDialog(csvData);
+            showSuccessAlert();
+        });
+    }
+    // 显示导出数据弹窗
+    private void showExportDataDialog(String csvData) {
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setTitle("Exported CSV Data");
+
+        // 使用系统内置图标
+        Node csvIcon = new Text("\uD83D\uDCC0"); // 📀 光盘图标
+        csvIcon.setStyle("-fx-font-size: 24px;");
+
+        TextArea textArea = new TextArea(csvData);
+        textArea.setEditable(false);
+        textArea.setStyle("-fx-font-family: Consolas; -fx-font-size: 14px;");
+
+        ScrollPane scrollPane = new ScrollPane(textArea);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setPrefSize(800, 550);  // 调整高度
+
+        // 创建提示信息（使用系统表情符号）
+        HBox hintBox = new HBox(5);
+        hintBox.setAlignment(Pos.CENTER_RIGHT);
+        Text warningIcon = new Text("\u2754"); // ❔ 问号图标
+        warningIcon.setStyle("-fx-font-family: 'Segoe UI Symbol'; -fx-font-size: 16px; -fx-fill: #666;");
+        Label hintLabel = new Label("Any questions? Try again!");
+        hintLabel.setStyle("-fx-text-fill: #666; -fx-font-style: italic; -fx-font-size: 12px;");
+
+        hintBox.getChildren().addAll(warningIcon, hintLabel);
+
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(15));
+        layout.getChildren().addAll(
+                new HBox(5, csvIcon, new Label("CSV Export Content:")),
+                scrollPane,
+                hintBox
+        );
+
+        // 设置滚动区域自动扩展
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+        Scene scene = new Scene(layout);
+        dialog.setScene(scene);
+
+        // 添加窗口图标
+        dialog.getIcons().add(new Image("https://img.icons8.com/fluency/48/csv.png")); // 使用公开图标
+
+        dialog.showAndWait();
+    }
+
+    // 显示成功提示
+    private void showSuccessAlert() {
+        Stage alertStage = new Stage();
+        alertStage.initModality(Modality.NONE);
+        alertStage.initStyle(StageStyle.TRANSPARENT);
+
+        Label label = new Label("✅ Successfully Exported!");
+        label.setStyle("-fx-font-size: 18px;"
+                + "-fx-text-fill: #4CAF50;"
+                + "-fx-font-weight: bold;"
+                + "-fx-background-color: rgba(255,255,255,0.9);"
+                + "-fx-padding: 15px 25px;"
+                + "-fx-background-radius: 15px;"
+                + "-fx-border-radius: 15px;"
+                + "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 2);");
+
+        StackPane root = new StackPane(label);
+        root.setStyle("-fx-background-color: transparent;");
+        root.setAlignment(Pos.CENTER);
+
+        Scene scene = new Scene(root);
+        scene.setFill(Color.TRANSPARENT);
+
+        // 定位到屏幕中心
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        alertStage.setX((screenBounds.getWidth() - 300) / 2);
+        alertStage.setY((screenBounds.getHeight() - 100) / 2);
+
+        alertStage.setScene(scene);
+        alertStage.setWidth(300);
+        alertStage.setHeight(100);
+        alertStage.show();
+
+        // 自动关闭
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.seconds(2),
+                        e -> alertStage.close()
+        ));
+        timeline.play();
     }
 
     private void exportToExcel() {
@@ -897,7 +1022,8 @@ public class Transaction_Management_System extends Application {
 
         Label subtitle = new Label("Manage your transaction records, support categorized viewing and visual display");
         subtitle.setFont(Font.font("Microsoft YaHei", FontWeight.MEDIUM, 18));
-        subtitle.setTextFill(Color.web("#f3e5f5"));
+        subtitle.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
+
 
         HBox titleContent = new HBox(15);
         titleContent.setAlignment(Pos.CENTER);
