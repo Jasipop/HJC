@@ -1,89 +1,91 @@
-微信支付账单明细 微信昵称：[Q·ð 起始时间：[2025-04-10 09:40:16] 终止时间：[2025-04-18 19:55:33]
-----------------------提醒事项明细列表----------------------
-类型,提醒名字,提醒类别,金额范围,备注
-"提醒事项","pension planning","For expense monitoring","¥500-700","better spend less than 500-700"
-"提醒事项","loan repayment","For savings","¥30-50","save money for loan"
-----------------------微信支付账单明细列表--------------------
-交易时间,交易类型,交易对方,商品,收/支,金额(元),支付方式,当前状态,交易单号,商户单号,备注
-"2025-04-18 18:35:22","商户消费","Apple","apple.com/bill/MXKYB51LHJa0","支出","¥45.00","零钱","支付成功","","",""
-"2025-04-18 12:57:19","商户消费","美团平台商户","大众点评订单-25041811100400001302326121296633","支出","¥3.00","零钱","支付成功","","",""
-"2025-04-18 12:53:58","商户消费","滴滴出行","先乘后付","支出","¥29.90","零钱","支付成功","","",""
-"2025-04-18 12:37:21","商户消费","美团平台商户","晋阳阿婆腊汁肉夹馍·米粉（美妙美食城第3档口店）-大众点评App-25041811100400001302320906026633","支出","¥33.90","零钱","支付成功","","",""
-"2025-04-18 09:41:28","商户消费","岳西科技","先购后付","支出","¥5.00","零钱","支付成功","","",""
-"2025-04-18 07:56:06","商户消费","北京一卡通","30022504181327809337","支出","¥1.00","零钱","支付成功","","",""
-"2025-04-17 20:44:32","商户消费","美团平台商户","捞力王·捞汁小海鲜·辣卤海鲜（中关村店·小龙虾·生腌·三文鱼）-大众点评App-25041711100400001302237","支出","¥160.90","零钱","支付成功","","",""
-"2025-04-17 20:12:14","商户消费","北京一卡通","30012504175891113491","支出","¥1.00","零钱","支付成功","","",""
-"2025-04-17 16:47:10","商户消费","李禹良","/","支出","¥48.17","零钱","支付成功","","",""
-"2025-04-17 15:42:00","商户消费","发给林嘉怡","/","支出","¥10.00","零钱","支付成功","","",""
-"2025-04-17 13:01:18","商户消费","北京一卡通","30012504177990232166","支出","¥1.00","零钱","支付成功","","",""
-"2025-04-16 20:14:34","商户消费","滴滴出行","先乘后付","支出","¥31.90","零钱","支付成功","","",""
-"2025-04-16 19:33:01","商户消费","北京邮电大学","餐费支出","支出","¥30.00","零钱","支付成功","","",""
-"2025-04-16 18:15:50","商户消费","岳西科技","先购后付","支出","¥4.90","零钱","支付成功","","",""
-"2025-04-16 14:27:53","商户消费","岳西科技","先购后付","支出","¥5.00","零钱","支付成功","","",""
-"2025-04-16 13:51:52","商户消费","携程旅行网","土耳其个人旅游签证EVISA电子签常规签证","支出","¥548.00","零钱","支付成功","","",""
-"2025-04-16 12:08:43","商户消费","携程保险代理有限公司","北京突尼斯7天定制游","支出","¥145.00","零钱","支付成功","","",""
-"2025-04-16 10:26:05","商户消费","滴滴出行","先乘后付","支出","¥41.00","零钱","支付成功","","",""
-"2025-04-15 20:10:41","商户消费","叮咚买菜","叮咚买菜-2504151014661358610","支出","¥155.05","零钱","支付成功","","",""
-"2025-04-15 19:08:06","商户消费","北京一卡通","30022504158515830959","支出","¥1.00","零钱","支付成功","","",""
-"2025-04-15 15:09:11","商户消费","岳西科技","先购后付","支出","¥5.00","零钱","支付成功","","",""
-"2025-04-15 14:46:25","商户消费","北京邮电大学","餐费支出","支出","¥15.00","零钱","支付成功","","",""
-"2025-04-15 09:35:19","商户消费","北京邮电大学","餐费支出","支出","¥9.00","零钱","支付成功","","",""
-"2025-04-15 09:29:15","商户消费","滴滴出行","先乘后付","支出","¥39.91","零钱","支付成功","","",""
-"2025-04-14 22:50:11","商户消费","滴滴出行","先乘后付","支出","¥31.90","零钱","支付成功","","",""
-"2025-04-14 21:20:42","商户消费","Apple","apple.com/bill/MXKY9Z6HYVa0","支出","¥30.00","零钱","支付成功","","",""
-"2025-04-14 19:47:22","商户消费","北京邮电大学","餐费支出","支出","¥29.50","零钱","支付成功","","",""
-"2025-04-14 16:17:51","商户消费","岳西科技","先购后付","支出","¥4.90","零钱","支付成功","","",""
-"2025-04-14 15:35:12","商户消费","农夫山泉","农夫山泉水溶C100果汁西柚味445mlNFZF1800455","支出","¥5.00","零钱","支付成功","","",""
-"2025-04-14 14:42:57","商户消费","滴滴出行","先乘后付","支出","¥30.00","零钱","支付成功","","",""
-"2025-04-14 10:23:10","商户消费","美团平台商户","小满手工粉(北京世纪金源购物中心店)-大众点评App-25041411100400001301591183868633","支出","¥39.40","零钱","支付成功","","",""
-"2025-04-14 09:05:54","商户消费","Apple","apple.com/bill/MXKY9Y9FLMa0","支出","¥50.00","零钱","支付成功","","",""
-"2025-04-13 13:07:19","商户消费","有空就休息xixi｜空山｜双生🔥","/","支出","¥358.00","零钱","支付成功","","",""
-"2025-04-13 08:55:07","商户消费","中国石化销售有限公司北京石油分公司","95号京VIB汽油","支出","¥298.31","零钱","支付成功","","",""
-"2025-04-13 00:38:54","商户消费","滴滴出行","先乘后付","支出","¥96.00","零钱","支付成功","","",""
-"2025-04-12 13:55:16","商户消费","滴滴出行","先乘后付","支出","¥77.00","零钱","支付成功","","",""
-"2025-04-12 13:50:47","商户消费","喜茶","喜茶支付中心支付单","支出","¥26.00","零钱","支付成功","","",""
-"2025-04-12 11:25:23","商户消费","京东到家","京东到家2508767517075594","支出","¥56.40","零钱","支付成功","","",""
-"2025-04-12 11:03:15","商户消费","ProcessOn","AI1月会员","支出","¥24.90","零钱","支付成功","","",""
-"2025-04-11 19:05:06","商户消费","叮咚买菜","叮咚买菜-2504111014664480993","支出","¥89.40","零钱","支付成功","","",""
-"2025-04-11 19:03:45","商户消费","叮咚买菜","叮咚买菜-2504111014664481714","支出","¥86.24","零钱","支付成功","","",""
-"2025-04-11 18:58:46","商户消费","美团平台商户","奉天·十三记熏拌鸡架（第6档口京兆京缘美食城店）-大众点评App-25041111100400001301118997536633","支出","¥88.88","零钱","支付成功","","",""
-"2025-04-11 16:01:57","商户消费","美团平台商户","薯之缘砂锅麻酱土豆粉（白石桥店）-大众点评App-25041111100400001301082823803633","支出","¥31.89","零钱","支付成功","","",""
-"2025-04-11 11:20:51","商户消费","金山WPS","WPS超级会员","支出","¥16.00","零钱","支付成功","","",""
-"2025-04-11 10:29:21","商户消费","美团平台商户","晨曦炖汤（紫竹院店）-大众点评App-25041111100400001301015672703633","支出","¥52.91","零钱","支付成功","","",""
-"2025-04-11 09:55:26","商户消费","京东到家","京东到家2508675718019723","支出","¥65.80","零钱","支付成功","","",""
-"2025-04-11 08:54:12","商户消费","Apple","apple.com/bill/MXKY9MG64Na0","支出","¥6.00","零钱","支付成功","","",""
-"2025-04-11 04:53:32","商户消费","Apple","apple.com/bill/MXKY9MG5Q4a0","支出","¥198.00","零钱","支付成功","","",""
-"2025-04-10 20:51:54","商户消费","滴滴出行","先乘后付","支出","¥54.00","零钱","支付成功","","",""
-"2025-04-10 20:18:18","商户消费","申德勒日坛餐厅","申德勒日坛餐厅","支出","¥958.00","零钱","支付成功","","",""
-"2025-04-10 18:43:49","商户消费","滴滴出行","滴滴专车-孙师傅-04月10日行程","支出","¥81.60","零钱","支付成功","","",""
-"2025-04-10 15:35:33","商户消费","岳西科技","先购后付","支出","¥5.00","零钱","支付成功","","",""
-"2025-04-10 12:58:11","商户消费","Apple","apple.com/bill/MXKY9KQJSDa0","支出","¥6.00","零钱","支付成功","","",""
-"2025-04-10 12:57:34","商户消费","Apple","apple.com/bill/MXKY9KQJD3a0","支出","¥198.00","零钱","支付成功","","",""
-"2025-04-02 00:00:00","国际交易","外汇交易","USD兑换 (200.00)","支出","¥1460.00","零钱","支付成功","","",""
-"2025-04-02 00:00:00","国际交易","外汇交易","USD兑换 (15.00)","支出","¥109.50","零钱","支付成功","","",""
-"2025-04-03 00:00:00","国际交易","外汇交易","USD兑换 (50.00)","支出","¥365.00","零钱","支付成功","","",""
-"2025-04-05 00:00:00","国际交易","外汇交易","EUR兑换 (20.00)","支出","¥166.00","零钱","支付成功","","",""
-"2025-04-06 00:00:00","国际交易","外汇交易","GBP兑换 (46.00)","支出","¥853.60","零钱","支付成功","","",""
-"2025-04-06 00:00:00","国际交易","外汇交易","EUR兑换 (88.00)","支出","¥381.80","零钱","支付成功","","",""
-"2025-04-08 00:00:00","国际交易","外汇交易","EUR兑换 (32.00)","支出","¥41.50","零钱","支付成功","","",""
-"2025-04-08 00:00:00","国际交易","外汇交易","GBP兑换 (6.00)","支出","¥58.20","零钱","支付成功","","",""
-"2025-04-08 00:00:00","国际交易","外汇交易","EUR兑换 (5.00)","支出","¥265.60","零钱","支付成功","","",""
-"2025-04-10 00:00:00","国际交易","外汇交易","USD兑换 (66.00)","支出","¥475.81","零钱","支付成功","","",""
-"2025-04-10 00:00:00","国际交易","外汇交易","USD兑换(6.50)","支出","¥46.86","零钱","支付成功","","",""
-"2025-04-01 12:00:00","报销","Transportation","Taxi","支出","¥25.40","零钱","No","","Financial Office",""
-"2025-04-07 12:00:00","报销","Transportation","Subway for two","支出","¥16.00","零钱","Yes","","Financial Office",""
-"2025-04-08 12:00:00","报销","Consumption","Holliland Cake","支出","¥307.36","零钱","Yes","","The Accountant",""
-"2025-04-12 12:00:00","报销","Transportation","Taxi","支出","¥99.00","零钱","Yes","","Financial Office",""
-"2025-04-13 12:00:00","报销","Purchase","Paper for Printer","支出","¥500.00","零钱","Yes","","Financial Office",""
-2024-06-10,节日预算,Spring Festival,,收入,3000,其他,已导出,,,
-2024-06-10,节日预算,Spring Festival,,支出,2000,其他,已导出,,,
-2025-12-24,节日预算,Christmas,,收入,500,其他,已导出,,,
-2025-12-24,节日预算,Christmas,,支出,1000,其他,已导出,,,
-2024-02-10,节日预算,Dragon Boat Festival,,收入,80,其他,已导出,,,
-2024-02-10,节日预算,Dragon Boat Festival,,支出,600,其他,已导出,,,
-2024-10-01,节日预算,KFC,,收入,50,其他,已导出,,,
-2024-10-01,节日预算,Harvest Day,,收入,400,其他,已导出,,,
-2024-10-01,节日预算,Harvest Day,,支出,500,其他,已导出,,,
-2025-05-21,节日预算,Others,,收入,60,其他,已导出,,,
-2025-05-21,节日预算,Others,,支出,60,其他,已导出,,,
-2025-05-20,节日预算,Flower Day,,支出,50,其他,已导出,,,Flower
+WeChat Payment Statement Details WeChat Nickname: [Start Time: [2025-04-10 09:40:16] End Time: [2025-04-18 19:55:33]
+----------------------Reminder Details List----------------------
+Type,Reminder name,Reminder Category,Amount Range,Note
+"Reminder","Pension planning","For expense monitoring","¥500-700","Better to spend less than 500-700"
+"Reminder","saving","For savings","¥400-600",""
+"Reminder","saving","For savings","¥100-200","1"
+----------------------WeChat Payment Statement Details List--------------------
+Transaction Time,Transaction Type,Counterparty,Product,Income/Expense,Amount (Yuan),Payment Method,Current Status,Transaction Number,Merchant Number,Note,Category
+"2025-04-02 00:00:00","International Transactions","Foreign Exchange Trading","USD Exchange (200.00)","Expenditure","¥1460.00","Change","Payment successful","","","",""
+"2025-04-02 00:00:00","International Transactions","Foreign Exchange Trading","USD Exchange (15.00)","Expenditure","¥109.50","Change","Payment successful","","","",""
+"2025-04-03 00:00:00","International Transactions","Foreign Exchange Trading","USD Exchange (50.00)","Expenditure","¥365.00","Change","Payment successful","","","",""
+"2025-04-05 00:00:00","International Transactions","Foreign Exchange Trading","EUR Exchange (20.00)","Expenditure","¥166.00","Change","Payment successful","","","",""
+"2025-04-06 00:00:00","International Transactions","Foreign Exchange Trading","GBP Exchange (46.00)","Expenditure","¥853.60","Change","Payment successful","","","",""
+"2025-04-06 00:00:00","International Transactions","Foreign Exchange Trading","EUR Exchange (88.00)","Expenditure","¥381.80","Change","Payment successful","","","",""
+"2025-04-08 00:00:00","International Transactions","Foreign Exchange Trading","EUR Exchange (32.00)","Expenditure","¥41.50","Change","Payment successful","","","",""
+"2025-04-08 00:00:00","International Transactions","Foreign Exchange Trading","GBP Exchange (6.00)","Expenditure","¥58.20","Change","Payment successful","","","",""
+"2025-04-08 00:00:00","International Transactions","Foreign Exchange Trading","EUR Exchange (5.00)","Expenditure","¥265.60","Change","Payment successful","","","",""
+"2025-04-10 00:00:00","International Transactions","Foreign Exchange Trading","USD Exchange (66.00)","Expenditure","¥475.81","Change","Payment successful","","","",""
+"2025-04-01 12:00:00","Reimbursement","Transportation","Taxi","Expenditure","¥25.40","Change","No","Financial Office","","",""
+"2025-04-07 12:00:00","Reimbursement","Transportation","Subway for two","Expenditure","¥16.00","Change","Yes","Financial Office","","",""
+"2025-04-08 12:00:00","Reimbursement","Consumption","Holliland Cake","Expenditure","¥307.36","Change","Yes","The Accountant","","",""
+"2025-04-12 12:00:00","Reimbursement","Transportation","Taxi","Expenditure","¥99.00","Change","Yes","Financial Office","","",""
+"2025-04-13 12:00:00","Reimbursement","Purchase","Paper for Printer","Expenditure","¥500.00","Change","Yes","Financial Office","","",""
+"2025-04-10 12:00:00","Pocket Money","Monthly Allowance","","Income","5000.00","Other","Payment successful","","","",""
+"2025-04-18 12:57:00","Merchant Consumption","Meituan Platform Merchant","Dianping Order - 25041811100400001302326121296633","Expenditure","3.00","Change","Payment successful"
+"2025-04-18 12:53:00","Merchant Consumption","Didi Chuxing","Pay after riding","Expenditure","29.90","Change","Payment successful"
+"2025-04-18 12:37:00","Merchant Consumption","Meituan Platform Merchant","Jinyang Grandma's La Ji Meat Sandwich Rice Noodles (The third stall at the Wonderful Food City) - Dianping App - 25041811100400001302320906026633","Expenditure","33.90","Change","Payment successful"
+"2025-04-18 09:41:00","Merchant Consumption","Yuxi Technology","Pay after purchase","Expenditure","5.00","Change","Payment successful"
+"2025-04-18 07:56:00","Merchant Consumption","Beijing Yikatong","3.00225E+19","Expenditure","1.00","Change","Payment successful"
+"2025-04-17 20:12:00","Merchant Consumption","Beijing Yikatong","3.00125E+19","Expenditure","1.00","Change","Payment successful"
+"2025-04-17 16:47:00","Merchant Consumption","Li Yuliang","/","Expenditure","48.17","Change","Payment successful"
+"2025-04-17 15:42:00","Merchant Consumption","Sent to Lin Jiayi","/","Expenditure","10.00","Change","Payment successful"
+"2025-04-17 13:01:00","Merchant Consumption","Beijing Yikatong","3.00125E+19","Expenditure","1.00","Change","Payment successful"
+"2025-04-16 20:14:00","Merchant Consumption","Didi Chuxing","Pay after riding","Expenditure","31.90","Change","Payment successful"
+"2025-04-16 19:33:00","Merchant Consumption","Beijing University of Posts and Telecommunications","Meal expense","Expenditure","30.00","Change","Payment successful"
+"2025-04-16 18:15:00","Merchant Consumption","Yuxi Technology","Pay after purchase","Expenditure","4.90","Change","Payment successful"
+"2025-04-16 14:27:00","Merchant Consumption","Yuxi Technology","Pay after purchase","Expenditure","5.00","Change","Payment successful"
+"2025-04-16 13:51:00","Merchant Consumption","Ctrip Travel Network","Turkey Individual Travel Visa EVISA Electronic Visa Regular Visa","Expenditure","548.00","Change","Payment successful"
+"2025-04-16 12:08:00","Merchant Consumption","Ctrip Insurance Agency Co. Ltd.","Beijing Tunisia 7 Days Custom Tour","Expenditure","145.00","Change","Payment successful"
+"2025-04-16 10:26:00","Merchant Consumption","Didi Chuxing","Pay after riding","Expenditure","41.00","Change","Payment successful"
+"2025-04-15 20:10:00","Merchant Consumption","Dingdong Fresh","Dingdong Buy Vegetables - 2504151014661358610","Expenditure","155.05","Change","Payment successful"
+"2025-04-15 19:08:00","Merchant Consumption","Beijing Yikatong","3.00225E+19","Expenditure","1.00","Change","Payment successful"
+"2025-04-15 15:09:00","Merchant Consumption","Yuxi Technology","Pay after purchase","Expenditure","5.00","Change","Payment successful"
+"2025-04-15 14:46:00","Merchant Consumption","Beijing University of Posts and Telecommunications","Meal expense","Expenditure","15.00","Change","Payment successful"
+"2025-04-15 09:35:00","Merchant Consumption","Beijing University of Posts and Telecommunications","Meal expense","Expenditure","9.00","Change","Payment successful"
+"2025-04-15 09:29:00","Merchant Consumption","Didi Chuxing","Pay after riding","Expenditure","39.91","Change","Payment successful"
+"2025-04-14 22:50:00","Merchant Consumption","Didi Chuxing","Pay after riding","Expenditure","31.90","Change","Payment successful"
+"2025-04-14 21:20:00","Merchant Consumption","Apple","apple.com-bill-MXKY9Z6HYVa0","Expenditure","30.00","Change","Payment successful"
+"2025-04-14 19:47:00","Merchant Consumption","Beijing University of Posts and Telecommunications","Meal expense","Expenditure","29.50","Change","Payment successful"
+"2025-04-14 16:17:00","Merchant Consumption","Yuxi Technology","Pay after purchase","Expenditure","4.90","Change","Payment successful"
+"2025-04-14 15:35:00","Merchant Consumption","Nongfu Spring","Nongfu Spring Water Soluble C100 Juice Pomelo Flavor 445ml NFZF1800455","Expenditure","5.00","Change","Payment successful"
+"2025-04-14 14:42:00","Merchant Consumption","Didi Chuxing","Pay after riding","Expenditure","30.00","Change","Payment successful"
+"2025-04-14 10:23:00","Merchant Consumption","Meituan Platform Merchant","Xiaoman Handmade Noodles (Beijing Century Golden Resources Shopping Center Store) - Dianping App - 25041411100400001301591183868633","Expenditure","39.40","Change","Payment successful"
+"2025-04-14 09:05:00","Merchant Consumption","Apple","apple.com-bill-MXKY9Y9FLMa0","Expenditure","50.00","Change","Payment successful"
+"2025-04-13 13:07:00","Merchant Consumption","Rest when you have time xixi | Empty Mountain | Twin Fire","-","Expenditure","358.00","Change","Payment successful"
+"2025-04-13 08:55:00","Merchant Consumption","China Petrochemical Sales Co. Ltd. Beijing Petroleum Branch","No. 95 Beijing VIB Gasoline","Expenditure","298.31","Change","Payment successful"
+"2025-04-13 00:38:00","Merchant Consumption","Didi Chuxing","Pay after riding","Expenditure","96.00","Change","Payment successful"
+"2025-04-12 13:55:00","Merchant Consumption","Didi Chuxing","Pay after riding","Expenditure","77.00","Change","Payment successful"
+"2025-04-12 13:50:00","Merchant Consumption","Heytea","Xi Tea Payment Center Payment Receipt","Expenditure","26.00","Change","Payment successful"
+"2025-04-12 11:25:00","Merchant Consumption","JD Daojia","Jingdong Da Jia 2508767517075594","Expenditure","56.40","Change","Payment successful"
+"2025-04-12 11:03:00","Merchant Consumption","ProcessOn","AI January Member","Expenditure","24.90","Change","Payment successful"
+"2025-04-11 19:05:00","Merchant Consumption","Dingdong Fresh","Dingdong Buy Vegetables - 2504111014664480993","Expenditure","89.40","Change","Payment successful"
+"2025-04-11 19:03:00","Merchant Consumption","Dingdong Fresh","Dingdong Buy Vegetables - 2504111014664481714","Expenditure","86.24","Change","Payment successful"
+"2025-04-11 18:58:00","Merchant Consumption","Meituan Platform Merchant","Fengtian Thirteen Record Smoked Stir-Fried Chicken Ribs (The sixth stall at Jingzhaojingyuan Food City) - Dianping App - 25041111100400001301118997536633","Expenditure","88.88","Change","Payment successful"
+"2025-04-11 16:01:00","Merchant Consumption","Meituan Platform Merchant","Potato Noodles with Sesame Sauce (Baishi Bridge Store) - Dianping App - 25041111100400001301082823803633","Expenditure","31.89","Change","Payment successful"
+"2025-04-11 11:20:00","Merchant Consumption","Kingsoft WPS","WPS Super Member","Expenditure","16.00","Change","Payment successful"
+"2025-04-11 10:29:00","Merchant Consumption","Meituan Platform Merchant","Chenxi Stewed Soup (Zizhuyuan Store) - Dianping App - 25041111100400001301015672703633","Expenditure","52.91","Change","Payment successful"
+"2025-04-11 09:55:00","Merchant Consumption","JD Daojia","Jingdong Da Jia 2508675718019723","Expenditure","65.80","Change","Payment successful"
+"2025-04-11 08:54:00","Merchant Consumption","Apple","apple.com-bill-MXKY9MG64Na0","Expenditure","6.00","Change","Payment successful"
+"2025-04-11 04:53:00","Merchant Consumption","Apple","apple.com-bill-MXKY9MG5Q4a0","Expenditure","198.00","Change","Payment successful"
+"2025-04-10 20:51:00","Merchant Consumption","Didi Chuxing","Pay after riding","Expenditure","54.00","Change","Payment successful"
+"2025-04-10 20:18:00","Merchant Consumption","Shenderle Ritian Restaurant","Shende Le Ritan Restaurant","Expenditure","958.00","Change","Payment successful"
+"2025-04-10 18:43:00","Merchant Consumption","Didi Chuxing","Didi Premium - Mr. Sun - April 10th Journey","Expenditure","81.60","Change","Payment successful"
+"2025-04-10 15:35:00","Merchant Consumption","Yuxi Technology","Pay after purchase","Expenditure","5.00","Change","Payment successful"
+"2025-04-10 12:58:00","Merchant Consumption","Apple","apple.com-bill-MXKY9KQJSDa0","Expenditure","6.00","Change","Payment successful"
+"2025-04-10 12:57:00","Merchant Consumption","Apple","apple.com-bill-MXKY9KQJD3a0","Expenditure","198.00","Change","Payment successful"
+
+
+
+"2025-04-17 12:00:00","Reimbursement","purchase","pen","Expenditure","¥100","Change","Yes","","The Accountant",""
+
+"2025-04-10 00:00:00","International Transactions","Foreign Exchange Trading","USDExchange(6.50)","Expenditure","¥46.86","Change","Payment successful","","",""
+2024-02-10,Festival Budget,Spring Festival,,Income,3000,Other,Exported,,,
+2024-02-10,Festival Budget,Spring Festival,,Expenditure,1900,Other,Exported,,,
+2024-06-10,Festival Budget,Dragon Boat Festival,,Income,500,Other,Exported,,,
+2024-06-10,Festival Budget,Dragon Boat Festival,,Expenditure,800,Other,Exported,,,
+2024-09-15,Festival Budget,Mid-Autumn Festival,,Income,700,Other,Exported,,,
+2024-09-15,Festival Budget,Mid-Autumn Festival,,Expenditure,750,Other,Exported,,,
+2024-12-25,Festival Budget,Christmas,,Income,1000,Other,Exported,,,
+2024-12-25,Festival Budget,Christmas,,Expenditure,700,Other,Exported,,,
+2025-05-20,Festival Budget,qrj,,Income,50,Other,Exported,,,flower
