@@ -19,8 +19,22 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * The Discover class represents the main discovery page of the application.
+ * It provides a user interface for exploring various features and functionalities of the financial management system.
+ *
+ * @author Jiachen Hou
+ * @version final
+ */
 public class Discover extends Application {
 
+    /**
+     * The main entry point for the JavaFX application.
+     * Initializes and displays the primary stage with the discovery interface.
+     * Integrate all functions on this page.
+     *
+     * @param primaryStage The primary stage for this application
+     */
     @Override
     public void start(Stage primaryStage) {
         BorderPane root = new BorderPane();
@@ -130,7 +144,7 @@ public class Discover extends Application {
             try { new Nutllet().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
         discoverButton.setOnAction(e -> {
-            // 当前页不跳转
+            // No navigation needed for current page
         });
         settingsButton.setOnAction(e -> {
             try { new Settings().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
@@ -139,7 +153,7 @@ public class Discover extends Application {
         bottomNavigationBar.getChildren().addAll(homeButton, discoverButton, settingsButton);
         root.setBottom(bottomNavigationBar);
 
-        // 搜索逻辑：根据标题动态过滤按钮
+        // Search logic: Dynamically filter buttons based on title
         FilteredList<Button> filteredButtons = new FilteredList<>(
                 FXCollections.observableArrayList(
                         itemsContainer.getChildren().filtered(n -> n instanceof Button).toArray(Button[]::new)
@@ -186,6 +200,14 @@ public class Discover extends Application {
         primaryStage.show();
     }
 
+    /**
+     * Creates a navigation button with highlight effect for the bottom navigation bar.
+     *
+     * @param labelText The text to display on the button
+     * @param emojiSymbol The emoji symbol to display
+     * @param isActive Whether this button represents the active page
+     * @return A styled Button with the specified content
+     */
     private Button createNavButtonWithHighlight(String labelText, String emojiSymbol, boolean isActive) {
         VBox buttonContent = new VBox();
         buttonContent.setAlignment(Pos.CENTER);
@@ -208,6 +230,12 @@ public class Discover extends Application {
         return navigationButton;
     }
 
+    /**
+     * Adds hover animation effects to a button.
+     * Creates a scale transition when the mouse enters and exits the button.
+     *
+     * @param button The button to add hover effects to
+     */
     private void addHoverAnimation(Button button) {
         button.setOnMouseEntered(e -> {
             ScaleTransition scaleUp = new ScaleTransition(Duration.millis(200), button);
@@ -223,6 +251,12 @@ public class Discover extends Application {
         });
     }
 
+    /**
+     * Gets the appropriate emoji symbol for a given title.
+     *
+     * @param title The title to get the emoji for
+     * @return The emoji symbol as a String
+     */
     private String getEmojiForTitle(String title) {
         return switch (title) {
             case "Enterprise Edition" -> "👔";
@@ -242,6 +276,15 @@ public class Discover extends Application {
         };
     }
 
+    /**
+     * Creates a settings button with the specified properties.
+     *
+     * @param primaryStage The primary stage of the application
+     * @param title The title of the button
+     * @param description The description text
+     * @param bgColor The background color in hex format
+     * @return A styled Button with the specified content
+     */
     private Button createSettingButton(Stage primaryStage, String title, String description, String bgColor) {
         Button button = new Button();
         button.setMaxWidth(800);
@@ -272,6 +315,13 @@ public class Discover extends Application {
         return button;
     }
 
+    /**
+     * Opens a new page based on the selected title.
+     * Handles navigation to different sections of the application.
+     *
+     * @param primaryStage The primary stage of the application
+     * @param pageTitle The title of the page to open
+     */
     private void openNewPage(Stage primaryStage, String pageTitle) {
         try {
             switch (pageTitle) {
@@ -296,6 +346,12 @@ public class Discover extends Application {
         }
     }
 
+    /**
+     * Shows a default welcome page when a specific page is not implemented.
+     *
+     * @param primaryStage The primary stage of the application
+     * @param pageTitle The title of the page to display
+     */
     private void showDefaultWelcomePage(Stage primaryStage, String pageTitle) {
         VBox newPageLayout = new VBox();
         newPageLayout.setAlignment(Pos.CENTER);
@@ -314,6 +370,11 @@ public class Discover extends Application {
         primaryStage.setScene(newScene);
     }
 
+    /**
+     * The main method that launches the JavaFX application.
+     *
+     * @param args Command line arguments
+     */
     public static void main(String[] args) {
         launch(args);
     }

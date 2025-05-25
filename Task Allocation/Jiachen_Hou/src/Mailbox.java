@@ -18,17 +18,32 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * A JavaFX application that implements a mailbox interface for displaying and managing messages.
+ * The application provides features such as message listing, searching, and detailed message viewing
+ * with a modern and interactive user interface.
+ *
+ * @author Jiachen Hou
+ * @version final
+ */
 public class Mailbox extends Application {
 
     private VBox itemsContainer;
     private String[] titles, descriptions, emojis;
+
+    /** Array of pastel colors for message backgrounds */
     private final String[] pastelColors = {
             "#D8F0FF", "#D0ECFF", "#C8E8FF",
             "#C0E4FF", "#B8E0FF", "#B0DCFF", "#A8D8FF"
     };
     private Stage currentStage;
 
-
+    /**
+     * The main entry point for the JavaFX application.
+     * Initializes and displays the mailbox interface.
+     *
+     * @param primaryStage The primary stage for this application
+     */
     @Override
     public void start(Stage primaryStage) {
 
@@ -72,7 +87,7 @@ public class Mailbox extends Application {
         HBox titleBox = new HBox(title);
         titleBox.setAlignment(Pos.CENTER);
 
-        // 搜索框
+        // Search box
         TextField searchField = new TextField();
         searchField.setPromptText("Search messages...");
         searchField.setPrefWidth(750);
@@ -95,7 +110,7 @@ public class Mailbox extends Application {
         mailboxIcon.setFitHeight(100);
         mailboxIcon.setPreserveRatio(true);
 
-        // 创建带滚动条的容器
+        // Create container with scrollbar
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -108,7 +123,7 @@ public class Mailbox extends Application {
         itemsContainer.setAlignment(Pos.CENTER);
         itemsContainer.setPadding(new Insets(0, 10, 20, 10));
 
-        // 将itemsContainer放入scrollPane
+        // Put itemsContainer into scrollPane
         scrollPane.setContent(itemsContainer);
 
         String[] pastelColors = {
@@ -116,14 +131,14 @@ public class Mailbox extends Application {
                 "#C0E4FF", "#B8E0FF", "#B0DCFF", "#A8D8FF"
         };
 
-        // 创建通知按钮（增加到10个展示滚动效果）
+        // Create notification buttons (add 10 to display scroll effect)
         for (int i = 0; i < titles.length; i++) {
             Button btn = createMessageButton(primaryStage, titles[i], descriptions[i], emojis[i], pastelColors[i % pastelColors.length]);
             addHoverAnimation(btn);
             itemsContainer.getChildren().add(btn);
         }
 
-        // 消息计数标签
+        // Message count label
         Label messageCountLabel = new Label(titles.length + " new messages");
         messageCountLabel.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         messageCountLabel.setStyle("-fx-text-fill: #FF3B30;");
@@ -157,13 +172,11 @@ public class Mailbox extends Application {
         root.setCenter(mainLayout);
 
 
-
-
-        // 动态计算滚动面板高度
+        // Dynamically calculate scroll panel height
         Scene scene = new Scene(root, 1366, 768);
         scrollPane.prefHeightProperty().bind(scene.heightProperty().subtract(250));
 
-        // 入场动画
+        // Entrance animation
         FadeTransition fade = new FadeTransition(Duration.seconds(1), mainLayout);
         fade.setFromValue(0);
         fade.setToValue(1);
@@ -180,8 +193,14 @@ public class Mailbox extends Application {
         primaryStage.show();
     }
 
+    /**
+     * Filters messages based on the provided keyword.
+     * Updates the display to show only messages containing the keyword in their title or description.
+     *
+     * @param keyword The search term to filter messages
+     */
     private void filterMessages(String keyword) {
-        itemsContainer.getChildren().clear();  // 清空旧消息按钮
+        itemsContainer.getChildren().clear();  // Clear old message buttons
 
         boolean found = false;
 
@@ -206,7 +225,13 @@ public class Mailbox extends Application {
 
 
 
-    // Helper method with emoji
+    /**
+     * Creates a navigation button with an emoji icon.
+     *
+     * @param label The text label for the button
+     * @param emoji The emoji symbol to display
+     * @return A styled Button with emoji and text
+     */
     private Button createNavButtonWithEmoji(String label, String emoji) {
         VBox btnContainer = new VBox();
         btnContainer.setAlignment(Pos.CENTER);
@@ -228,6 +253,12 @@ public class Mailbox extends Application {
 
         return button;
     }
+    /**
+     * Creates a basic navigation button.
+     *
+     * @param label The text label for the button
+     * @return A styled Button
+     */
     private Button createNavButton(String label) {
         Button button = new Button(label);
         button.setPrefWidth(456); // 1366 / 3
@@ -242,6 +273,12 @@ public class Mailbox extends Application {
     }
 
 
+    /**
+     * Adds hover animation effects to a button.
+     * Includes scaling and shadow effects on mouse enter/exit.
+     *
+     * @param button The button to add hover effects to
+     */
     private void addHoverAnimation(Button button) {
         button.setOnMouseEntered(e -> {
             ScaleTransition scaleUp = new ScaleTransition(Duration.millis(200), button);
@@ -264,6 +301,16 @@ public class Mailbox extends Application {
         });
     }
 
+    /**
+     * Creates a message button with title, description, emoji, and background color.
+     *
+     * @param primaryStage The primary stage of the application
+     * @param title The message title
+     * @param description The message description
+     * @param emoji The emoji symbol for the message
+     * @param bgColor The background color for the message button
+     * @return A styled Button representing a message
+     */
     private Button createMessageButton(Stage primaryStage, String title, String description, String emoji, String bgColor) {
         Button button = new Button();
         button.setMaxWidth(800);
@@ -306,22 +353,37 @@ public class Mailbox extends Application {
         return button;
     }
 
+    /**
+     * Generates a timestamp for a message based on its title.
+     *
+     * @param title The title of the message
+     * @return A formatted timestamp string
+     */
     private String generateTimestampForMessage(String title) {
         return switch (title) {
-            case "Update" -> "2025/4/3 12:00:09";
-            case "Welcome to Nutllet!" -> "2025/4/2 09:30:45";
-            case "System Maintenance" -> "2025/4/1 15:20:33";
-            case "New Feature Alert" -> "2025/3/31 11:15:22";
-            case "Account Security" -> "2025/3/30 14:05:18";
-            case "Monthly Report" -> "2025/3/29 10:00:00";
-            case "Team Meeting" -> "2025/3/28 09:15:00";
-            case "Project Deadline" -> "2025/3/27 17:30:00";
-            case "New Message" -> "2025/3/26 08:45:12";
-            case "System Update" -> "2025/3/25 13:20:05";
+            case "System Update v1.1.3" -> "2025/4/3 12:00:09";
+            case "New Message Received" -> "2025/4/2 09:30:45";
+            case "Project Deadline Incoming" -> "2025/4/1 15:20:33";
+            case "Team Meeting Reminder" -> "2025/3/31 11:15:22";
+            case "Monthly Report Ready" -> "2025/3/30 14:05:18";
+            case "Account Security Alert" -> "2025/3/29 10:00:00";
+            case "New Feature Available" -> "2025/3/28 09:15:00";
+            case "Scheduled Maintenance Notice" -> "2025/3/27 17:30:00";
+            case "Nutllet is Now Live" -> "2025/3/26 08:45:12";
+            case "v1.1.2 Update Released" -> "2025/3/25 13:20:05";
             default -> "2025/4/3 00:00:00";
         };
     }
 
+    /**
+     * Displays the detailed view of a message.
+     * Shows the full message content with title, timestamp, and a back button.
+     *
+     * @param primaryStage The primary stage of the application
+     * @param title The message title
+     * @param content The message content
+     * @param emoji The emoji symbol for the message
+     */
     private void showMessageDetail(Stage primaryStage, String title, String content, String emoji) {
         VBox detailLayout = new VBox();
         detailLayout.setAlignment(Pos.CENTER);
@@ -366,6 +428,11 @@ public class Mailbox extends Application {
         primaryStage.setScene(detailScene);
     }
 
+    /**
+     * The main method that launches the application.
+     *
+     * @param args Command line arguments
+     */
     public static void main(String[] args) {
         launch(args);
     }
