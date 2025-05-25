@@ -194,7 +194,7 @@ public class ReimbursementAddNew extends Application {
             String person = personComboBox.getValue() != null ? personComboBox.getValue() : "";
 
             try (PrintWriter writer = new PrintWriter(new FileWriter("deals.csv", true))) {
-                writer.printf("\n\"%s\",\"报销\",\"%s\",\"%s\",\"支出\",\"¥%s\",\"零钱\",\"%s\",\"\",\"%s\",\"\"",
+                writer.printf("\n\"%s\",\"Reimbursement\",\"%s\",\"%s\",\"Expenditure\",\"¥%s\",\"Change\",\"%s\",\"\",\"%s\",\"\"",
                         date, titleText, noteText, amount, isReimbursable, person);
             } catch (IOException ex) {
                 ex.printStackTrace();
