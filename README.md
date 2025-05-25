@@ -1,3 +1,35 @@
-朋友们！
-# 从最新的主页上的`deals.csv`下载并继续更新整体的csv文件
-![image](https://github.com/user-attachments/assets/c9725e85-5d4d-4d15-bc9b-ea45ff46c205)
+### Running configuration：
+
+**Overall：**
+
+    Java-jdk-21
+    javafx-sdk-21
+    jackson-2.15.3
+    Ollama qwen2:1.5b
+
+**Detailed jars:**
+all extra jars are put aside in the `lib` folder.
+
+    javafx.base.jar
+    javafx.controls.jar
+    javafx.fxml.jar
+    javafx.graphics.jar
+    javafx.media.jar
+    javafx.properties
+    javafx.swing.jar 
+    javafx.web.jar
+    javafx-swt.jar
+
+    jackson-annotations-2.15.3.jar
+    jackson-core-2.15.3.jar
+    jackson-databind-2.15.3.jar
+
+    ooxml-schemas-1.4.jar
+    openxml4j-1.0-beta.jar
+    
+    poi-5.4.1.jar
+    poi-ooxml-5.4.1.jar
+
+### Task Allocation within the Team
+
+Each member's code is in their respective named folder.​
