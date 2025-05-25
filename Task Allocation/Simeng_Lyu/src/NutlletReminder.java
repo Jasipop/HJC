@@ -1,4 +1,4 @@
-package Merge;
+//package Merge;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javafx.scene.effect.DropShadow;
 
 /**
  * NutlletReminder is a JavaFX application for managing financial reminders.
@@ -32,7 +33,7 @@ public class NutlletReminder extends Application {
     private static final Color BACKGROUND_COLOR = Color.rgb(255, 212, 236, 0.33);
     private static final Color TEXT_COLOR = Color.BLACK;
 
-    private List<Reminder> reminders = new ArrayList<>();
+    public List<Reminder> reminders = new ArrayList<>();
     private double totalIncome = 0;
     private double totalExpense = 0;
 
@@ -67,7 +68,7 @@ public class NutlletReminder extends Application {
     /**
      * Loads reminder and transaction data from the CSV file and calculates totals.
      */
-    private void loadData() {
+    public void loadData() {
         try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
             String line;
             boolean isReminderSection = false;
@@ -127,7 +128,7 @@ public class NutlletReminder extends Application {
     /**
      * Calculates the balance and progress for each reminder based on income and expenses.
      */
-    private void calculateBalance() {
+    public void calculateBalance() {
         double originalTotalIncome = totalIncome; // Save original total income
         double originalTotalExpense = totalExpense; // Save original total expense
         double currentIncome = originalTotalIncome; // Current income after dynamic deduction
@@ -235,7 +236,7 @@ public class NutlletReminder extends Application {
         content.setPadding(new Insets(15));
         content.setBackground(new Background(new BackgroundFill(
                 Color.WHITE, new CornerRadii(12), Insets.EMPTY)));
-        content.setStyle("-fx-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);");
+        content.setEffect(new DropShadow(12, 0, 4, Color.rgb(0, 0, 0, 0.08)));
 
         Label title = new Label(reminder.name);
         //title.setStyle("-fx-background-color: red;");

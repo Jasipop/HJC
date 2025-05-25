@@ -1,4 +1,4 @@
-package Merge;
+//package Merge;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -11,8 +11,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import java.io.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import javafx.scene.effect.DropShadow;
 
 /**
  * NutlletAddNewReminder is a JavaFX application that provides a form interface for creating new reminders.
@@ -95,6 +94,7 @@ public class NutlletAddNewReminder extends Application {
         formContent.setPadding(new Insets(20));
         formContent.setBackground(new Background(new BackgroundFill(
                 BACKGROUND_COLOR, CornerRadii.EMPTY, Insets.EMPTY)));
+        formContent.setEffect(new DropShadow(12, 0, 4, Color.rgb(0, 0, 0, 0.08)));
         formContent.setAlignment(Pos.TOP_CENTER);
 
         // Question 1: Reminder's Name

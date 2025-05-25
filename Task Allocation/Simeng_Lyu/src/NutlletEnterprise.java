@@ -1,4 +1,4 @@
-package Merge;
+//package Merge;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -25,6 +25,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.List;
 import java.util.ArrayList;
+import javafx.scene.effect.DropShadow;
 
 /**
  * NutlletEnterprise is a JavaFX application for enterprise financial management.
@@ -200,7 +201,7 @@ public class NutlletEnterprise extends Application {
         recentTransactions.setPadding(new Insets(0, 0, 10, 0));
 
         // Table header style optimization
-        HBox headerBox = new HBox(10);
+        VBox headerBox = new VBox(10);
         headerBox.setPadding(new Insets(15));
         headerBox.setStyle("-fx-background-color: #f5f5f5; -fx-font-weight: bold; -fx-background-radius: 5;");
 
@@ -209,14 +210,21 @@ public class NutlletEnterprise extends Application {
         headerLabel.setWrapText(true);
         headerLabel.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
         Button importButton = new Button("Import CSV");
-        importButton.setStyle("-fx-background-color: " + toHexString(PRIMARY_COLOR) + "; -fx-text-fill: white;");
+        importButton.setStyle("-fx-background-color: " + toHexString(PRIMARY_COLOR) + "; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-weight: bold; " +
+                "-fx-padding: 8 16; " +
+                "-fx-background-radius: 6; " +
+                "-fx-cursor: hand; " +
+                "-fx-min-width: 100px;");
         importButton.setOnAction(e -> handleImportCSV());
 
-        headerBox.getChildren().addAll(headerLabel, spacer, importButton);
+        HBox buttonContainer = new HBox();
+        buttonContainer.setAlignment(Pos.CENTER_RIGHT);
+        buttonContainer.getChildren().add(importButton);
+
+        headerBox.getChildren().addAll(headerLabel, buttonContainer);
 
         // Transaction record list
         transactionList = new ListView<>();
@@ -336,7 +344,7 @@ public class NutlletEnterprise extends Application {
         card1.setPrefWidth(columnWidth);
         card1.setBackground(new Background(new BackgroundFill(
                 Color.WHITE, new CornerRadii(12), Insets.EMPTY)));
-        card1.setStyle("-fx-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);");
+        card1.setEffect(new DropShadow(12, 0, 4, Color.rgb(0, 0, 0, 0.08)));
 
         // Auto-Generated Financial Reports Module
         Label title2 = new Label("Auto-Generated Financial Reports");
@@ -353,7 +361,7 @@ public class NutlletEnterprise extends Application {
         card2.setPrefWidth(columnWidth);
         card2.setBackground(new Background(new BackgroundFill(
                 Color.WHITE, new CornerRadii(12), Insets.EMPTY)));
-        card2.setStyle("-fx-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);");
+        card2.setEffect(new DropShadow(12, 0, 4, Color.rgb(0, 0, 0, 0.08)));
 
         // AI-Powered Optimization Suggestions Module
         Label title3 = new Label("AI-Powered Optimization Suggestions");
@@ -376,7 +384,7 @@ public class NutlletEnterprise extends Application {
         card3.setPrefWidth(columnWidth);
         card3.setBackground(new Background(new BackgroundFill(
                 Color.WHITE, new CornerRadii(12), Insets.EMPTY)));
-        card3.setStyle("-fx-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);");
+        card3.setEffect(new DropShadow(12, 0, 4, Color.rgb(0, 0, 0, 0.08)));
 
         // Adding all cards to the sidebar
         sidebar.getChildren().addAll(card1, card2, card3);
@@ -497,7 +505,7 @@ public class NutlletEnterprise extends Application {
             setPadding(new Insets(20));
             setBackground(new Background(new BackgroundFill(
                     Color.WHITE, new CornerRadii(12), Insets.EMPTY)));
-            setStyle("-fx-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);");
+            setEffect(new DropShadow(12, 0, 4, Color.rgb(0, 0, 0, 0.08)));
 
             Label title = new Label("Enterprise Revenue & Expenditure");
             title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
@@ -579,7 +587,7 @@ public class NutlletEnterprise extends Application {
             setPadding(new Insets(20));
             setBackground(new Background(new BackgroundFill(
                     Color.WHITE, new CornerRadii(12), Insets.EMPTY)));
-            setStyle("-fx-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);");
+            setEffect(new DropShadow(12, 0, 4, Color.rgb(0, 0, 0, 0.08)));
 
             Label title = new Label("Personal VS Corporate Expenditures");
             title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
