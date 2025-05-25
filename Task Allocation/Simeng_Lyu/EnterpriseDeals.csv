@@ -1,8 +1,4 @@
-微信支付账单明细 微信昵称：[Q·ð 起始时间：[2025-04-10 09:40:16] 终止时间：[2025-04-18 19:55:33]
-----------------------Reminder Details List----------------------
-Type,Reminder name,Reminder Category,Amount Range,Note
-"Reminder","Pension planning","For expense monitoring","¥500-700","Better to spend less than 500-700"
-"Reminder","Loan repayment","For savings","¥30-50","Save money for the loan"
+微信支付账单明细 微信昵称：[Q·ð 起始时间：[2025-04-10 09:40:16] 终止时间：[2025-04-18 19:55:33]
 ----------------------WeChat Payment Statement Details List--------------------
 Transaction Time,Transaction Type,Counterparty,Product,Income/Expense,Amount (Yuan),Payment Method,Current Status,Transaction Number,Merchant Number,Note
 "2024-02-20 12:36:38","Merchant Consumption","Taobao","Canon EOS R10 entry level micro single half frame camera","Expenditure","¥8900","Bank card ","Transaction successful ","3784721005081170437","",""

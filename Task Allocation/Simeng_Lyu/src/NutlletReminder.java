@@ -1,4 +1,4 @@
-// package Merge;
+package Merge;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -19,16 +19,28 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
+/**
+ * NutlletReminder is a JavaFX application for managing financial reminders.
+ * It provides features such as:
+ * - Loading and displaying reminder data from a CSV file
+ * - Calculating and displaying progress for savings and expense monitoring
+ * - Adding and deleting reminders
+ * - Navigation between different sections of the application
+ */
 public class NutlletReminder extends Application {
     private static final Color PRIMARY_COLOR = Color.rgb(202, 182, 244);
     private static final Color BACKGROUND_COLOR = Color.rgb(255, 212, 236, 0.33);
     private static final Color TEXT_COLOR = Color.BLACK;
 
-    public List<Reminder> reminders = new ArrayList<>();
+    private List<Reminder> reminders = new ArrayList<>();
     private double totalIncome = 0;
     private double totalExpense = 0;
 
+    /**
+     * The main entry point for the JavaFX application.
+     * Sets up the main layout and displays the primary stage.
+     * @param primaryStage The main window for this application
+     */
     @Override
     public void start(Stage primaryStage) {
         loadData();
@@ -36,14 +48,14 @@ public class NutlletReminder extends Application {
         BorderPane root = new BorderPane();
 
         root.setTop(createHeader());
-
-        // 创建ScrollPane包装主内容
+        
+        // Create ScrollPane to wrap main content
         ScrollPane scrollPane = new ScrollPane(createMainContent(primaryStage));
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         root.setCenter(scrollPane);
-
+        
         root.setBottom(createBottomNav(primaryStage));
 
         Scene scene = new Scene(root, 1366, 768);
@@ -52,12 +64,15 @@ public class NutlletReminder extends Application {
         primaryStage.show();
     }
 
-    public void loadData() {
+    /**
+     * Loads reminder and transaction data from the CSV file and calculates totals.
+     */
+    private void loadData() {
         try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
             String line;
             boolean isReminderSection = false;
             boolean isTransactionSection = false;
-
+            
             while ((line = reader.readLine()) != null) {
                 if (line.contains("Type,Reminder name,Reminder Category,Amount Range,Note")) {
                     isReminderSection = true;
@@ -90,9 +105,9 @@ public class NutlletReminder extends Application {
                 if (isTransactionSection && !line.trim().isEmpty()) {
                     String[] parts = line.split(",");
                     if (parts.length >= 6) {
-                        String transactionType = parts[1].replace("\"", "");
+                    	String transactionType = parts[1].replace("\"", "");
                         if ("Merchant Consumption".equals(transactionType) || "Pocket Money".equals(transactionType)) {
-                            String type = parts[4].replace("\"", "");
+                        	String type = parts[4].replace("\"", "");
                             String amount = parts[5].replace("\"", "").replace("¥", "");
                             double value = Double.parseDouble(amount);
                             if (type.equals("Income")) {
@@ -109,26 +124,29 @@ public class NutlletReminder extends Application {
         }
     }
 
-    public void calculateBalance() {
-        double originalTotalIncome = totalIncome; // 保存原始总收入
-        double originalTotalExpense = totalExpense; // 保存原始总支出
-        double currentIncome = originalTotalIncome; // 动态扣除后的当前收入
+    /**
+     * Calculates the balance and progress for each reminder based on income and expenses.
+     */
+    private void calculateBalance() {
+        double originalTotalIncome = totalIncome; // Save original total income
+        double originalTotalExpense = totalExpense; // Save original total expense
+        double currentIncome = originalTotalIncome; // Current income after dynamic deduction
 
-        // 先处理储蓄类型提醒
+        // First process savings type reminder
         for (Reminder reminder : reminders) {
             if (reminder.type.equals("For savings")) {
                 double avgAmount = (reminder.minAmount + reminder.maxAmount) / 2;
-                // 使用动态更新的 currentIncome 计算余额
+                // Use currentIncome to calculate balance
                 double balance = currentIncome - originalTotalExpense;
                 double progress = balance >= 0 ? Math.min(100, (balance / avgAmount) * 100) : 0;
 
-                // 如果进度完成，扣除 maxAmount
+                // If progress is completed, deduct maxAmount
                 if (progress >= 100) {
-                    currentIncome -= reminder.maxAmount; // 更新当前可用收入
-                    progress = 100; // 强制显示为100%
+                    currentIncome -= reminder.maxAmount; // Update current available income
+                    progress = 100; // Force to display as 100%
                 }
                 else {
-                    currentIncome = 0;
+                	currentIncome = 0;
                 }
 
                 reminder.progress = progress;
@@ -136,10 +154,10 @@ public class NutlletReminder extends Application {
             }
         }
 
-        // 更新最终扣除后的总收入
+        // Update final deducted total income
         totalIncome = currentIncome;
 
-        // 处理支出类型提醒（基于原始总支出，不受储蓄扣除影响）
+        // Process expense type reminder (based on original total expense, not affected by savings deduction)
         for (Reminder reminder : reminders) {
             if (reminder.type.equals("For expense monitoring")) {
                 double avgAmount = (reminder.minAmount + reminder.maxAmount) / 2;
@@ -149,7 +167,10 @@ public class NutlletReminder extends Application {
         }
     }
 
-
+    /**
+     * Creates the header section with the application title.
+     * @return HBox containing the header components
+     */
     private HBox createHeader() {
         HBox header = new HBox();
         header.setBackground(new Background(new BackgroundFill(
@@ -165,13 +186,18 @@ public class NutlletReminder extends Application {
         return header;
     }
 
+    /**
+     * Creates the main content area with reminder buttons and an add button.
+     * @param primaryStage The main window for navigation
+     * @return VBox containing the main content
+     */
     private VBox createMainContent(Stage primaryStage) {
         VBox mainContent = new VBox(20);
         mainContent.setPadding(new Insets(20));
         mainContent.setBackground(new Background(new BackgroundFill(
                 BACKGROUND_COLOR, CornerRadii.EMPTY, Insets.EMPTY)));
         mainContent.setAlignment(Pos.TOP_CENTER);
-        mainContent.setMinWidth(400); // 设置最小宽度，确保内容不会被压缩
+        mainContent.setMinWidth(400); // Set minimum width to ensure content is not compressed
 
         for (Reminder reminder : reminders) {
             Button reminderButton = createReminderButton(reminder, primaryStage);
@@ -194,6 +220,12 @@ public class NutlletReminder extends Application {
         return mainContent;
     }
 
+    /**
+     * Creates a button for a reminder with progress bar and delete functionality.
+     * @param reminder The reminder to display
+     * @param primaryStage The main window for navigation
+     * @return Button containing the reminder details
+     */
     private Button createReminderButton(Reminder reminder, Stage primaryStage) {
         HBox mainContainer = new HBox(10);
         mainContainer.setAlignment(Pos.CENTER_LEFT);
@@ -210,16 +242,16 @@ public class NutlletReminder extends Application {
         title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
         title.setStyle("-fx-text-fill: black;");
 
-        // 添加金额范围
+        // Add amount range
         Label amountRange = new Label(String.format("Quota：¥%.0f-%.0f", reminder.minAmount, reminder.maxAmount));
         amountRange.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
         amountRange.setStyle("-fx-text-fill: black;");
-
-        // 添加备注
+        
+        // Add remark
         Label remark = new Label("Remark：" + reminder.remark);
         remark.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
         remark.setStyle("-fx-text-fill: black;");
-
+        
         HBox progressBarContainer = new HBox();
         progressBarContainer.setBackground(new Background(new BackgroundFill(
                 Color.LIGHTGRAY, new CornerRadii(6), Insets.EMPTY)));
@@ -234,7 +266,7 @@ public class NutlletReminder extends Application {
         progressBar.setPrefHeight(8);
         progressBar.setMinHeight(8);
         progressBar.setMaxHeight(8);
-        progressBar.setPrefWidth(reminder.progress * 4); // 400 * 百分比
+        progressBar.setPrefWidth(reminder.progress * 4); // 400 * percentage
         progressBarContainer.getChildren().add(progressBar);
 
         Label description = new Label(reminder.progressText);
@@ -242,17 +274,17 @@ public class NutlletReminder extends Application {
         description.setStyle("-fx-text-fill: black;");
         content.getChildren().addAll(title, amountRange, remark, progressBarContainer, description);
 
-        // 创建删除按钮
+        // Create delete button
         Button deleteButton = new Button("×");
         deleteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff4d4d; -fx-font-size: 24px; -fx-font-weight: bold; -fx-cursor: hand;");
         deleteButton.setOnMouseEntered(e -> deleteButton.setStyle("-fx-background-color: #ffebeb; -fx-text-fill: #ff4d4d; -fx-font-size: 24px; -fx-font-weight: bold; -fx-cursor: hand;"));
         deleteButton.setOnMouseExited(e -> deleteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff4d4d; -fx-font-size: 24px; -fx-font-weight: bold; -fx-cursor: hand;"));
 
-        // 设置删除按钮事件
+        // Set delete button event
         deleteButton.setOnAction(e -> {
             try {
                 deleteReminder(reminder.name);
-                // 重新加载页面
+                // Reload page
                 new NutlletReminder().start(new Stage());
                 primaryStage.close();
             } catch (Exception ex) {
@@ -264,6 +296,10 @@ public class NutlletReminder extends Application {
         return new Button("", mainContainer);
     }
 
+    /**
+     * Deletes a reminder from the CSV file and refreshes the display.
+     * @param reminderName The name of the reminder to delete
+     */
     private void deleteReminder(String reminderName) {
         try {
             File file = new File("deals.csv");
@@ -286,10 +322,10 @@ public class NutlletReminder extends Application {
                     }
 
                     if (isReminderSection) {
-                        // 检查是否是要删除的提醒事项
+                        // Check if it's the reminder to delete
                         if (line.contains("\"" + reminderName + "\"")) {
                             foundReminder = true;
-                            continue; // 跳过这一行，不添加到新内容中
+                            continue; // Skip this line, don't add to new content
                         }
                     }
                     content.append(line).append("\n");
@@ -297,7 +333,7 @@ public class NutlletReminder extends Application {
             }
 
             if (foundReminder) {
-                // 写入更新后的内容
+                // Write updated content
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
                     writer.write(content.toString());
                 }
@@ -313,6 +349,11 @@ public class NutlletReminder extends Application {
         }
     }
 
+    /**
+     * Creates the bottom navigation bar with Home, Discover, and Settings buttons.
+     * @param primaryStage The main window for navigation
+     * @return HBox containing the navigation buttons
+     */
     private HBox createBottomNav(Stage primaryStage) {
         HBox navBar = new HBox();
         navBar.setSpacing(0);
@@ -320,12 +361,12 @@ public class NutlletReminder extends Application {
         navBar.setPrefHeight(80);
         navBar.setStyle("-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
 
-        // 创建导航按钮
+        // Create navigation button
         Button homeBtn = createNavButtonWithEmoji("Home", "🏠");
         Button discoverBtn = createNavButtonWithEmoji("Discover", "🔍");
         Button settingsBtn = createNavButtonWithEmoji("Settings", "⚙");
 
-        // 设置按钮事件
+        // Set button event
         homeBtn.setOnAction(e -> {
             try {
                 new Nutllet().start(new Stage());
@@ -353,11 +394,17 @@ public class NutlletReminder extends Application {
             }
         });
 
-        // 调整按钮顺序（Home -> Discover -> Settings）
+        // Adjust button order (Home -> Discover -> Settings)
         navBar.getChildren().addAll(homeBtn, discoverBtn, settingsBtn);
         return navBar;
     }
 
+    /**
+     * Creates a navigation button with an emoji icon and label.
+     * @param label The text label for the button
+     * @param emoji The emoji to display
+     * @return Button with emoji and label
+     */
     private Button createNavButtonWithEmoji(String label, String emoji) {
         VBox btnContainer = new VBox();
         btnContainer.setAlignment(Pos.CENTER);
@@ -383,6 +430,10 @@ public class NutlletReminder extends Application {
         return button;
     }
 
+    /**
+     * Applies the primary button style to the given button.
+     * @param button The button to style
+     */
     private void stylePrimaryButton(Button button) {
         button.setStyle("-fx-text-fill: white; "
                 + "-fx-background-color: " + toHexString(PRIMARY_COLOR) + ";"
@@ -407,6 +458,11 @@ public class NutlletReminder extends Application {
                 + "-fx-font-weight: 500;"));
     }
 
+    /**
+     * Converts a Color object to its hexadecimal string representation.
+     * @param color The color to convert
+     * @return Hexadecimal string of the color
+     */
     private String toHexString(Color color) {
         return String.format("#%02X%02X%02X",
                 (int) (color.getRed() * 255),
@@ -414,6 +470,10 @@ public class NutlletReminder extends Application {
                 (int) (color.getBlue() * 255));
     }
 
+    /**
+     * The main method to launch the application.
+     * @param args Command line arguments
+     */
     public static void main(String[] args) {
         launch(args);
     }

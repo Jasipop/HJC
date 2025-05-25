@@ -1,4 +1,4 @@
-//package Merge;
+package Merge;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -26,23 +26,34 @@ import java.io.FileWriter;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * NutlletEnterprise is a JavaFX application for enterprise financial management.
+ * It provides features such as:
+ * - Importing and displaying enterprise transaction records
+ * - Visualizing revenue and expenditure with charts
+ * - Comparing personal and corporate expenditures
+ * - Sidebar with financial analysis and AI suggestions
+ */
 public class NutlletEnterprise extends Application {
-    // 颜色定义
+    // Color definitions
     private static final Color PRIMARY_COLOR = Color.web("#1A94BC");// #1A94BC
     private static final Color SUCCESS_COLOR = Color.web("#63B006");// #63B006
     private static final Color TITLE_COLOR = Color.web("#11659A");  // #11659A
     private static final Color TEXT_COLOR = Color.web("#000000");
     private ListView<String> transactionList;
 
+    /**
+     * Handles importing transaction data from a CSV file and updates the transaction list.
+     */
     private void handleImportCSV() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select CSV File to Import");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
         File selectedFile = fileChooser.showOpenDialog(null);
-
+        
         if (selectedFile != null) {
             try {
-                // 读取导入文件的有效数据行
+                // Read the valid data rows of the imported file
                 List<String> validLines = new ArrayList<>();
                 boolean isDataSection = false;
                 try (BufferedReader br = new BufferedReader(new FileReader(selectedFile))) {
@@ -53,7 +64,7 @@ public class NutlletEnterprise extends Application {
                             continue;
                         }
                         if (isDataSection && line.startsWith("Transaction Time,Transaction Type")) {
-                            continue; // 跳过表头
+                            continue;
                         }
                         if (isDataSection) {
                             validLines.add(line);
@@ -61,7 +72,7 @@ public class NutlletEnterprise extends Application {
                     }
                 }
 
-                // 追加到目标文件
+                // Append to the target file
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter("EnterpriseDeals.csv", true))) {
                     for (String dataLine : validLines) {
                         bw.write(dataLine);
@@ -69,36 +80,46 @@ public class NutlletEnterprise extends Application {
                     }
                 }
 
-                // 刷新列表显示
+                // Refresh the list display
                 transactionList.setItems(getTransactionItems());
-
+                
             } catch (IOException e) {
                 e.printStackTrace();
-                // 这里可以添加错误提示
+                //Error prompts can be added here
             }
         }
     }
+
+    /**
+     * The main entry point for the JavaFX application.
+     * Sets up the main layout and displays the primary stage.
+     * @param primaryStage The main window for this application
+     */
     @Override
     public void start(Stage primaryStage) {
         BorderPane root = new BorderPane();
         root.setTop(createHeader());
         root.setCenter(createMainContent());
         root.setBottom(createBottomNav(primaryStage));
-        root.setRight(createSidebar(primaryStage));  // 添加右侧栏
+        root.setRight(createSidebar(primaryStage));  // Add right sidebar
 
-        // 包裹主布局的滚动容器
+        // Wrap main layout with scroll container
         ScrollPane scrollPane = new ScrollPane(root);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
 
-        // 设置场景大小为 1366x768
+        // Set scene size to 1366x768
         Scene scene = new Scene(scrollPane, 1366, 768);
 
         primaryStage.setTitle("Financial Edition");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-
+    
+    /**
+     * Creates the header section with the application title and navigation button.
+     * @return HBox containing the header components
+     */
     private HBox createHeader() {
         HBox header = new HBox();
         header.setBackground(new Background(new BackgroundFill(
@@ -106,7 +127,7 @@ public class NutlletEnterprise extends Application {
         header.setPadding(new Insets(20));
         header.setAlignment(Pos.CENTER);
 
-        // 左侧标题部分
+        // Left title section
         HBox leftSection = new HBox();
         leftSection.setAlignment(Pos.CENTER_LEFT);
 
@@ -121,7 +142,7 @@ public class NutlletEnterprise extends Application {
 
         leftSection.getChildren().addAll(title, edition);
 
-        // 右侧按钮
+        // Right button
         Button personalEditionBtn = new Button("Personal Edition");
         personalEditionBtn.setStyle("-fx-background-color: white; -fx-text-fill: " + toHexString(PRIMARY_COLOR) + "; -fx-border-radius: 3;");
         personalEditionBtn.setOnAction(e -> {
@@ -133,7 +154,7 @@ public class NutlletEnterprise extends Application {
             }
         });
 
-        // 使用Region作为弹性空间
+        // Use Region as flexible space
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -141,12 +162,16 @@ public class NutlletEnterprise extends Application {
         return header;
     }
 
+    /**
+     * Creates the main content area with revenue/expenditure cards and transaction list.
+     * @return SplitPane containing the left and right panels
+     */
     private SplitPane createMainContent() {
         SplitPane splitPane = new SplitPane();
-        // 调整左右面板的比例为 4:6
+        // Adjust left and right panel ratio to 4:6
         splitPane.setDividerPositions(0.4);
 
-        // 左侧面板
+        // Left panel
         VBox leftPanel = new VBox(20);
         leftPanel.setPadding(new Insets(20));
         leftPanel.setBackground(new Background(new BackgroundFill(
@@ -163,7 +188,7 @@ public class NutlletEnterprise extends Application {
         leftScrollPane.setFitToHeight(true);
         leftScrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
-        // 右侧面板
+        // Right panel
         VBox rightPanel = new VBox(15);
         rightPanel.setPadding(new Insets(20, 20, 20, 0));
         rightPanel.setBackground(new Background(new BackgroundFill(
@@ -174,7 +199,7 @@ public class NutlletEnterprise extends Application {
         recentTransactions.setTextFill(PRIMARY_COLOR);
         recentTransactions.setPadding(new Insets(0, 0, 10, 0));
 
-        // 表头样式优化
+        // Table header style optimization
         HBox headerBox = new HBox(10);
         headerBox.setPadding(new Insets(15));
         headerBox.setStyle("-fx-background-color: #f5f5f5; -fx-font-weight: bold; -fx-background-radius: 5;");
@@ -193,14 +218,14 @@ public class NutlletEnterprise extends Application {
 
         headerBox.getChildren().addAll(headerLabel, spacer, importButton);
 
-        // 交易记录列表
+        // Transaction record list
         transactionList = new ListView<>();
         transactionList.setItems(getTransactionItems());
         transactionList.setStyle("-fx-background-color: transparent; -fx-background-insets: 0;");
         transactionList.setPrefHeight(450);
         transactionList.setPadding(new Insets(0));
 
-        // 优化列表项样式
+        // Optimize list item style
         transactionList.setCellFactory(lv -> new ListCell<String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -221,7 +246,7 @@ public class NutlletEnterprise extends Application {
         listContainer.getChildren().addAll(headerBox, transactionList);
         VBox.setVgrow(transactionList, Priority.ALWAYS);
 
-        // 右侧滚动面板
+        // Right scroll panel
         ScrollPane rightScrollPane = new ScrollPane(listContainer);
         rightScrollPane.setFitToWidth(true);
         rightScrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent; -fx-background-insets: 0;");
@@ -236,6 +261,11 @@ public class NutlletEnterprise extends Application {
         return splitPane;
     }
 
+    /**
+     * Creates the bottom navigation bar with Home, Discover, and Settings buttons.
+     * @param primaryStage The main window for navigation
+     * @return HBox containing the navigation buttons
+     */
     private HBox createBottomNav(Stage primaryStage) {
         HBox navBar = new HBox();
         navBar.setSpacing(0);
@@ -249,7 +279,7 @@ public class NutlletEnterprise extends Application {
 
         homeBtn.setOnAction(e -> {
             try {
-                new Nutllet().start(new Stage()); // 导航到 Nutllet.java
+                new Nutllet().start(new Stage()); // Navigate to Nutllet.java
                 primaryStage.close();
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -276,22 +306,27 @@ public class NutlletEnterprise extends Application {
         return navBar;
     }
 
+    /**
+     * Creates the right sidebar with three feature cards: trend analysis, reports, and AI suggestions.
+     * @param primaryStage The main window for navigation
+     * @return VBox containing the sidebar cards
+     */
     private VBox createSidebar(Stage primaryStage) {
         VBox sidebar = new VBox(20);
         sidebar.setPadding(new Insets(20));
         sidebar.setBackground(new Background(new BackgroundFill(
                 Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
 
-        // 获取屏幕宽度的 1/3
-        double screenWidth = 1366; // 假设屏幕宽度为 1366px
+        // Get screen width 1/3
+        double screenWidth = 1366; // Assume screen width is 1366px
         double columnWidth = screenWidth / 3.0;
 
-        // Tax Forecasting Module
-        Label title1 = new Label("Tax Forecasting");
+        // Smart Financial Trend Analysis Module
+        Label title1 = new Label("Smart Financial Trend Analysis");
         title1.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
         title1.setTextFill(TITLE_COLOR);
 
-        Label text1 = new Label("Based on a company's financial data and historical tax records to forecast its future potential tax liabilities.");
+        Label text1 = new Label("Through automated data visualization, the system presents enterprises with monthly income and expenditure trends, major spending categories, and payment method distributions. This helps managers quickly grasp financial dynamics and promptly identify abnormal fluctuations or structural issues.");
         text1.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
         text1.setTextFill(Color.BLACK);
         text1.setWrapText(true);
@@ -303,15 +338,12 @@ public class NutlletEnterprise extends Application {
                 Color.WHITE, new CornerRadii(12), Insets.EMPTY)));
         card1.setStyle("-fx-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);");
 
-        // Financial Recommendations Module
-        Label title2 = new Label("Financial Recommendations for Enterprises");
+        // Auto-Generated Financial Reports Module
+        Label title2 = new Label("Auto-Generated Financial Reports");
         title2.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
         title2.setTextFill(TITLE_COLOR);
 
-        Label text2 = new Label("Based on the company's income and expenditure, the fee for application documents accounts for 40% (2000/5000) of the total expenditure. "
-                + "It is recommended to optimize the application process and reduce unnecessary costs for application materials. "
-                + "At the same time, tax expenditures account for 6.6% (330/5000) of the total expenditure. "
-                + "It is suggested to plan taxes reasonably and make full use of tax preferential policies.");
+        Label text2 = new Label("Based on historical transaction data, the system automatically generates comprehensive financial analysis reports with both charts and text. The reports cover key indicators such as total income, total expenditure, net balance, largest single expense, most active spending day, and top spending categories, empowering enterprises to make informed decisions efficiently.");
         text2.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
         text2.setTextFill(Color.BLACK);
         text2.setWrapText(true);
@@ -323,18 +355,18 @@ public class NutlletEnterprise extends Application {
                 Color.WHITE, new CornerRadii(12), Insets.EMPTY)));
         card2.setStyle("-fx-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);");
 
-        // AI Industry Analysis Module
-        Label title3 = new Label("Al Industry Analysis");
+        // AI-Powered Optimization Suggestions Module
+        Label title3 = new Label("AI-Powered Optimization Suggestions");
         title3.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
         title3.setTextFill(TITLE_COLOR);
 
-        Label text3 = new Label("Al will analyze market-related situations and trends for you and provide reasonable business-related recommendations.");
+        Label text3 = new Label("With an integrated AI analysis engine, the system automatically interprets enterprise spending behavior, generating trend summaries, risk alerts, and three targeted optimization suggestions. Enterprises can use these insights to adjust financial strategies, improve fund utilization efficiency, and avoid potential risks.");
         text3.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
         text3.setTextFill(Color.BLACK);
         text3.setWrapText(true);
 
-        Button askNowButton = new Button("View detailed AI recommendations!");
-        stylePrimaryButton(askNowButton); // 使用与"View More Details"按钮相同的样式
+        Button askNowButton = new Button("VIEW MORE DETAILS");
+        stylePrimaryButton(askNowButton); // Use the same style as "View More Details" button
         askNowButton.setOnAction(e -> {
             try { new EP_FinancialAnalysis().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
         });
@@ -351,12 +383,21 @@ public class NutlletEnterprise extends Application {
         return sidebar;
     }
 
+    /**
+     * Applies the primary button style to the given button.
+     * @param button The button to style
+     */
     private void stylePrimaryButton(Button button) {
         button.setStyle("-fx-text-fill: " + toHexString(PRIMARY_COLOR) + "; -fx-background-color: rgba(255, 255, 255, 0.1);"
                 + "-fx-padding: 8px 16px; -fx-border-radius: 20px; -fx-border-color: " + toHexString(PRIMARY_COLOR) + ";"
                 + "-fx-background-radius: 20px; -fx-cursor: pointer;");
     }
 
+    /**
+     * Converts a Color object to its hexadecimal string representation.
+     * @param color The color to convert
+     * @return Hexadecimal string of the color
+     */
     private String toHexString(Color color) {
         return String.format("#%02X%02X%02X",
                 (int) (color.getRed() * 255),
@@ -364,6 +405,10 @@ public class NutlletEnterprise extends Application {
                 (int) (color.getBlue() * 255));
     }
 
+    /**
+     * Reads and returns the transaction items from the CSV file for display.
+     * @return ObservableList of formatted transaction strings
+     */
     private javafx.collections.ObservableList<String> getTransactionItems() {
         javafx.collections.ObservableList<String> items = javafx.collections.FXCollections.observableArrayList();
         try (BufferedReader reader = new BufferedReader(new FileReader("EnterpriseDeals.csv"))) {
@@ -382,7 +427,7 @@ public class NutlletEnterprise extends Application {
                         String type = parts[4].replace("\"", "");
                         String amount = parts[5].replace("\"", "");
 
-                        // 格式化字符串，使用固定宽度确保对齐
+                        // Format string, use fixed width to ensure alignment
                         String item = String.format("%-20s %-30s %-10s %-10s",
                                 time, product, type, amount);
                         items.add(item);
@@ -395,6 +440,12 @@ public class NutlletEnterprise extends Application {
         return items;
     }
 
+    /**
+     * Creates a navigation button with an emoji icon and label.
+     * @param label The text label for the button
+     * @param emoji The emoji to display
+     * @return Button with emoji and label
+     */
     private Button createNavButtonWithEmoji(String label, String emoji) {
         VBox btnContainer = new VBox();
         btnContainer.setAlignment(Pos.CENTER);
@@ -426,11 +477,21 @@ public class NutlletEnterprise extends Application {
         return button;
     }
 
+    /**
+     * The main method to launch the application.
+     * @param args Command line arguments
+     */
     public static void main(String[] args) {
         launch(args);
     }
 
+    /**
+     * Card component for displaying enterprise revenue and expenditure with a pie chart.
+     */
     private class RevenueExpenditureCard extends VBox {
+        /**
+         * Constructs the revenue and expenditure card, calculates totals, and displays a pie chart.
+         */
         public RevenueExpenditureCard() {
             setSpacing(10);
             setPadding(new Insets(20));
@@ -443,7 +504,7 @@ public class NutlletEnterprise extends Application {
             title.setStyle("-fx-text-fill: #1A94BC; ");
 
 
-            // 计算收入和支出总额
+            // Calculate total revenue and expenditure
             double totalRevenue = 0;
             double totalExpenditure = 0;
             try (BufferedReader reader = new BufferedReader(new FileReader("EnterpriseDeals.csv"))) {
@@ -472,49 +533,47 @@ public class NutlletEnterprise extends Application {
                 e.printStackTrace();
             }
 
-            // 计算余额
+            // Calculate balance
             double balance = totalRevenue - totalExpenditure;
 
-            // 创建饼图
+            // Create pie chart
             PieChart chart = new PieChart();
             PieChart.Data revenueData = new PieChart.Data("Revenue", totalRevenue);
             PieChart.Data expenditureData = new PieChart.Data("Expenditure", totalExpenditure);
             chart.getData().addAll(revenueData, expenditureData);
 
-            // 设置饼图大小
+            // Set pie chart size
             chart.setPrefSize(300, 300);
             chart.setMaxSize(300, 300);
 
-            // 设置饼图颜色
+            // Set pie chart colors
             revenueData.getNode().setStyle("-fx-pie-color: " + toHexString(SUCCESS_COLOR) + ";");
             expenditureData.getNode().setStyle("-fx-pie-color: " + toHexString(TITLE_COLOR) + ";");
 
-            // 添加总额标签
+            // Add total label
             Label totalLabel = new Label(String.format("Balance: ¥%.2f", balance));
             totalLabel.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
             totalLabel.setStyle("-fx-text-fill: #000000; ");
 
-            // "View More Details" 按钮导航到 Intelligent_Transaction_Classifier.java
-            Button viewMoreDetailsButton = new Button("VIEW MORE DETAILS");
-            stylePrimaryButton(viewMoreDetailsButton);
-            viewMoreDetailsButton.setOnAction(e -> {
-                try {
-                    // 获取当前窗口
-                    Stage currentStage = (Stage) viewMoreDetailsButton.getScene().getWindow();
-                    // 创建并显示新窗口
-                    new Intelligent_Transaction_Classifier().start(new Stage());
-                    // 关闭当前窗口
-                    currentStage.close();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            });
+            HBox balanceBox = new HBox(totalLabel);
+            balanceBox.setAlignment(Pos.CENTER_LEFT);
+            balanceBox.setPadding(new Insets(0, 0, 0, 10));
 
-            getChildren().addAll(title, chart, totalLabel, viewMoreDetailsButton);
+            VBox contentBox = new VBox(15, title, chart, balanceBox);
+            contentBox.setAlignment(Pos.CENTER);
+            contentBox.setPadding(new Insets(0));
+
+            getChildren().addAll(contentBox);
         }
     }
 
+    /**
+     * Card component for comparing personal and corporate expenditures with a pie chart.
+     */
     private class PersonalCorporateExpenditureCard extends VBox {
+        /**
+         * Constructs the personal vs corporate expenditure card and displays a pie chart.
+         */
         public PersonalCorporateExpenditureCard() {
             setSpacing(10);
             setPadding(new Insets(20));
@@ -526,7 +585,7 @@ public class NutlletEnterprise extends Application {
             title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
             title.setStyle("-fx-text-fill: #1A94BC; ");
 
-            // 计算企业支出总额
+            // Calculate corporate expenditure total
             double corporateExpenditure = 0;
             try (BufferedReader reader = new BufferedReader(new FileReader("EnterpriseDeals.csv"))) {
                 String line;
@@ -551,7 +610,7 @@ public class NutlletEnterprise extends Application {
                 e.printStackTrace();
             }
 
-            // 计算个人支出总额
+            // Calculate personal expenditure total
             double personalExpenditure = 0;
             try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
                 String line;
@@ -576,24 +635,24 @@ public class NutlletEnterprise extends Application {
                 e.printStackTrace();
             }
 
-            // 计算总支出
+            // Calculate total expenditure
             double totalExpenditure = personalExpenditure + corporateExpenditure;
 
-            // 创建饼图
+            // Create pie chart
             PieChart chart = new PieChart();
             PieChart.Data personalData = new PieChart.Data("Personal", personalExpenditure);
             PieChart.Data corporateData = new PieChart.Data("Corporate", corporateExpenditure);
             chart.getData().addAll(personalData, corporateData);
 
-            // 设置饼图大小
+            // Set pie chart size
             chart.setPrefSize(300, 300);
             chart.setMaxSize(300, 300);
 
-            // 设置饼图颜色
+            // Set pie chart colors
             personalData.getNode().setStyle("-fx-pie-color: " + toHexString(SUCCESS_COLOR) + ";");
             corporateData.getNode().setStyle("-fx-pie-color: " + toHexString(TITLE_COLOR) + ";");
 
-            // 添加总额标签
+            // Add total label
             Label totalLabel = new Label(String.format("Total Expenditures: ¥%.2f", totalExpenditure));
             totalLabel.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
             totalLabel.setStyle("-fx-text-fill: #000000; ");
