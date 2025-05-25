@@ -1,3 +1,5 @@
+//package Merge;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
@@ -23,8 +25,6 @@ import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import java.awt.*;
-import java.net.URI;
 import javafx.application.Platform;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -43,7 +43,23 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.stream.Collectors;
 
-
+/**
+ * Enterprise Financial Analysis Application
+ *
+ * This application provides a comprehensive financial analysis dashboard for enterprise users.
+ * It visualizes spending trends, category distributions, and payment methods through various charts.
+ * The application also includes AI-powered recommendations for financial optimization.
+ *
+ * Features:
+ * - Interactive spending trend visualization
+ * - Category-based spending analysis
+ * - Payment method distribution
+ * - AI-powered financial recommendations
+ * - Responsive UI with animations
+ *
+ * @author Jiachen Hou
+ * @version final
+ */
 public class EP_FinancialAnalysis extends Application {
 
     private final String lineColor = "#11659A";
@@ -51,8 +67,15 @@ public class EP_FinancialAnalysis extends Application {
     private final String[] pieColors = {"#11659A", "#3498db", "#1a252f", "#F05865", "#34495e"};
     private final String backgroundColor = "#EBF5FB";
 
+    /** List to store all financial transactions */
     private List<Transaction> transactions = new ArrayList<>();
 
+    /**
+     * The main entry point for the JavaFX application.
+     * Initializes and displays the financial analysis dashboard.
+     *
+     * @param primaryStage The primary stage for this application
+     */
     @Override
     public void start(Stage primaryStage) {
         // Load data from CSV first
@@ -63,6 +86,22 @@ public class EP_FinancialAnalysis extends Application {
         mainContainer.setPadding(new Insets(20));
         mainContainer.setSpacing(20);
         mainContainer.setStyle("-fx-background-color: " + backgroundColor + ";");
+
+        Button backButton = new Button("← Back");
+        backButton.setStyle(
+                "-fx-background-color: #11659A;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-padding: 6 14;" +
+                        "-fx-background-radius: 6;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-cursor: hand;"
+        );
+        backButton.setOnAction(e -> {
+            try { new NutlletEnterprise().start(new Stage()); primaryStage.close(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        HBox backBox = new HBox(backButton);
+        backBox.setAlignment(Pos.TOP_LEFT);
 
         Text title = new Text("Financial Analysis -- Enterprise");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
@@ -105,15 +144,15 @@ public class EP_FinancialAnalysis extends Application {
 
         WebView webView = new WebView();
         webView.getEngine().loadContent(generateFinancialAnalysis());
-        webView.setPrefHeight(400);  // 设置合适的高度
+        webView.setPrefHeight(400);  // Set appropriate height
 
-        // 替换原来的WebView和aiButton部分
+        // Replace original WebView and aiButton section
         TextArea aiContent = new TextArea();
         aiContent.setEditable(false);
         aiContent.setWrapText(true);
         aiContent.setStyle("-fx-background-color: white; -fx-text-fill: #666666; -fx-font-size: 14px;");
         aiContent.setPrefHeight(180);
-        aiContent.setText("AI消费分析建议将在这里显示...");
+        aiContent.setText("AI consumption analysis suggestions will be shown here...");
 
         ProgressIndicator progress = new ProgressIndicator();
         progress.setVisible(false);
@@ -135,10 +174,10 @@ public class EP_FinancialAnalysis extends Application {
             scaleBtn.play();
         });
 
-// 修改按钮点击事件
+        // modify button click event
         aiButton.setOnAction(e -> getAIRecommendations(aiContent, progress));
 
-        // 在显示窗口后自动运行一次AI分析
+        // run AI analysis once after the window is shown
         primaryStage.setOnShown(e -> {
             getAIRecommendations(aiContent, progress);
         });
@@ -149,7 +188,7 @@ public class EP_FinancialAnalysis extends Application {
         contentContainer.setStyle("-fx-background-color: " + backgroundColor + ";");
         contentContainer.setOpacity(0);
 
-        contentContainer.getChildren().addAll(title, pageButton, spendingTrendChart,
+        contentContainer.getChildren().addAll(backBox,title, pageButton, spendingTrendChart,
                 categoryTitle, categorySpendingChart, methodTitle, paymentMethodChart,
                 webView, aiPane, aiButton);
 
@@ -220,6 +259,10 @@ public class EP_FinancialAnalysis extends Application {
         });
     }
 
+    /**
+     * Loads transaction data from the CSV file.
+     * Parses and stores transaction information including date, type, amount, and payment method.
+     */
     private void loadTransactionData() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -229,7 +272,7 @@ public class EP_FinancialAnalysis extends Application {
 
             while ((line = reader.readLine()) != null) {
                 if (!headerSkipped) {
-                    if (line.startsWith("交易时间")) {
+                    if (line.startsWith("Transaction Time")) {
                         headerSkipped = true;
                     }
                     continue;
@@ -261,6 +304,12 @@ public class EP_FinancialAnalysis extends Application {
         }
     }
 
+    /**
+     * Parses a CSV line while handling quoted values correctly.
+     *
+     * @param line The CSV line to parse
+     * @return Array of parsed values
+     */
     private String[] parseCsvLine(String line) {
         List<String> values = new ArrayList<>();
         boolean inQuotes = false;
@@ -280,6 +329,11 @@ public class EP_FinancialAnalysis extends Application {
         return values.toArray(new String[0]);
     }
 
+    /**
+     * Builds a line chart showing daily spending trends.
+     *
+     * @return LineChart displaying spending trends over time
+     */
     private LineChart<Number, Number> buildSpendingTrendChart() {
         NumberAxis xAxis = new NumberAxis(7, 20, 1);
         xAxis.setLabel("Date");
@@ -299,7 +353,7 @@ public class EP_FinancialAnalysis extends Application {
         // Group transactions by day of month
         Map<Integer, Double> dailySpending = new TreeMap<>();
         for (Transaction t : transactions) {
-            if ("支出".equals(t.direction)) {
+            if ("Expenditure".equals(t.direction)) {
                 int day = t.date.getDayOfMonth();
                 if (t.date.isBefore(LocalDate.of(2024, 2, 9)) || t.date.isAfter(LocalDate.of(2025, 4, 22))) continue;
                 dailySpending.put(day, dailySpending.getOrDefault(day, 0.0) + t.amount);
@@ -333,7 +387,11 @@ public class EP_FinancialAnalysis extends Application {
         return chart;
     }
 
-
+    /**
+     * Builds a bar chart showing spending distribution by category.
+     *
+     * @return BarChart displaying category-wise spending
+     */
     private BarChart<String, Number> buildCategorySpendingChart() {
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Category");
@@ -356,7 +414,7 @@ public class EP_FinancialAnalysis extends Application {
         // Group transactions by category (counterpart)
         Map<String, Double> categorySpending = new HashMap<>();
         for (Transaction t : transactions) {
-            if ("支出".equals(t.direction)) {
+            if ("Expenditure".equals(t.direction)) {
                 String category = t.counterpart;
                 categorySpending.put(category, categorySpending.getOrDefault(category, 0.0) + t.amount);
             }
@@ -391,8 +449,11 @@ public class EP_FinancialAnalysis extends Application {
         return chart;
     }
 
-
-
+    /**
+     * Builds a pie chart showing payment method distribution.
+     *
+     * @return PieChart displaying payment method distribution
+     */
     private PieChart buildCategoryChart() {
         Map<String, Double> categoryTotals = new HashMap<>();
         for (Transaction t : transactions) {
@@ -408,27 +469,39 @@ public class EP_FinancialAnalysis extends Application {
         return chart;
     }
 
+    /**
+     * Categorizes a transaction based on its counterpart and product information.
+     *
+     * @param t The transaction to categorize
+     * @return String representing the category of the transaction
+     */
     private String categorizeExpense(Transaction t) {
         String counterpart = t.counterpart.toLowerCase();
         String product = t.product.toLowerCase();
 
-        if (counterpart.contains("美团") || product.contains("餐") || counterpart.contains("食堂") || product.contains("茶")) return "Food";
-        if (counterpart.contains("滴滴") || counterpart.contains("加油站") || counterpart.contains("石油") || product.contains("交通")) return "Transport";
-        if (counterpart.contains("电影院") || product.contains("游戏") || counterpart.contains("休息") || counterpart.contains("Apple")) return "Entertainment";
-        if (counterpart.contains("超市") || product.contains("日用品") || counterpart.contains("叮咚") || counterpart.contains("京东到家")) return "Living";
-        if (product.contains("会员")) return "Subscription";
-        if (product.contains("转账") || product.contains("红包")) return "Social";
-        if (product.contains("银行") || product.contains("理财")) return "Finance";
-        if (product.contains("医疗") || product.contains("药品")) return "Health";
-        if (product.contains("教育") || product.contains("学费")) return "Education";
-        if (product.contains("租金") || product.contains("房租")) return "Housing";
+        if (counterpart.contains("meituan") || product.contains("meal") || counterpart.contains("canteen") || product.contains("tea")) return "Food";
+        if (counterpart.contains("didi") || counterpart.contains("gasoline") || counterpart.contains("oil") || product.contains("transport")) return "Transport";
+        if (counterpart.contains("cinema") || product.contains("game") || counterpart.contains("rest") || counterpart.contains("apple")) return "Entertainment";
+        if (counterpart.contains("supermarket") || product.contains("daily necessities") || counterpart.contains("dingdong") || counterpart.contains("jd")) return "Living";
+        if (product.contains("canon")|| product.contains("ulanzi")|| product.contains("Beiyang")|| product.contains("filter")|| product.contains("godox")|| product.contains("battery")|| product.contains("camera")) return "Photographic equipment";
+        if (product.contains("member")) return "Subscription";
+        if (product.contains("fee")|| product.contains("labor")) return "Wage";
+        if (product.contains("transfer") || product.contains("red envelope")) return "Social";
+        if (product.contains("bank") || product.contains("financing")) return "Finance";
+        if (product.contains("health") || product.contains("medicine")) return "Health";
+        if (product.contains("education") || product.contains("tuition")) return "Education";
+        if (product.contains("rental") || product.contains("rent")) return "Housing";
         return "Other";
     }
 
-
+    /**
+     * Retrieves formatted transaction data for AI analysis.
+     *
+     * @return String containing formatted transaction data
+     */
     private String getTransactionsForAnalysis() {
         return transactions.stream()
-                .filter(t -> "支出".equals(t.direction))
+                .filter(t -> "Expenditure".equals(t.direction))
                 .map(t -> String.format("[%s] %s - ¥%.2f (%s)",
                         t.date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                         t.counterpart,
@@ -437,6 +510,12 @@ public class EP_FinancialAnalysis extends Application {
                 .collect(Collectors.joining("\n"));
     }
 
+    /**
+     * Formats the AI response for better readability.
+     *
+     * @param raw The raw AI response string
+     * @return Formatted response string
+     */
     private String formatAIResponse(String raw) {
         return raw.replaceAll("(?m)^\\s*\\d+\\.?", "\n●")
                 .replaceAll("\n+", "\n")
@@ -444,6 +523,12 @@ public class EP_FinancialAnalysis extends Application {
                 .trim();
     }
 
+    /**
+     * Gets AI-powered financial recommendations based on transaction data.
+     *
+     * @param aiContent TextArea to display the recommendations
+     * @param progress ProgressIndicator to show analysis status
+     */
     private void getAIRecommendations(TextArea aiContent, ProgressIndicator progress) {
         aiContent.setText("Analyzing data...");
         progress.setVisible(true);
@@ -494,23 +579,27 @@ public class EP_FinancialAnalysis extends Application {
         executor.shutdown();
     }
 
-
+    /**
+     * Generates HTML content for the financial analysis report.
+     *
+     * @return String containing HTML-formatted analysis
+     */
     private String generateFinancialAnalysis() {
         double totalSpending = transactions.stream()
-                .filter(t -> "支出".equals(t.direction))
+                .filter(t -> "Expenditure".equals(t.direction))
                 .mapToDouble(t -> t.amount)
                 .sum();
 
         double totalIncome = transactions.stream()
-                .filter(t -> "收入".equals(t.direction))
+                .filter(t -> "Income".equals(t.direction))
                 .mapToDouble(t -> t.amount)
                 .sum();
 
         Optional<Transaction> largestExpense = transactions.stream()
-                .filter(t -> "支出".equals(t.direction))
+                .filter(t -> "Expenditure".equals(t.direction))
                 .max(Comparator.comparingDouble(t -> t.amount));
 
-        // 创建HTML格式的分析报告
+        // create HTML format analysis report
         StringBuilder html = new StringBuilder();
         html.append("""
         <html>
@@ -542,7 +631,7 @@ public class EP_FinancialAnalysis extends Application {
         </ul>
         """.formatted(totalIncome, totalSpending, (totalIncome - totalSpending)));
 
-        // 添加最大支出
+        // add largest expense
         if (largestExpense.isPresent()) {
             Transaction t = largestExpense.get();
             html.append("""
@@ -559,7 +648,7 @@ public class EP_FinancialAnalysis extends Application {
             """.formatted(t.amount, t.counterpart, t.date.toString(), categorizeExpense(t)));
         }
 
-        // 添加其他分析
+        // add other analysis
         html.append("""
         <h2>Trends</h2>
         <ul>
@@ -569,7 +658,7 @@ public class EP_FinancialAnalysis extends Application {
         </ul>
         """.formatted(getMostSpendingDay(), getTopSpendingCategory(), getPrimaryPaymentMethod()));
 
-        // 添加分类明细
+        // add category breakdown
         html.append("<h2>Category Breakdown</h2><ul>");
         Map<String, Double> categoryTotals = new HashMap<>();
         for (Transaction t : transactions) {
@@ -588,7 +677,7 @@ public class EP_FinancialAnalysis extends Application {
                 });
         html.append("</ul>");
 
-        // 添加建议
+        // add advice
         html.append("""
         <h2>AI Recommendations</h2>
         <div id="aiRecommendations" style="background-color: white; padding: 15px; border-radius: 8px;">
@@ -601,11 +690,15 @@ public class EP_FinancialAnalysis extends Application {
         return html.toString();
     }
 
-
+    /**
+     * Gets the day with the highest spending.
+     *
+     * @return String representing the day with highest spending
+     */
     private String getMostSpendingDay() {
         Map<Integer, Double> dailySpending = new HashMap<>();
         for (Transaction t : transactions) {
-            if ("支出".equals(t.direction)) {
+            if ("Expenditure".equals(t.direction)) {
                 int day = t.date.getDayOfMonth();
                 dailySpending.put(day, dailySpending.getOrDefault(day, 0.0) + t.amount);
             }
@@ -617,10 +710,15 @@ public class EP_FinancialAnalysis extends Application {
                 .orElse("unknown day");
     }
 
+    /**
+     * Gets the category with the highest spending.
+     *
+     * @return String representing the top spending category
+     */
     private String getTopSpendingCategory() {
         Map<String, Double> categorySpending = new HashMap<>();
         for (Transaction t : transactions) {
-            if ("支出".equals(t.direction)) {
+            if ("Expenditure".equals(t.direction)) {
                 categorySpending.put(t.counterpart, categorySpending.getOrDefault(t.counterpart, 0.0) + t.amount);
             }
         }
@@ -631,10 +729,15 @@ public class EP_FinancialAnalysis extends Application {
                 .orElse("unknown");
     }
 
+    /**
+     * Gets the most frequently used payment method.
+     *
+     * @return String representing the primary payment method
+     */
     private String getPrimaryPaymentMethod() {
         Map<String, Double> methodSpending = new HashMap<>();
         for (Transaction t : transactions) {
-            if ("支出".equals(t.direction)) {
+            if ("Expenditure".equals(t.direction)) {
                 methodSpending.put(t.paymentMethod, methodSpending.getOrDefault(t.paymentMethod, 0.0) + t.amount);
             }
         }
@@ -645,8 +748,13 @@ public class EP_FinancialAnalysis extends Application {
                 .orElse("unknown");
     }
 
-
-
+    /**
+     * Creates a navigation button with an emoji icon.
+     *
+     * @param labelText The text to display on the button
+     * @param emojiSymbol The emoji to display as an icon
+     * @return Button with emoji and text
+     */
     private Button createNavButtonWithEmoji(String labelText, String emojiSymbol) {
         VBox buttonContent = new VBox();
         buttonContent.setAlignment(Pos.CENTER);
@@ -688,20 +796,49 @@ public class EP_FinancialAnalysis extends Application {
         return navigationButton;
     }
 
+    /**
+     * The main method that launches the application.
+     *
+     * @param args Command line arguments
+     */
     public static void main(String[] args) {
         launch(args);
     }
 
+    /**
+     * Represents a financial transaction in the system.
+     * Stores all relevant information about a single transaction.
+     */
     private static class Transaction {
+        /** Date of the transaction */
         LocalDate date;
+        /** Type of transaction */
         String type;
+        /** Transaction counterpart (merchant/vendor) */
         String counterpart;
+        /** Product or service description */
         String product;
+        /** Transaction direction (Income/Expenditure) */
         String direction;
+        /** Transaction amount */
         double amount;
+        /** Payment method used */
         String paymentMethod;
+        /** Transaction status */
         String status;
 
+        /**
+         * Constructs a new Transaction with the specified details.
+         *
+         * @param date Date of the transaction
+         * @param type Type of transaction
+         * @param counterpart Transaction counterpart
+         * @param product Product description
+         * @param direction Transaction direction
+         * @param amount Transaction amount
+         * @param paymentMethod Payment method
+         * @param status Transaction status
+         */
         public Transaction(LocalDate date, String type, String counterpart, String product,
                            String direction, double amount, String paymentMethod, String status) {
             this.date = date;

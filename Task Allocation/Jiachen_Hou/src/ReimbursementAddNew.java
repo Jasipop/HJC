@@ -1,5 +1,4 @@
 import javafx.animation.FadeTransition;
-import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -13,15 +12,29 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * A JavaFX application for adding new reimbursement items.
+ * This application provides a user interface for creating and submitting reimbursement requests
+ * with features such as title input, amount specification, date selection, and responsible person assignment.
+ *
+ * @author Jiachen Hou
+ * @version final
+ */
 public class ReimbursementAddNew extends Application {
 
+    /**
+     * The main entry point for the JavaFX application.
+     * Initializes and displays the reimbursement form interface with all necessary components
+     * including input fields, buttons, and navigation elements.
+     *
+     * @param primaryStage The primary stage for this application
+     */
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Add New Reimbursement Item");
@@ -152,7 +165,6 @@ public class ReimbursementAddNew extends Application {
         responsiblePersonDescription.setFill(Color.web("#7f8c8d"));
 
         ComboBox<String> personComboBox = new ComboBox<>();
-//        personComboBox.setPromptText("Financial Office");
         personComboBox.setValue("Financial Office");
         personComboBox.getItems().addAll("Financial Office", "The Accountant", "Direct Superior");
         personComboBox.setStyle("-fx-background-color: #f9f9f9; -fx-border-color: #bdc3c7; -fx-font-size: 16px; -fx-pref-height: 40px;");
@@ -228,6 +240,11 @@ public class ReimbursementAddNew extends Application {
         primaryStage.show();
     }
 
+    /**
+     * The main method that launches the application.
+     *
+     * @param args Command line arguments
+     */
     public static void main(String[] args) {
         launch(args);
     }

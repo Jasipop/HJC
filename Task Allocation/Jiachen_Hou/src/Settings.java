@@ -19,8 +19,30 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * A JavaFX application for managing application settings and preferences.
+ * This application provides a user interface for accessing various features including:
+ * - Enterprise Edition access
+ * - App feedback submission
+ * - AI advice configuration
+ * - Password management
+ * - Account management
+ * - Logout functionality
+ *
+ * The interface includes a search feature for quick access to settings,
+ * animated transitions, and a responsive layout with a bottom navigation bar.
+ *
+ * @author Jiachen Hou
+ * @version final
+ */
 public class Settings extends Application {
 
+    /**
+     * The main entry point for the JavaFX application.
+     * Initializes and displays the settings interface with all available options.
+     *
+     * @param primaryStage The primary stage for this application
+     */
     @Override
     public void start(Stage primaryStage) {
         BorderPane root = new BorderPane();
@@ -170,6 +192,15 @@ public class Settings extends Application {
         primaryStage.show();
     }
 
+    /**
+     * Creates a navigation button with highlight effect for the bottom navigation bar.
+     * The button includes an emoji icon and text label, with visual feedback for the active state.
+     *
+     * @param labelText The text to display on the button
+     * @param emojiSymbol The emoji to display as an icon
+     * @param isActive Whether this button represents the current page
+     * @return A styled Button with emoji and text
+     */
     private Button createNavButtonWithHighlight(String labelText, String emojiSymbol, boolean isActive) {
         VBox buttonContent = new VBox();
         buttonContent.setAlignment(Pos.CENTER);
@@ -192,6 +223,12 @@ public class Settings extends Application {
         return navigationButton;
     }
 
+    /**
+     * Adds hover animation effects to a button.
+     * Creates a smooth scaling animation when the mouse enters or exits the button.
+     *
+     * @param button The button to add hover animation to
+     */
     private void addHoverAnimation(Button button) {
         button.setOnMouseEntered(e -> {
             ScaleTransition scaleUp = new ScaleTransition(Duration.millis(200), button);
@@ -207,6 +244,13 @@ public class Settings extends Application {
         });
     }
 
+    /**
+     * Gets the appropriate emoji symbol for a given title.
+     * Maps setting titles to their corresponding emoji icons.
+     *
+     * @param title The title to get the emoji for
+     * @return The emoji symbol as a String
+     */
     private String getEmojiForTitle(String title) {
         return switch (title) {
             case "Enterprise Edition" -> "\uD83C\uDFE2";
@@ -219,6 +263,16 @@ public class Settings extends Application {
         };
     }
 
+    /**
+     * Creates a settings button with the specified properties.
+     * The button includes an emoji icon, title, and description text.
+     *
+     * @param primaryStage The primary stage of the application
+     * @param title The title of the button
+     * @param description The description text
+     * @param bgColor The background color in hex format
+     * @return A styled Button with the specified content
+     */
     private Button createSettingButton(Stage primaryStage, String title, String description, String bgColor) {
         Button button = new Button();
         button.setMaxWidth(800);
@@ -249,6 +303,13 @@ public class Settings extends Application {
         return button;
     }
 
+    /**
+     * Shows a default welcome page when a specific page is not implemented.
+     * Displays a simple welcome message with a back button.
+     *
+     * @param primaryStage The primary stage of the application
+     * @param pageTitle The title of the page to display
+     */
     private void showDefaultWelcomePage(Stage primaryStage, String pageTitle) {
         VBox newPageLayout = new VBox();
         newPageLayout.setAlignment(Pos.CENTER);
@@ -266,12 +327,20 @@ public class Settings extends Application {
         Scene newScene = new Scene(newPageLayout, 1366, 768);
         primaryStage.setScene(newScene);
     }
+
+    /**
+     * Opens a new page based on the selected title.
+     * Handles navigation to different sections of the application.
+     *
+     * @param primaryStage The primary stage of the application
+     * @param pageTitle The title of the page to open
+     */
     private void openNewPage(Stage primaryStage, String pageTitle) {
         try {
             switch (pageTitle) {
                 case "Enterprise Edition" -> new NutlletEnterprise().start(new Stage());
                 case "App Feedback" -> new Mailbox().start(new Stage());
-                case "AI Advice" -> new FinancialAnalysis().start(new Stage());
+                case "AI Advice" -> new FinancialAnalysis().start(new Stage(), true);
                 case "Change Password" -> new LoginPassword().start(new Stage());
                 case "Sign Up with New Account" -> new LoginSignUp().start(new Stage());
                 case "Log out" -> new Login().start(new Stage());
@@ -283,6 +352,11 @@ public class Settings extends Application {
         }
     }
 
+    /**
+     * The main method that launches the JavaFX application.
+     *
+     * @param args Command line arguments
+     */
     public static void main(String[] args) {
         launch(args);
     }

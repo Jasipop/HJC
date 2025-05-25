@@ -15,7 +15,6 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -23,12 +22,27 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A JavaFX application for managing reimbursement items.
+ * This application provides a user interface for viewing, searching, and managing reimbursement records
+ * with features such as item listing, search functionality, and item deletion.
+ *
+ * @author Jiachen Hou
+ * @version final
+ */
 public class ReimbursementList extends Application {
 
     private final List<HBox> allItems = new ArrayList<>();
     private VBox itemsContainer;
     private List<String[]> csvData = new ArrayList<>();
 
+    /**
+     * The main entry point for the JavaFX application.
+     * Initializes and displays the reimbursement list interface with all necessary components
+     * including search functionality, item listing, and navigation elements.
+     *
+     * @param primaryStage The primary stage for this application
+     */
     @Override
     public void start(Stage primaryStage) {
         StackPane root = new StackPane();
@@ -75,7 +89,7 @@ public class ReimbursementList extends Application {
 
                 // Parse CSV line with quotes
                 String[] parts = parseCsvLine(line);
-                if (parts.length >= 8 && "报销".equals(parts[1])) {
+                if (parts.length >= 8 && "Reimbursement".equals(parts[1])) {
                     csvData.add(parts);
                     String category = parts[2]; // 交易对方 -> title
                     String detail = parts[3];  // 商品 -> note
@@ -184,6 +198,13 @@ public class ReimbursementList extends Application {
         primaryStage.show();
     }
 
+    /**
+     * Parses a CSV line while handling quoted values correctly.
+     * This method ensures that commas within quoted values are not treated as delimiters.
+     *
+     * @param line The CSV line to parse
+     * @return An array of strings containing the parsed values
+     */
     private String[] parseCsvLine(String line) {
         List<String> values = new ArrayList<>();
         boolean inQuotes = false;
@@ -203,6 +224,12 @@ public class ReimbursementList extends Application {
         return values.toArray(new String[0]);
     }
 
+    /**
+     * Deletes a reimbursement item from both the UI and the underlying CSV file.
+     * Shows confirmation dialog before deletion and handles any errors that may occur.
+     *
+     * @param index The index of the item to delete
+     */
     private void deleteItem(int index) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Delete");
@@ -215,7 +242,7 @@ public class ReimbursementList extends Application {
 
         alert.showAndWait().ifPresent(response -> {
             if (response == buttonTypeYes) {
-                // 获取要删除的交易数据
+                // Get the transaction data to be deleted
                 String[] deletedData = csvData.get(index);
                 String deletedLine = findMatchingLineInCSV(deletedData);
 
@@ -228,14 +255,14 @@ public class ReimbursementList extends Application {
                     return;
                 }
 
-                // 从内存中删除数据
+                // Delete data from memory
                 csvData.remove(index);
                 allItems.remove(index);
                 itemsContainer.getChildren().remove(index);
 
-                // 更新CSV文件
+                // Update CSV file
                 try {
-                    // 读取原始文件
+                    // Read original file
                     List<String> lines = new ArrayList<>();
                     try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
                         String line;
@@ -247,7 +274,7 @@ public class ReimbursementList extends Application {
                                 continue;
                             }
 
-                            // 跳过要删除的行
+                            // Skip the line to be deleted
                             if (line.equals(deletedLine)) {
                                 continue;
                             }
@@ -255,14 +282,14 @@ public class ReimbursementList extends Application {
                         }
                     }
 
-                    // 写入更新后的文件
+                    // Write updated file
                     try (FileWriter writer = new FileWriter("deals.csv")) {
                         for (String line : lines) {
                             writer.write(line + "\n");
                         }
                     }
 
-                    // 更新剩余项的索引
+                    // Update indices of remaining items
                     for (int i = 0; i < allItems.size(); i++) {
                         HBox item = allItems.get(i);
                         for (javafx.scene.Node node : item.getChildren()) {
@@ -295,7 +322,13 @@ public class ReimbursementList extends Application {
         });
     }
 
-    // 辅助方法：根据内存中的数据找到CSV文件中对应的行
+    /**
+     * Finds the matching line in the CSV file for a given data array.
+     * Compares all key fields to ensure the correct line is identified.
+     *
+     * @param data The data array containing the item's information
+     * @return The matching line from the CSV file, or an empty string if not found
+     */
     private String findMatchingLineInCSV(String[] data) {
         try (BufferedReader reader = new BufferedReader(new FileReader("deals.csv"))) {
             String line;
@@ -308,8 +341,8 @@ public class ReimbursementList extends Application {
                 }
 
                 String[] parts = parseCsvLine(line);
-                if (parts.length >= 8 && "报销".equals(parts[1])) {
-                    // 比较所有关键字段是否匹配
+                if (parts.length >= 8 && "Reimbursement".equals(parts[1])) {
+                    // Check matching fields
                     if (parts[0].equals(data[0]) &&  // 交易时间
                             parts[2].equals(data[2]) &&  // 交易对方
                             parts[3].equals(data[3]) &&  // 商品
@@ -325,6 +358,10 @@ public class ReimbursementList extends Application {
         return "";
     }
 
+    /**
+     * Refreshes the UI by reloading all reimbursement items from the CSV file.
+     * Clears existing items and rebuilds the display with current data.
+     */
     private void refreshUI() {
         allItems.clear();
         itemsContainer.getChildren().clear();
@@ -341,7 +378,7 @@ public class ReimbursementList extends Application {
                 if (line.trim().isEmpty()) continue;
 
                 String[] parts = parseCsvLine(line);
-                if (parts.length >= 8 && "报销".equals(parts[1])) {
+                if (parts.length >= 8 && "Reimbursement".equals(parts[1])) {
                     csvData.add(parts);
                     String category = parts[2];
                     String detail = parts[3];
@@ -360,6 +397,14 @@ public class ReimbursementList extends Application {
         }
     }
 
+    /**
+     * Creates a navigation button with an emoji icon and label.
+     * Used for the bottom navigation bar buttons.
+     *
+     * @param label The text label for the button
+     * @param emoji The emoji icon to display
+     * @return A styled Button with the specified label and emoji
+     */
     private Button createNavButtonWithEmoji(String label, String emoji) {
         VBox btnContainer = new VBox();
         btnContainer.setAlignment(Pos.CENTER);
@@ -382,6 +427,19 @@ public class ReimbursementList extends Application {
         return button;
     }
 
+    /**
+     * Creates a reimbursement item display box with all its components.
+     * Includes amount, category, details, status, and action buttons.
+     *
+     * @param category The category of the reimbursement
+     * @param detail The detailed description
+     * @param amount The reimbursement amount
+     * @param date The date of the reimbursement
+     * @param status The current status
+     * @param person The responsible person
+     * @param index The index of the item in the list
+     * @return An HBox containing the formatted item display
+     */
     private HBox createItem(String category, String detail, String amount, String date, String status, String person, int index) {
         HBox itemBox = new HBox();
         itemBox.setSpacing(15);
@@ -440,6 +498,12 @@ public class ReimbursementList extends Application {
         return itemBox;
     }
 
+    /**
+     * Creates a star toggle button for marking important items.
+     * Includes SVG star icon and color transition effects.
+     *
+     * @return A ToggleButton with star icon and styling
+     */
     private ToggleButton createStarToggleButton() {
         ToggleButton toggleButton = new ToggleButton();
         toggleButton.setStyle("-fx-background-color: transparent; -fx-padding: 5;");
@@ -464,6 +528,14 @@ public class ReimbursementList extends Application {
         return toggleButton;
     }
 
+    /**
+     * Recursively searches through text nodes in the UI to find matching keywords.
+     * Used for implementing the search functionality.
+     *
+     * @param node The node to search in
+     * @param keyword The keyword to search for
+     * @return true if the keyword is found, false otherwise
+     */
     private boolean searchTextNodesRecursively(javafx.scene.Node node, String keyword) {
         if (node instanceof Text t && t.getText().toLowerCase().contains(keyword)) {
             return true;
@@ -475,6 +547,11 @@ public class ReimbursementList extends Application {
         return false;
     }
 
+    /**
+     * The main method that launches the application.
+     *
+     * @param args Command line arguments
+     */
     public static void main(String[] args) {
         launch(args);
     }
