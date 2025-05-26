@@ -1,1 +1,0 @@
-memberSearchIndex = [{"p":"Merge","c":"Free_Design_Classification","l":"Free_Design_Classification()","u":"%3Cinit%3E()"},{"p":"Merge","c":"Free_Design_Classification","l":"main(String[])","u":"main(java.lang.String[])"},{"p":"Merge","c":"Free_Design_Classification","l":"start(Stage)","u":"start(javafx.stage.Stage)"}];updateSearchResults();
