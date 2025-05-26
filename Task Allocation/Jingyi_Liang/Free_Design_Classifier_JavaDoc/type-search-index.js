@@ -1,0 +1,1 @@
+typeSearchIndex = [{"p":"Merge","l":"Free_Design_Classification"},{"l":"所有类和接口","u":"allclasses-index.html"}];updateSearchResults();
