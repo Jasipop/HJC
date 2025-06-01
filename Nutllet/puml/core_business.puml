@@ -1,0 +1,71 @@
+@startuml
+!include common.puml
+package "Core Business" {
+
+    class Transaction_Management_System {
+        -transactionList: List<Transaction>
+        -userManager: UserManager
+        +processTransaction(transaction: Transaction): void
+        +validateTransaction(transaction: Transaction): boolean
+        +getTransactionHistory(): List<Transaction>
+    }
+
+'    class SeasonalSpike {
+'        -currentView: View
+'        +displayTransactionList(): void
+'        +showTransactionDetails(transaction: Transaction): void
+'        +updateUI(): void
+'    }
+
+    class Intelligent_Transaction_Classifier {
+        -classificationRules: List<Rule>
+        +classifyTransaction(transaction: Transaction): Category
+        +learnFromNewData(data: TransactionData): void
+        +getClassificationAccuracy(): double
+    }
+
+    class Bank_Data_Management {
+        -bankAccounts: Map<String, Account>
+        +syncBankData(): void
+        +getAccountBalance(accountId: String): double
+        +updateAccountInfo(account: Account): void
+    }
+
+'
+'    class Discover {
+'        -recommendations: List<Recommendation>
+'        +getPersonalizedOffers(): List<Offer>
+'        +searchDeals(criteria: SearchCriteria): List<Deal>
+'    }
+
+    class ReimbursementList {
+        -reimbursements: List<Reimbursement>
+        +addReimbursement(reimbursement: Reimbursement): void
+        +getPendingReimbursements(): List<Reimbursement>
+        +approveReimbursement(id: String): void
+    }
+
+    class ReimbursementAddNew {
+        +setAmount(amount: double): void
+        +setDescription(description: String): void
+        +attachReceipt(file: File): void
+        +submitReimbursement(): void
+    }
+
+'    class FinancialAnalysis {
+'        -transactions: List<Transaction>
+'        +calculateMonthlySpending(): Map<Month, Double>
+'        +generateSpendingReport(): Report
+'        +getCategoryBreakdown(): Map<Category, Double>
+'    }
+
+}
+
+' 关系定义
+Discover --> Transaction_Management_System
+Discover --> Intelligent_Transaction_Classifier
+Discover --> Bank_Data_Management
+Discover --> ReimbursementList
+ReimbursementList --> ReimbursementAddNew
+
+@enduml

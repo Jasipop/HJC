@@ -1,0 +1,70 @@
+@startuml
+!include common.puml
+package "Features" {
+
+'    class Discover {
+'        -recommendations: List<Recommendation>
+'        +getPersonalizedOffers(): List<Offer>
+'        +searchDeals(criteria: SearchCriteria): List<Deal>
+'    }
+
+    class Mailbox {
+        -messages: List<Message>
+        +sendMessage(message: Message): void
+        +getUnreadMessages(): List<Message>
+        +deleteMessage(messageId: String): void
+    }
+
+
+
+    
+    class International {
+        -exchangeRates: Map<Currency, Double>
+        +convertCurrency(amount: double, from: Currency, to: Currency): double
+        +getExchangeRate(from: Currency, to: Currency): double
+    }
+    class SeasonalSpike {
+        -currentView: View
+        +displayTransactionList(): void
+        +showTransactionDetails(transaction: Transaction): void
+        +updateUI(): void
+    }
+    class InternationalList {
+        -internationalTransactions: List<InternationalTransaction>
+        +getTransactionHistory(): List<InternationalTransaction>
+        +filterByCurrency(currency: Currency): List<InternationalTransaction>
+    }
+    class NutlletReminder {
+        -reminders: List<Reminder>
+        +createReminder(reminder: Reminder): void
+        +getUpcomingReminders(): List<Reminder>
+        +deleteReminder(reminderId: String): void
+    }
+
+    class NutlletAddNewReminder {
+        +setReminderDate(date: Date): void
+        +setReminderDescription(description: String): void
+        +setReminderPriority(priority: Priority): void
+        +saveReminder(): void
+    }
+
+    class Reminder {
+        -id: String
+        -date: Date
+        -description: String
+        -priority: Priority
+        +isOverdue(): boolean
+        +getRemainingTime(): Duration
+    }
+
+}
+
+' 关系定义
+Discover --> InternationalList
+Discover --> Mailbox
+InternationalList --> International
+Nutllet --> Reminder
+Reminder --> NutlletAddNewReminder
+Reminder --> NutlletReminder
+
+@enduml 

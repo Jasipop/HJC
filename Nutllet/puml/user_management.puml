@@ -1,0 +1,38 @@
+@startuml
+
+package "User Management" {
+    class Login {
+        -username: String
+        -password: String
+        +authenticate(): boolean
+        +validateCredentials(): boolean
+        +logout(): void
+    }
+    
+    class LoginSignUp {
+        +validateEmail(email: String): boolean
+        +createNewAccount(userData: UserData): void
+        +sendVerificationEmail(): void
+    }
+    
+    class LoginPassword {
+        +resetPassword(): void
+        +validatePasswordStrength(): boolean
+        +updatePassword(newPassword: String): void
+    }
+    
+    class Settings {
+        -preferences: Map<String, Object>
+        +updatePreference(key: String, value: Object): void
+        +getUserPreferences(): Map<String, Object>
+        +resetToDefaults(): void
+    }
+}
+
+' 关系定义
+Settings --> LoginSignUp
+Settings --> LoginPassword
+Login --> Settings
+
+
+@enduml 

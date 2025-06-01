@@ -1,0 +1,191 @@
+@startuml
+
+' 架构层类图
+package "Architecture" {
+    class Main {
+        +main(args: String[]): void
+    }
+    
+    class Transaction_Management_System {
+        -transactionList: List<Transaction>
+        -userManager: UserManager
+        +processTransaction(transaction: Transaction): void
+        +validateTransaction(transaction: Transaction): boolean
+        +getTransactionHistory(): List<Transaction>
+    }
+    
+    class UI_1 {
+        -currentView: View
+        +displayTransactionList(): void
+        +showTransactionDetails(transaction: Transaction): void
+        +updateUI(): void
+    }
+    
+    class Intelligent_Transaction_Classifier {
+        -classificationRules: List<Rule>
+        +classifyTransaction(transaction: Transaction): Category
+        +learnFromNewData(data: TransactionData): void
+        +getClassificationAccuracy(): double
+    }
+    
+    class Bank_Data_Management {
+        -bankAccounts: Map<String, Account>
+        +syncBankData(): void
+        +getAccountBalance(accountId: String): double
+        +updateAccountInfo(account: Account): void
+    }
+}
+
+' 核心业务类
+package "Core Business" {
+    class Nutllet {
+        -userId: String
+        -balance: double
+        +getBalance(): double
+        +addTransaction(transaction: Transaction): void
+        +getTransactionHistory(): List<Transaction>
+    }
+    
+    class NutlletEnterprise {
+        -companyId: String
+        -companyName: String
+        -employees: List<Employee>
+        +manageEmployees(): void
+        +generateFinancialReport(): Report
+    }
+    
+    class NutlletReminder {
+        -reminders: List<Reminder>
+        +createReminder(reminder: Reminder): void
+        +getUpcomingReminders(): List<Reminder>
+        +deleteReminder(reminderId: String): void
+    }
+    
+    class NutlletAddNewReminder {
+        +setReminderDate(date: Date): void
+        +setReminderDescription(description: String): void
+        +setReminderPriority(priority: Priority): void
+        +saveReminder(): void
+    }
+    
+    class Reminder {
+        -id: String
+        -date: Date
+        -description: String
+        -priority: Priority
+        +isOverdue(): boolean
+        +getRemainingTime(): Duration
+    }
+    
+    class FinancialAnalysis {
+        -transactions: List<Transaction>
+        +calculateMonthlySpending(): Map<Month, Double>
+        +generateSpendingReport(): Report
+        +getCategoryBreakdown(): Map<Category, Double>
+    }
+    
+    class EP_FinancialAnalysis {
+        -enterpriseData: EnterpriseData
+        +analyzeCompanyPerformance(): PerformanceReport
+        +generateQuarterlyReport(): Report
+        +getEmployeeExpenseAnalysis(): ExpenseReport
+    }
+}
+
+' 用户管理类
+package "User Management" {
+    class Login {
+        -username: String
+        -password: String
+        +authenticate(): boolean
+        +validateCredentials(): boolean
+        +logout(): void
+    }
+    
+    class LoginSignUp {
+        +validateEmail(email: String): boolean
+        +createNewAccount(userData: UserData): void
+        +sendVerificationEmail(): void
+    }
+    
+    class LoginPassword {
+        +resetPassword(): void
+        +validatePasswordStrength(): boolean
+        +updatePassword(newPassword: String): void
+    }
+    
+    class Settings {
+        -preferences: Map<String, Object>
+        +updatePreference(key: String, value: Object): void
+        +getUserPreferences(): Map<String, Object>
+        +resetToDefaults(): void
+    }
+}
+
+' 功能模块类
+package "Features" {
+    class Mailbox {
+        -messages: List<Message>
+        +sendMessage(message: Message): void
+        +getUnreadMessages(): List<Message>
+        +deleteMessage(messageId: String): void
+    }
+    
+    class Discover {
+        -recommendations: List<Recommendation>
+        +getPersonalizedOffers(): List<Offer>
+        +searchDeals(criteria: SearchCriteria): List<Deal>
+    }
+    
+    class ReimbursementList {
+        -reimbursements: List<Reimbursement>
+        +addReimbursement(reimbursement: Reimbursement): void
+        +getPendingReimbursements(): List<Reimbursement>
+        +approveReimbursement(id: String): void
+    }
+    
+    class ReimbursementAddNew {
+        +setAmount(amount: double): void
+        +setDescription(description: String): void
+        +attachReceipt(file: File): void
+        +submitReimbursement(): void
+    }
+    
+    class International {
+        -exchangeRates: Map<Currency, Double>
+        +convertCurrency(amount: double, from: Currency, to: Currency): double
+        +getExchangeRate(from: Currency, to: Currency): double
+    }
+    
+    class InternationalList {
+        -internationalTransactions: List<InternationalTransaction>
+        +getTransactionHistory(): List<InternationalTransaction>
+        +filterByCurrency(currency: Currency): List<InternationalTransaction>
+    }
+}
+
+' 关系定义
+Main --> Transaction_Management_System
+Transaction_Management_System --> UI_1
+Transaction_Management_System --> Intelligent_Transaction_Classifier
+Transaction_Management_System --> Bank_Data_Management
+
+Nutllet --> NutlletEnterprise
+Nutllet --> NutlletReminder
+NutlletReminder --> NutlletAddNewReminder
+NutlletReminder --> Reminder
+Nutllet --> FinancialAnalysis
+NutlletEnterprise --> EP_FinancialAnalysis
+
+Login --> LoginSignUp
+Login --> LoginPassword
+Login --> Settings
+
+Nutllet --> Mailbox
+Nutllet --> Discover
+Nutllet --> ReimbursementList
+ReimbursementList --> ReimbursementAddNew
+Nutllet --> International
+International --> InternationalList
+
+@enduml 

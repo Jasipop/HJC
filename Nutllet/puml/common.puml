@@ -1,0 +1,21 @@
+@startuml
+
+' 共享的类定义
+class Nutllet {
+    -userId: String
+    -balance: double
+    +getBalance(): double
+    +addTransaction(transaction: Transaction): void
+    +getTransactionHistory(): List<Transaction>
+}
+
+class Discover {
+    -recommendations: List<Recommendation>
+    +getPersonalizedOffers(): List<Offer>
+    +searchDeals(criteria: SearchCriteria): List<Deal>
+}
+
+Nutllet  --> Discover
+
+
+@enduml 

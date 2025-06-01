@@ -1,0 +1,12 @@
+@startuml
+
+!include common.puml
+!include architecture.puml
+!include core_business.puml
+!include features.puml
+'!include user_management.puml
+
+' 跨模块关系
+
+
+@enduml 
